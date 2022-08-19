@@ -1,0 +1,138 @@
+---
+title: '**DSA/ISE-5103**'
+subtitle: '**Guidelines for Assignment Reports**' 
+
+output: 
+  pdf_document:
+    highlight: haddock
+documentclass: article
+geometry: margin = 0.8in
+urlcolor: blue
+---
+
+# R Markdown
+
+* R Markdown is a format for writing reproducible, dynamic reports with R. Use it to embed R code and results into slideshows, PDFs, html documents, Word files and more (i.e. a cool way to present your reports). For more about it, use this [link](http://rmarkdown.rstudio.com/).
+* Headers in Markdown start #, and code starts with ```. For a summary of the most important commands of R Markdown, search on internet for **R Markdown Cheat Sheet**.
+* Compile R Markdown files with the Knit button right above the code editor.
+
+# About assignments for DSA/ISE 5103
+
+* **Style matters**. Make it look professional. Be succinct and straightforward. Only show code and results that are valuable to answer the questions or drive your conclusions.
+* All assignment submissions need to be in **PDF format** and you have to **attach your R or Rmd code**.
+* Include problem numbers in **both** your R/Rmd file and your PDF.
+* Your submitted code has to have the following structure: visible problem number, all the R packages used in the assignment at the top of your R script, and properly commented code. Failing to follow this structure will result in grade deduction.
+* Read the submission notes at the top of your assignments and follow them.
+* Plots should be clear and complete - export from RStudio to include in a word document or compile a document using RMarkdown. That will ensure that the plots have appropriate rendering & resolution in your submission.
+* Some assignment reports have a limit of pages. If you exceed them, some points will be deducted.
+* Remember that **R is just a tool**. If the primary goal is to demonstrate your knowledge of statistics or dimension reduction, etc., then make sure you highlight what is important and provide your **analysis**.
+
+# About this document
+
+This document is for guiding you how to hand in your homework with R Markdown. Some important remarks:
+
+* You will find some useful commands especially in the code chucks. **Read the comments in the code chunks!** They are in the Rmd file that created this PDF.
+* This version can be compiled only as a PDF, but the commands in the code chunks work also for Word and HTML.
+* If you want to directly create PDFs, you need to download TeX. You can follow this [link](https://www.latex-project.org/get/) for instructions. You can also create PDFs by converting from Word to PDF.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE} 
+# By setting echo to false, the r code in this chuck won't appear on your report
+# By setting warning and message to false, the annoying messages won't appear
+
+# All the library statements that you are using have to go in the top of the file
+library(ggplot2) # for data visualization
+library(dplyr) # for data manipulation
+```
+
+\pagebreak <!-- this is a LaTex command that works on Markdown -->
+
+# Example 1: Using code chuncks the right way
+
+### Embedding results in plain text
+
+In many times, the answers for questions are straightforward. You can make the calculations in a chunk and show the results embeded in your plain text paragraphs. Use *include = FALSE* at the top of the code chunk.
+
+```{r, include=FALSE}
+# If we want to compute this without showing the code neither the results use include = FALSE
+m <- mean(mtcars$hp) # calculation of mean
+s <- sd(mtcars$hp) # calculation of standard deviation
+```
+
+Now that you calculated these values, just call it by name of the variable and it will be printed in your report once you compile it. Here an example:
+
+"The computed mean for the attribute hp is `r round(m, 2)` and its standard deviation is `r round(s, 2)`. From this we can conclude that ..."
+
+### Showing only results
+
+If you want to show ONLY the results as R output, do the following (this will not show the R code to make them happen):
+
+```{r, echo=FALSE}
+# Setting echo to false will make your results appear (if you are showing them), but not the code
+quantile_hp <- quantile(mtcars$hp) # taking quantile for hp
+quantile_hp # showing the results from the previous calculation
+```
+
+### Showing only R code
+
+If you want to show the R code because you think it's important, but not to evaluate it (i.e. nothing happens when running this code chunk), then use *eval = FALSE*:
+
+```{r, eval=FALSE}
+# Set eval to false to avoid evaluation the code chuck
+scale_0to1 <- function(x){(x - min(x)) / (max(x) - min(x))} # creating a function to scale from 0 to 1
+```
+
+### Showing R code along with results
+
+If you consider that some R code and results are needed to answer the question, set echo to TRUE and show it (and do not forget to include some analysis of the results):
+
+```{r, echo=TRUE}
+# By default your code and results will appear
+glimpse(mtcars) # command similar to str 
+```
+
+\pagebreak <!-- this is a LaTex command that works on Markdown -->
+
+# Example 2: Shrinking plots to make them fit
+
+It's a common problem that your plots are going to be too big to look nice in your report. Like the following plot: 
+
+```{r, echo=FALSE}
+# By setting echo to false, the r code in this chuck won't appear on your report
+
+# Plotting weight vs miles per galon
+arc <- ggplot(mtcars, aes(x = wt, y = mpg, col = factor(cyl))) + 
+  geom_point(size = 4.5, alpha = 0.6) +
+  geom_smooth(method = "lm", se = F) +
+  xlab("Weigth (lb/1000)") + ylab("Miles/US gallon") + 
+  labs(col = "Cylinders") +
+  stat_smooth(method = "lm", se = F) + 
+  stat_smooth(method = "lm", se = F, col = "black", aes(group = 1)) +
+  theme_classic()
+arc # call the object to show the plot
+```
+
+You can shrink the plot easily with the *fig* commands, and you'll have set the figure width and height.
+
+```{r, fig.width=4, fig.height=3, echo=FALSE}
+# You may change the width and the height for your convenience (trial and error)
+arc
+```
+
+We can even make two plots fit in the same space (as two columns) by using the right width and height.
+
+```{r, fig.width=3.5, fig.height=2.5, echo=FALSE}
+# Just change the width and height
+arc
+arc
+```
+
+Now that you have the perfect plot in the suitable space, **DO NOT forget to comment on it!** If you don't comment/use them for your analysis, then there is no purpose to keep them in your report.
+
+# Final remarks
+
+* Remind, your PDF report DOES NOT have to contain unnecesary code. Save space for your analysis and results that help your analysis.
+* Each piece of results or plot that you are presenting in the report should come along with some analysis.
+* If you have several interesting results, use a table or something creative to show them. Search on internet table tools like [this](http://www.tablesgenerator.com/markdown_tables).
+* Do not forget to submit your R code along with your report. If you used R Markdown, you are good to upload your .Rmd file instead of the .R file as long as it has all the code you used.
+
+Thanks for reading.
