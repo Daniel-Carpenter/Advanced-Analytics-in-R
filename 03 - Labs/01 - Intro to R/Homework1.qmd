@@ -154,15 +154,27 @@ col4 <- c(14,NA,13,NA,27)
 X <- rbind (col1,col2,col3,col4)
 ```
 
-### then write code to display all rows in X with missing values.
+### Then write code to display all rows in X with missing values.
+```{r}
+# All rows of X that have NAs (e.g., not complete)
+X[!complete.cases(X), ]
+```
 
 
-(b) Use the following vector y for this part: 
+## (b) 
+
+Use the following vector y for this part: 
 ```{r}
 y <- c(3,12,99,99,7,99,21)
 ```
 
-i. Some statistical applications and older systems sometimes code missing values with a number,
+### i. 
+Some statistical applications and older systems sometimes code missing values with a number,
 e.g., 99. In order to let R know that is a missing value you need to recode it as ‘NA’. Please
 write a line of code that will replace any 99’s in the vector y with ‘NA’.
-ii. With the updated vector y, write code that will count the number of missing values in it.
+```{r}
+# y==99
+```
+
+### ii. 
+With the updated vector y, write code that will count the number of missing values in it.
