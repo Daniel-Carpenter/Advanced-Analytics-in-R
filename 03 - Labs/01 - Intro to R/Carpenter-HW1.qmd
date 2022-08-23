@@ -24,6 +24,7 @@ editor: visual
 ## (a)
 
 Create a vector with 10 numbers (3, 12, 6, -5, 0, 8, 15, 1, -10, 7) and assign it to x.
+
 ```{r}
 x <- c(3, 12, 6, -5, 0, 8, 15, 1, -10, 7)
 ```
@@ -31,6 +32,7 @@ x <- c(3, 12, 6, -5, 0, 8, 15, 1, -10, 7)
 ## (b)
 
 Using the commands seq, min, and max with one line of code create a new vector y with 10 elements ranging from the minimum value of x to the maximum value of x.
+
 ```{r}
 # Min, max of x vector
 xMin = min(x)
@@ -45,10 +47,10 @@ y # display
 paste('The length of y is:', length(y) )
 ```
 
-
 ## (c)
 
 ### Compute the `sum`, `mean`, `standard deviation`, `variance`, `mean absolute deviation`, `quartiles`
+
 ```{r}
 # Combine x and y into single object
 xAndY <- cbind(x, y)
@@ -75,8 +77,8 @@ for (funIdx in 1:length(vectorOfFuns)) {
 }
 ```
 
-
 ### Compute the Quintiles
+
 ```{r}
 # Quintile for x
 quantile(x, probs = seq(0, 1, 0.20))
@@ -85,20 +87,20 @@ quantile(x, probs = seq(0, 1, 0.20))
 quantile(y, probs = seq(0, 1, 0.20))
 ```
 
-
 ## (d)
 
 Use sample() to create a new 7 element vector z by using R to randomly sample from x with replacement.
+
 ```{r}
 z = sample(x, size=7)
 
 z # show value
 ```
 
-
 ## (e)
 
-Use `t.test()` to compute a statistical test for differences in means between the vectors `x` and `y`. 
+Use `t.test()` to compute a statistical test for differences in means between the vectors `x` and `y`.
+
 ```{r}
 t.test(x, y)
 ```
@@ -107,11 +109,13 @@ t.test(x, y)
 
 No, they are not statistically significant (90%, 95%, or 99%), given
 
-* t-value is < ~1.96  
-* p-value is > 0.10, 0.05. 0.01  
+-   t-value is \< \~1.96\
+-   p-value is \> 0.10, 0.05. 0.01
 
 ## (f)
+
 To sort a data frame in `R`, use the `order()` function. Sort the vector `x` and re-run the t-test as a paired t-test.
+
 ```{r}
 # Sort x
 xSorted = x[order(x)]
@@ -121,7 +125,9 @@ t.test(x, y, paired = TRUE)
 ```
 
 ## (g)
+
 Create a logical vector that identifies which numbers in x are negative.
+
 ```{r}
 xThatAreNeg = x < 0
 
@@ -130,22 +136,23 @@ xThatAreNeg # display
 ```
 
 ## (h)
+
 Use this logical vector to remove all entries with negative numbers from x. (Make sure to overwrite the vector x so that the new vector x has 8 elements!)
+
 ```{r}
 x = subset(x, !xThatAreNeg)
 
 x # display
 ```
 
-
-
 \newpage
 
 # Using R: Some missing values
 
-## (a) 
+## (a)
 
 ### Use the code below to create the dataframe X and
+
 ```{r}
 col1 <- c(1,2,3,NA,5)
 col2 <- c(4,5,6,89,101)
@@ -155,31 +162,34 @@ X <- rbind (col1,col2,col3,col4)
 ```
 
 ### Then write code to display all rows in X with missing values.
+
 ```{r}
 # All rows of X that have NAs (e.g., not complete)
 X[!complete.cases(X), ]
 ```
 
+## (b)
 
-## (b) 
+Use the following vector y for this part:
 
-Use the following vector y for this part: 
 ```{r}
 y <- c(3,12,99,99,7,99,21)
 ```
 
-### i. 
-Some statistical applications and older systems sometimes code missing values with a number,
-e.g., 99. In order to let R know that is a missing value you need to recode it as ‘NA’. Please
-write a line of code that will replace any 99’s in the vector y with ‘NA’.
+### i.
+
+Some statistical applications and older systems sometimes code missing values with a number, e.g., 99. In order to let R know that is a missing value you need to recode it as 'NA'. Please write a line of code that will replace any 99's in the vector y with 'NA'.
+
 ```{r}
 # Replace 99 with NA values in the vector y
 y[y == 99] <- NA
 y
 ```
 
-### ii. 
+### ii.
+
 With the updated vector y, write code that will count the number of missing values in it.
+
 ```{r}
 # Number of NA values in the vector y
 sum( is.na(y) )
