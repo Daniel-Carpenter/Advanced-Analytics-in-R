@@ -1,0 +1,88 @@
+---
+title: "Homework 1"
+author: "Daniel Carpenter"
+date: "August 2022"
+format: 
+  pdf:
+    toc: true
+    toc-depth: 1
+    number-sections: true
+    # mainfont: Arial
+    highlight-style: github #arrow
+    # code-block-bg: true
+    code-block-border-left: "#D6D6D6"
+
+editor: visual
+---
+
+\newpage
+
+## Using R: Vectors
+
+### (a)
+
+Create a vector with 10 numbers (3, 12, 6, -5, 0, 8, 15, 1, -10, 7) and assign it to x.
+
+```{r}
+x <- c(3, 12, 6, -5, 0, 8, 15, 1, -10, 7)
+```
+
+### (b)
+
+Using the commands seq, min, and max with one line of code create a new vector y with 10 elements ranging from the minimum value of x to the maximum value of x.
+
+```{r}
+# Min, max of x vector
+xMin = min(x)
+xMax = max(x)
+INCREMENT = (xMax - xMin) / (length(x) - 1) # size of each step
+
+# Create the vector from min of x to max of x while maintaining length of 10
+y = seq(min(x), max(x), INCREMENT)
+y # display
+
+# Prove is 10 elements:
+length(y)
+```
+
+### (c)
+
+Compute the sum, mean, standard deviation, variance, mean absolute deviation, quartiles, and quintiles for x and y.
+
+```{r}
+```
+
+### (d)
+
+Use sample() to create a new 7 element vector z by using R to randomly sample from x with replacement.
+
+```{r}
+```
+
+### (e)
+
+Use t.test() to compute a statistical test for differences in means between the vectors x and y. Are the differences in means significant?
+
+```{r}
+```
+
+### (f)
+
+To sort a data frame in R, use the order() function. Sort the vector x and re-run the t-test as a paired t-test.
+
+```{r}
+```
+
+### (g)
+
+Create a logical vector that identifies which numbers in x are negative.
+
+```{r}
+```
+
+### (h)
+
+Use this logical vector to remove all entries with negative numbers from x. (Make sure to overwrite the vector x so that the new vector x has 8 elements!)
+
+```{r}
+```
