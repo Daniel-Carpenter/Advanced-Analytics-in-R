@@ -12,8 +12,9 @@ format:
     # code-block-bg: true
     code-block-border-left: "#D6D6D6"
 execution:
-  echo: true
+  echo:    true
   include: true
+  cache:   true
 editor: visual
 ---
 
@@ -198,3 +199,165 @@ sum( is.na(y) )
 \newpage
 
 # Using R: Introductory data exploration
+
+## a. Read in `college.csv`
+
+```{r}
+college <- read.csv('college.csv')
+```
+
+## b. Preview data
+
+```{r}
+# Create row names for each college
+rownames(college) <- college[, 1] 
+
+# Remove the college variabl
+college <- college[,-1] # get row names and store as field
+
+# View(college)
+```
+
+## c.
+
+### i. Stats on Data
+
+```{r}
+# summary of each variable
+summary(college)
+```
+
+### ii. Pairs Plots
+
+```{r, fig.height=11, fig.width=8}
+# Find package for `pairs`
+# ?pairs
+
+
+# Correlation between 1st 10 variables
+pairs(college[, 2:11]) # 2-11 since first variable is type character
+```
+
+### iii. Boxplots: Private/Public OS Tuition
+
+```{r, fig.height=4}
+# Note used boxplot instead of plot since it is the de facto for base R
+# Hope that choice is okay - took a judgement call
+boxplot(
+        # Data
+        Outstate ~ Private, # Y ~ X
+        data   =  college,  # Dataset
+        
+        # Aesthetics (titles & colors)
+        main   = "Out of State Tution: Public vs. Private Colleges",
+        names  = c('Public', 'Private'), # names of the x axis
+        xlab   = "College Type",
+        ylab   = "Out of State Tuition ($)",
+        col    = "lightblue2",
+        border = "steelblue4"
+)
+```
+
+### iv. `Elite` variable
+
+```{r}
+# By default create and set the Elite variable to 'No'
+Elite <- rep ("No", nrow(college ))
+
+# If the college has more than 50 students from the top 10% of their class,
+# Then 'Yes', the college is elite
+Elite [college$Top10perc >50] <- "Yes"
+
+# Ensure the data type is a factor
+Elite <- as.factor(Elite)
+
+# Finally add the new `Elite` variable to the college data frame
+college <- data.frame(college ,Elite)
+```
+
+### v. \# of Elite Colleges
+
+-   Note there are 78 elite schools (699 that are not elite). See below.
+
+```{r}
+summary(college$Elite)
+```
+
+### vi. Boxplots: Elite OS Tuition
+
+```{r}
+boxplot(
+        # Data
+        Outstate ~ Elite, # Y ~ X
+        data   =  college,  # Dataset
+        
+        # Aesthetics (titles & colors)
+        main   = "Out of State Tution: Elite vs. Non-Elite Colleges",
+        sub    = "Note 'Elite' Definition: College contains > 50 students from top 10% of class",
+        names  = c('Non-Elite', 'Elite'), # names of the x axis
+        xlab   = "Elite Status of College",
+        ylab   = "Out of State Tuition ($)",
+        col    = "lightblue2",
+        border = "steelblue4"
+)
+```
+
+### vii. Histograms
+
+-   Plot 4 numeric variables
+
+```{r, fig.height=8, fig.width=8}
+par(mfrow=c(2,2)) # Set up 2x2 grid for plotting
+
+# plot histogram with some defaults
+hist(x = college$Books,
+
+     # Aesthetics (titles & colors)
+     breaks = 20, # Number of bins
+     main   = 'Cost Distribution for Books',
+     xlab   = 'Cost of Books ($)',
+     ylab   = 'Number of Colleges',
+     col    = "lightsteelblue1",
+     border = "steelblue4"
+)
+
+# plot histogram with some defaults
+hist(x = college$Room.Board,
+
+     # Aesthetics (titles & colors)
+     breaks = 10, # Number of bins
+     main   = 'Cost Distribution for Room & Board',
+     xlab   = 'Cost of Room & Board ($)',
+     ylab   = 'Number of Colleges',
+     col    = "palevioletred",
+     border = "maroon4"
+)
+
+# plot histogram with some defaults
+hist(x = college$P.Undergrad,
+
+     # Aesthetics (titles & colors)
+     breaks = 50, # Number of bins
+     main   = 'Distribution of Number of PT Undergraduates',
+     xlab   = 'Number of Part-Time Undergraduates',
+     ylab   = 'Number of Students',
+     col    = "darkseagreen3",
+     border = "darkseagreen4"
+)
+
+# plot histogram with some defaults
+hist(x = college$F.Undergrad,
+
+     # Aesthetics (titles & colors)
+     breaks = 30, # Number of bins
+     main   = 'Distribution of Number of FT Undergraduates',
+     xlab   = 'Number of Full-Time Undergraduates',
+     ylab   = 'Number of Students',
+     col    = "thistle",
+     border = "plum4"
+)
+```
+
+\newpage
+
+# Using R: Manipulating data in data frames
