@@ -361,3 +361,75 @@ hist(x = college$F.Undergrad,
 \newpage
 
 # Using R: Manipulating data in data frames
+* Uses `tidyverse` piping and `dplyr` functions since use of `plyr` only specified for getting `baseball` dataset
+
+## (a) Load `baseball` from `plyr`
+```{r, message=FALSE}
+if (!require(plyr)) install.packages('plyr') # get plyr package
+if (!require(tidyverse)) install.packages('tidyverse') # get tidverse for piping
+
+baseball.base <- plyr::baseball
+```
+
+
+## (b) Data Cleanup
+```{r}
+# ?baseball # get info on dataset
+
+baseball <- baseball.base %>%
+  
+  # for players before 1954, sacrifice flies 
+  # (i.e. the variable sf) should be set to 0 
+  mutate(sf = if_else(year < 1954, 0.0, as.double(sf) ), # double because dplyr needs that
+         
+  # Hit by pitch (the variable hbp) is often missing,
+  # set these missings to 0.
+        hbp = if_else(is.na(hbp), 0.0, as.double(hbp) )
+  ) %>%
+  
+  # Exclude all player records with fewer than 50 at bats (the variable ab).
+  filter(ab < 50)
+
+# Validation that the manipulation worked
+# summary(baseball$sf)
+# summary(baseball$hbp)
+# summary(baseball$ab)
+```
+
+## (c) Calculate the base percentage `obp`
+```{r}
+baseball <- baseball %>%
+  
+  # Calculate base percent
+  mutate(obp = (h + bb + hbp) / (ab + bb + hbp + sf) )
+```
+
+## (d) Sort & Display
+* Sort data descending on `obp`
+* Display top 5 players
+* *Assumes the player name is the `id` since name not available in dataset*
+
+```{r}
+baseball <- baseball %>%
+  
+  # Sort data descending
+  arrange(desc(obp) )
+
+# Get package for knitting to kable table
+if (!require(knitr)) install.packages('knitr')
+
+NUM_PLAYERS_TO_DISPLAY = 5
+
+knitr::kable(
+  
+  # Print top 5 players, their year, id, obp on-base percentage
+  head(baseball %>% select(year, id, obp), # copy filtered data
+       NUM_PLAYERS_TO_DISPLAY)             # only show 5 players
+)
+```
+
+
+
+\newpage
+
+# Using R: `aggregate()` function
