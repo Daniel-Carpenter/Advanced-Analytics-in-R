@@ -57,7 +57,60 @@ Bivariate analyses    | correlations and heatmaps, scatterplots, trends, cross t
 Multivariate analyses | parallel plots, mosaic plots, regression, PCA, MDS, variable clustering
 
 
-## Explaining (cleaned up)
+## Mixed Models
+
+### What are Mixed Models?
+* Trade off between regression on multiple groups, and more meaningful aggregation
+* Looks at trends in groups and overall trend of data
+
+### Visualizing Mixed Model: Plus fitted vs. Residuals
+```{r, cache=TRUE}
+if (!require(lme4)) install.packages('lme4') # lmer function for mixed model
+data(sleepstudy,package="lme4")
+
+# Mixed linear model
+mixed <- lmer(Reaction ~ Days + (1+Days|Subject), data=sleepstudy)
+summary(mixed)
+sleepstudy$res_mix <- residuals(mixed) #residuals mixed model
+
+# Basic linear model
+linModel <- lm(data=sleepstudy, Reaction~Days)
+summary(linModel)
+
+# Capture fitted vs. residual data of linear model
+sleepstudy$res <- residuals(linModel)
+sleepstudy$fit <- predict(linModel)
+
+
+# Compare results of mixed lm and basic lm
+ggplot(sleepstudy, aes(x=Subject, y=res_mix)) +
+  geom_point() +
+  
+  # Residuals of the new mixed model
+  stat_summary(color="red", size=1) +
+  
+  # Residuals of the old lm model
+  stat_summary(aes(y=res), color="blue", size=1) 
+  
+
+# Overall mean intercept and slope
+mean_int <- fixef(mixed)[1] #mean intercept for the mixed model
+mean_slope <- fixef(mixed)[2] #mean slope for the mixed model
+
+sleepstudy$fit_mix <- predict(mixed) #fitted values from the mixed model
+
+# Fitted vs actuals
+ggplot(sleepstudy, aes(x=Days, y=Reaction)) +
+  geom_point() +
+  facet_wrap(~Subject, nrow=3) +
+  
+  # Line for fitted values of the mixed model
+  geom_line(aes(y=fit_mix), size=.75) +
+  
+  # Fixed line of the overall slop and intercept
+  geom_abline(intercept=mean_int, slope=mean_slope, color="red", size=.75)
+
+```
 
 ## `ggplot` Examples
 

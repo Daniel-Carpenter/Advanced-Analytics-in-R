@@ -3,3 +3,5 @@ reshape2
 GGally
 lattice
 fmsb
+Matrix
+lme4

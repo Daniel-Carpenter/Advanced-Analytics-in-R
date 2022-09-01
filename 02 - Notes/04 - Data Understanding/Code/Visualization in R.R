@@ -1,8 +1,8 @@
 
 data(iris)     # make sure data is loaded   (the iris data is part of the standard R distribution)
 head(iris)     # look at the first few records
-  
-?iris          # access 'help' on the iris data  
+
+# ?iris          # access 'help' on the iris data  
 
 #perform a frequency count for the Species
 table(iris$Species)
@@ -44,7 +44,7 @@ dev.off()
 # perfect for quickly exploring the data
 
 par(mfrow=c(2,2))  #OPTIONAL: change the graphical parameters so the histograms are produced 4 to a page
-                   #see ?par for more details on setting graphical parameters
+#see ?par for more details on setting graphical parameters
 
 hist(iris$Sepal.Length)
 hist(iris$Sepal.Width)
@@ -82,12 +82,12 @@ qplot(data=iris, Petal.Length)
 #or you can set several options to modify the output
 
 qplot(data=iris, Petal.Length,                       #identify data & variable
-                 geom="histogram",                   #set the "geometry"
-                 binwidth=0.2,                       #option for histogram
-                 main= "Histogram for Petal Length", #title
-                 xlab = "Petal Length",              #x-axis label
-                 fill=I("blue"),                     #fill color
-                 alpha=I(0.45))                      #set fill transparency
+      geom="histogram",                   #set the "geometry"
+      binwidth=0.2,                       #option for histogram
+      main= "Histogram for Petal Length", #title
+      xlab = "Petal Length",              #x-axis label
+      fill=I("blue"),                     #fill color
+      alpha=I(0.45))                      #set fill transparency
 
 #ggplot is the primary function in ggplot2
 #it allows for much more control over the graphics than qplot does
@@ -179,9 +179,9 @@ ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) +
 library(GGally)   #adds some more functionality to ggplot2 -- including pairs and parallel plots
 
 
-ggpairs(iris[, 1:5], lower=list(continuous="smooth", params=c(colour="blue")),
-  diag=list(params=c(colour="blue")), 
-  upper=list(params=list(corSize=6)), axisLabels='show')
+ggpairs(iris[, 1:5], lower=list(continuous="smooth", wrap=c(colour="blue")),
+        diag=list(wrap=c(colour="blue")), 
+        upper=list(wrap=list(corSize=6)), axisLabels='show')
 
 
 
@@ -189,8 +189,8 @@ ggpairs(iris[, 1:5], lower=list(continuous="smooth", params=c(colour="blue")),
 
 library(lattice)                                            #load the "lattice" library for parallel plots
 parallelplot(~iris[1:5], data=iris,                         # create parallel plot of iris data;
-               groups = Species,                            # use "Species" to define groups (and colors)
-horizontal.axis = FALSE)                                    # defaults to horizontal axis, set to vertical                           
+             groups = Species,                            # use "Species" to define groups (and colors)
+             horizontal.axis = FALSE)                                    # defaults to horizontal axis, set to vertical                           
 
 
 #parallelplot help documentation -- the input is unfortunately a little different with the ~ symbol
@@ -198,9 +198,9 @@ horizontal.axis = FALSE)                                    # defaults to horizo
 
 
 parallelplot(~iris[1:4] | Species, data = iris,             #same as above, except condition the plot by Species
-              groups = Species,   
-              horizontal.axis = FALSE, 
-              scales = list(x = list(rot = 90)))            #and rotate the labels on the x-axis
+             groups = Species,   
+             horizontal.axis = FALSE, 
+             scales = list(x = list(rot = 90)))            #and rotate the labels on the x-axis
 
 
 # you can kind of go crazy with some of this stuff too...
@@ -208,17 +208,16 @@ parallelplot(~iris[1:4] | Species, data = iris,             #same as above, exce
 
 # underlay univariate boxplots, add title, using a function from GGally
 ggparcoord(data = iris,columns = c(1:4),groupColumn = 5,
-  boxplot = TRUE,title = "Parallel Coord. Plot of Diamonds Data")
+           boxplot = TRUE,title = "Parallel Coord. Plot of Diamonds Data")
 
 
 
 #my embarassingly bad radar plot in R...
-install.packages("fmsb")
+# install.packages("fmsb")
 library(fmsb)
 radarchart(iris[,1:4], maxmin=FALSE, centerzero=TRUE)
 
 
 #my pitiful looking stars plot....
 stars(iris[,1:4], radius=TRUE, key.loc = c(30,15), ncol=10, nrow= 15, col.stars = iris$Species)
-
 

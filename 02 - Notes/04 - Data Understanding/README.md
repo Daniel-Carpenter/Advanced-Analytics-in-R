@@ -70,7 +70,128 @@ Looking at data for
 | Bivariate analyses    | correlations and heatmaps, scatterplots, trends, cross tabulations            |
 | Multivariate analyses | parallel plots, mosaic plots, regression, PCA, MDS, variable clustering       |
 
-## Explaining (cleaned up)
+## Mixed Models
+
+### What are Mixed Models?
+
+-   Trade off between regression on multiple groups, and more meaningful
+    aggregation
+-   Looks at trends in groups and overall trend of data
+
+### Visualizing Mixed Model: Plus fitted vs. Residuals
+
+``` r
+if (!require(lme4)) install.packages('lme4')
+```
+
+    Loading required package: lme4
+
+    Loading required package: Matrix
+
+``` r
+data(sleepstudy,package="lme4")
+
+# Mixed linear model
+mixed <- lmer(Reaction ~ Days + (1+Days|Subject), data=sleepstudy)
+summary(mixed)
+```
+
+    Linear mixed model fit by REML ['lmerMod']
+    Formula: Reaction ~ Days + (1 + Days | Subject)
+       Data: sleepstudy
+
+    REML criterion at convergence: 1743.6
+
+    Scaled residuals: 
+        Min      1Q  Median      3Q     Max 
+    -3.9536 -0.4634  0.0231  0.4634  5.1793 
+
+    Random effects:
+     Groups   Name        Variance Std.Dev. Corr
+     Subject  (Intercept) 612.10   24.741       
+              Days         35.07    5.922   0.07
+     Residual             654.94   25.592       
+    Number of obs: 180, groups:  Subject, 18
+
+    Fixed effects:
+                Estimate Std. Error t value
+    (Intercept)  251.405      6.825  36.838
+    Days          10.467      1.546   6.771
+
+    Correlation of Fixed Effects:
+         (Intr)
+    Days -0.138
+
+``` r
+sleepstudy$res_mix <- residuals(mixed) #residuals mixed model
+
+# Basic linear model
+linModel <- lm(data=sleepstudy, Reaction~Days)
+summary(linModel)
+```
+
+
+    Call:
+    lm(formula = Reaction ~ Days, data = sleepstudy)
+
+    Residuals:
+         Min       1Q   Median       3Q      Max 
+    -110.848  -27.483    1.546   26.142  139.953 
+
+    Coefficients:
+                Estimate Std. Error t value Pr(>|t|)    
+    (Intercept)  251.405      6.610  38.033  < 2e-16 ***
+    Days          10.467      1.238   8.454 9.89e-15 ***
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+    Residual standard error: 47.71 on 178 degrees of freedom
+    Multiple R-squared:  0.2865,    Adjusted R-squared:  0.2825 
+    F-statistic: 71.46 on 1 and 178 DF,  p-value: 9.894e-15
+
+``` r
+# Capture fitted vs. residual data
+sleepstudy$res <- residuals(linModel)
+sleepstudy$fit <- predict(linModel)
+
+
+# Compare results of mixed lm and basic lm
+ggplot(sleepstudy, aes(x=Subject, y=res_mix)) +
+  geom_point() +
+  
+  # Residuals of the new mixed model
+  stat_summary(color="red", size=1) +
+  
+  # Residuals of the old lm model
+  stat_summary(aes(y=res), color="blue", size=1) 
+```
+
+    No summary function supplied, defaulting to `mean_se()`
+
+    No summary function supplied, defaulting to `mean_se()`
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)
+
+``` r
+# Overall mean intercept and slope
+mean_int <- fixef(mixed)[1] #mean intercept for the mixed model
+mean_slope <- fixef(mixed)[2] #mean slope for the mixed model
+
+sleepstudy$fit_mix <- predict(mixed) #fitted values from the mixed model
+
+# Fitted vs actuals
+ggplot(sleepstudy, aes(x=Days, y=Reaction)) +
+  geom_point() +
+  facet_wrap(~Subject, nrow=3) +
+  
+  # Line for fitted values of the mixed model
+  geom_line(aes(y=fit_mix), size=.75) +
+  
+  # Fixed line of the overall slop and intercept
+  geom_abline(intercept=mean_int, slope=mean_slope, color="red", size=.75)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.png)
 
 ## `ggplot` Examples
 
@@ -111,7 +232,7 @@ boxplot(data=iris, Sepal.Length ~ Species,           # boxplot of Sepal.Length b
         ylab = "Sepal Length (cm)")                  # y-axis label   
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)
+![](README_files/figure-gfm/unnamed-chunk-3-1.png)
 
 ``` r
 # if you want to save the plot as an image, you can 
@@ -151,7 +272,7 @@ hist(iris$Petal.Length)
 hist(iris$Petal.Width)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)
 
 ``` r
 #NOTE:  we could have made these look better, e.g. with better titles and labels
@@ -163,7 +284,7 @@ hist(iris$Petal.Length, main = "Petal Length", xlab = "Petal Length")
 hist(iris$Petal.Width,  main = "Petal Width", xlab = "Petal Width")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-2.png)
+![](README_files/figure-gfm/unnamed-chunk-4-2.png)
 
 ``` r
 # but, usually when I am exploring the data, I will use the simple verison
@@ -190,7 +311,7 @@ qplot(data=iris, Petal.Length)
 
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)
 
 ``` r
 #or you can set several options to modify the output
@@ -204,7 +325,7 @@ qplot(data=iris, Petal.Length,                       #identify data & variable
       alpha=I(0.45))                      #set fill transparency
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-2.png)
+![](README_files/figure-gfm/unnamed-chunk-5-2.png)
 
 ``` r
 #ggplot is the primary function in ggplot2
@@ -230,14 +351,14 @@ ggplot(iris2[iris2$variable=="Petal.Length",], aes(x=value, fill=Species)) +
        title = "Densities for Petal Length of Iris Species")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)
 
 ``` r
 #we can also use gplot to produce more advanced boxplots
 ggplot(iris2,aes(x=variable, y=value, fill=Species)) + geom_boxplot()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-2.png)
+![](README_files/figure-gfm/unnamed-chunk-6-2.png)
 
 ### Scatter
 
@@ -248,7 +369,7 @@ ggplot(iris2,aes(x=variable, y=value, fill=Species)) + geom_boxplot()
 plot(iris)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)
 
 ``` r
 # qplot and ggplot allow you to add many options and control many settings
@@ -265,7 +386,7 @@ qplot(data=iris, x=Sepal.Length,y=Sepal.Width,size=I(5)) +   # point size=5
        x = "Sepal Length (cm)")                              # y-axis labels
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-2.png)
+![](README_files/figure-gfm/unnamed-chunk-7-2.png)
 
 ``` r
 # using ggplot a.k.a "grammar of graphics plot" to produce scatter plot
@@ -280,7 +401,7 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Sepal.Width)) +        # set data and aes
   theme(legend.position = "none")                             # turn legend off
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-3.png)
+![](README_files/figure-gfm/unnamed-chunk-7-3.png)
 
 ``` r
 ggplot(data=iris, aes(x=Sepal.Length,y=Sepal.Width)) +  
@@ -291,7 +412,7 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Sepal.Width)) +
   theme(legend.key=element_blank())                         # legend is on, but the outline is off
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-4.png)
+![](README_files/figure-gfm/unnamed-chunk-7-4.png)
 
 ``` r
 ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) +  
@@ -305,7 +426,7 @@ ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) +
         axis.title = element_text(size = 14))            # set axis title font size to 14
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-5.png)
+![](README_files/figure-gfm/unnamed-chunk-7-5.png)
 
 ``` r
 ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) + 
@@ -320,7 +441,7 @@ ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) +
         axis.title = element_text(size = 14))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-6.png)
+![](README_files/figure-gfm/unnamed-chunk-7-6.png)
 
 ``` r
 # a "pairs" plot that incorporates densities, scatterplots, and correlations
@@ -330,25 +451,19 @@ ggplot(data=iris, aes(x=Petal.Length,y=Petal.Width)) +
 
 ``` r
 library(GGally)   #adds some more functionality to ggplot2 -- including pairs and parallel plots
-```
 
-    Registered S3 method overwritten by 'GGally':
-      method from   
-      +.gg   ggplot2
 
-``` r
 ggpairs(iris[, 1:5], lower=list(continuous="smooth", wrap=c(colour="blue")),
         diag=list(wrap=c(colour="blue")), 
         upper=list(wrap=list(corSize=6)), axisLabels='show')
 ```
 
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)
+![](README_files/figure-gfm/unnamed-chunk-8-1.png)
 
 ### parallel plots
 
@@ -359,7 +474,7 @@ parallelplot(~iris[1:5], data=iris,                         # create parallel pl
              horizontal.axis = FALSE)                                    # defaults to horizontal axis, set to vertical                           
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)
 
 ``` r
 #parallelplot help documentation -- the input is unfortunately a little different with the ~ symbol
@@ -372,7 +487,7 @@ parallelplot(~iris[1:4] | Species, data = iris,             #same as above, exce
              scales = list(x = list(rot = 90)))            #and rotate the labels on the x-axis
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-2.png)
+![](README_files/figure-gfm/unnamed-chunk-9-2.png)
 
 ``` r
 # you can kind of go crazy with some of this stuff too...
@@ -383,7 +498,7 @@ ggparcoord(data = iris,columns = c(1:4),groupColumn = 5,
            boxplot = TRUE,title = "Parallel Coord. Plot of Diamonds Data")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-3.png)
+![](README_files/figure-gfm/unnamed-chunk-9-3.png)
 
 ### Radar
 
@@ -394,14 +509,14 @@ library(fmsb)
 radarchart(iris[,1:4], maxmin=FALSE, centerzero=TRUE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)
 
 ``` r
 #my pitiful looking stars plot....
 stars(iris[,1:4], radius=TRUE, key.loc = c(30,15), ncol=10, nrow= 15, col.stars = iris$Species)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-9-2.png)
+![](README_files/figure-gfm/unnamed-chunk-10-2.png)
 
 <br>
 
