@@ -371,10 +371,29 @@ stars(iris[,1:4], radius=TRUE, key.loc = c(30,15), ncol=10, nrow= 15, col.stars 
 
 
 # Correlation
+* Starting point for the analysis
+* Good for dimension reduction
 
 <br>
 
 ## Corr: Pearson, Spearman and Kendall
+
+Name     | Use                  | Test
+---------|----------------------|--------
+Pearson  | Only *Linear* relationships | R is square root of R-Squared. <br> Note **VERY sensitive** to extreme values <br> <img src = 'Images/p_corr.png' height = 100>
+Spearman | Both linear/non-linear | Rank correlation for shotgun data. <br> More sensitive to few large values and descrepemses
+Kendall  | | Rank again, but degree of concordance
+
+<br>
+
+## In `R`
+<img src = 'Images/corr_mat.png' height = 200>
+
+### Heatmap
+```{r}
+knitr::kable(cor(mtcars) ) # raw
+heatmap(cor(mtcars))       # visual
+```
 
 <br>
 

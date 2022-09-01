@@ -20,9 +20,11 @@ Daniel Carpenter
         id="toc-corr-pearson-spearman-and-kendall"><span
         class="toc-section-number">4.1</span> Corr: Pearson, Spearman and
         Kendall</a>
+    -   <a href="#in-r" id="toc-in-r"><span
+        class="toc-section-number">4.2</span> In <code>R</code></a>
     -   <a href="#concordant-and-discordant-pairs"
         id="toc-concordant-and-discordant-pairs"><span
-        class="toc-section-number">4.2</span> <code>Concordant</code> and
+        class="toc-section-number">4.3</span> <code>Concordant</code> and
         <code>discordant</code> pairs</a>
 -   <a href="#outliers" id="toc-outliers"><span
     class="toc-section-number">5</span> Outliers</a>
@@ -541,9 +543,50 @@ stars(iris[,1:4], radius=TRUE, key.loc = c(30,15), ncol=10, nrow= 15, col.stars 
 
 # Correlation
 
+-   Starting point for the analysis
+-   Good for dimension reduction
+
 <br>
 
 ## Corr: Pearson, Spearman and Kendall
+
+| Name     | Use                         | Test                                                                                                                            |
+|----------|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| Pearson  | Only *Linear* relationships | R is square root of R-Squared. <br> Note **VERY sensitive** to extreme values <br> <img src = 'Images/p_corr.png' height = 100> |
+| Spearman | Both linear/non-linear      | Rank correlation for shotgun data. <br> More sensitive to few large values and descrepemses                                     |
+| Kendall  |                             | Rank again, but degree of concordance                                                                                           |
+
+<br>
+
+## In `R`
+
+<img src = 'Images/corr_mat.png' height = 200>
+
+### Heatmap
+
+``` r
+knitr::kable(cor(mtcars) ) # raw
+```
+
+|      |        mpg |        cyl |       disp |         hp |       drat |         wt |       qsec |         vs |         am |       gear |       carb |
+|:-----|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|
+| mpg  |  1.0000000 | -0.8521620 | -0.8475514 | -0.7761684 |  0.6811719 | -0.8676594 |  0.4186840 |  0.6640389 |  0.5998324 |  0.4802848 | -0.5509251 |
+| cyl  | -0.8521620 |  1.0000000 |  0.9020329 |  0.8324475 | -0.6999381 |  0.7824958 | -0.5912421 | -0.8108118 | -0.5226070 | -0.4926866 |  0.5269883 |
+| disp | -0.8475514 |  0.9020329 |  1.0000000 |  0.7909486 | -0.7102139 |  0.8879799 | -0.4336979 | -0.7104159 | -0.5912270 | -0.5555692 |  0.3949769 |
+| hp   | -0.7761684 |  0.8324475 |  0.7909486 |  1.0000000 | -0.4487591 |  0.6587479 | -0.7082234 | -0.7230967 | -0.2432043 | -0.1257043 |  0.7498125 |
+| drat |  0.6811719 | -0.6999381 | -0.7102139 | -0.4487591 |  1.0000000 | -0.7124406 |  0.0912048 |  0.4402785 |  0.7127111 |  0.6996101 | -0.0907898 |
+| wt   | -0.8676594 |  0.7824958 |  0.8879799 |  0.6587479 | -0.7124406 |  1.0000000 | -0.1747159 | -0.5549157 | -0.6924953 | -0.5832870 |  0.4276059 |
+| qsec |  0.4186840 | -0.5912421 | -0.4336979 | -0.7082234 |  0.0912048 | -0.1747159 |  1.0000000 |  0.7445354 | -0.2298609 | -0.2126822 | -0.6562492 |
+| vs   |  0.6640389 | -0.8108118 | -0.7104159 | -0.7230967 |  0.4402785 | -0.5549157 |  0.7445354 |  1.0000000 |  0.1683451 |  0.2060233 | -0.5696071 |
+| am   |  0.5998324 | -0.5226070 | -0.5912270 | -0.2432043 |  0.7127111 | -0.6924953 | -0.2298609 |  0.1683451 |  1.0000000 |  0.7940588 |  0.0575344 |
+| gear |  0.4802848 | -0.4926866 | -0.5555692 | -0.1257043 |  0.6996101 | -0.5832870 | -0.2126822 |  0.2060233 |  0.7940588 |  1.0000000 |  0.2740728 |
+| carb | -0.5509251 |  0.5269883 |  0.3949769 |  0.7498125 | -0.0907898 |  0.4276059 | -0.6562492 | -0.5696071 |  0.0575344 |  0.2740728 |  1.0000000 |
+
+``` r
+heatmap(cor(mtcars))       # visual
+```
+
+![](README_files/figure-gfm/unnamed-chunk-11-1.png)
 
 <br>
 
