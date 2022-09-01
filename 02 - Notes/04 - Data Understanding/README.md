@@ -4,10 +4,8 @@ Daniel Carpenter
 
 -   <a href="#resources" id="toc-resources"><span
     class="toc-section-number">1</span> Resources</a>
--   <a href="#dimensions-of-data-quality"
-    id="toc-dimensions-of-data-quality"><span
-    class="toc-section-number">2</span> Dimensions of
-    <code>Data Quality</code></a>
+-   <a href="#data-quality" id="toc-data-quality"><span
+    class="toc-section-number">2</span> Data Quality</a>
 -   <a href="#pearson-spearman-and-kendall-correlation-measures"
     id="toc-pearson-spearman-and-kendall-correlation-measures"><span
     class="toc-section-number">3</span> Pearson, Spearman and Kendall
@@ -46,9 +44,15 @@ Daniel Carpenter
     -   [Deciding on a
         visualization](https://www.data-to-viz.com/img/poster/poster_big.png)
 
-<br>
+<br> <br>
 
-# Dimensions of `Data Quality`
+> Using visualization to understand the data  
+> Reduce dimension of data for analysis
+
+# Data Quality
+
+Main elements to check for in dataset: \* Accuracy *(errors)* \*
+Completeness: *(selection bias)* \* Timeliness *(Recency)*
 
 <br>
 

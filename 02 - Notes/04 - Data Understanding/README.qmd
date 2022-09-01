@@ -19,8 +19,17 @@ editor: visual
   * [Deciding on a visualization](https://www.data-to-viz.com/img/poster/poster_big.png)
 
 <br> 
+<br>
 
-# Dimensions of `Data Quality`
+> Using visualization to understand the data  
+> Reduce dimension of data for analysis   
+
+# Data Quality
+
+Main elements to check for in dataset:
+* Accuracy *(errors)*
+* Completeness: *(selection bias)*
+* Timeliness *(Recency)*
 
 <br>
 
