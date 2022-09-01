@@ -8,8 +8,22 @@ Daniel Carpenter
     class="toc-section-number">2</span> Data Quality</a>
 -   <a href="#visualization-in-r" id="toc-visualization-in-r"><span
     class="toc-section-number">3</span> Visualization in R</a>
+    -   <a href="#exploring" id="toc-exploring"><span
+        class="toc-section-number">3.1</span> Exploring</a>
+    -   <a href="#mixed-models" id="toc-mixed-models"><span
+        class="toc-section-number">3.2</span> Mixed Models</a>
+    -   <a href="#ggplot-examples" id="toc-ggplot-examples"><span
+        class="toc-section-number">3.3</span> <code>ggplot</code> Examples</a>
 -   <a href="#correlation" id="toc-correlation"><span
     class="toc-section-number">4</span> Correlation</a>
+    -   <a href="#corr-pearson-spearman-and-kendall"
+        id="toc-corr-pearson-spearman-and-kendall"><span
+        class="toc-section-number">4.1</span> Corr: Pearson, Spearman and
+        Kendall</a>
+    -   <a href="#concordant-and-discordant-pairs"
+        id="toc-concordant-and-discordant-pairs"><span
+        class="toc-section-number">4.2</span> <code>Concordant</code> and
+        <code>discordant</code> pairs</a>
 -   <a href="#outliers" id="toc-outliers"><span
     class="toc-section-number">5</span> Outliers</a>
 -   <a href="#missing-values" id="toc-missing-values"><span
@@ -81,14 +95,7 @@ Looking at data for
 ### Visualizing Mixed Model: Plus fitted vs. Residuals
 
 ``` r
-if (!require(lme4)) install.packages('lme4')
-```
-
-    Loading required package: lme4
-
-    Loading required package: Matrix
-
-``` r
+if (!require(lme4)) install.packages('lme4') # lmer function for mixed model
 data(sleepstudy,package="lme4")
 
 # Mixed linear model
@@ -150,7 +157,7 @@ summary(linModel)
     F-statistic: 71.46 on 1 and 178 DF,  p-value: 9.894e-15
 
 ``` r
-# Capture fitted vs. residual data
+# Capture fitted vs. residual data of linear model
 sleepstudy$res <- residuals(linModel)
 sleepstudy$fit <- predict(linModel)
 
@@ -167,7 +174,6 @@ ggplot(sleepstudy, aes(x=Subject, y=res_mix)) +
 ```
 
     No summary function supplied, defaulting to `mean_se()`
-
     No summary function supplied, defaulting to `mean_se()`
 
 ![](README_files/figure-gfm/unnamed-chunk-1-1.png)
