@@ -1,0 +1,61 @@
+---
+title: "Data Understanding: 2nd Stage of C-DM Model"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 1
+standalone: true
+    
+editor: visual
+---
+
+# Resources
+* [R for Data Science](https://r4ds.had.co.nz/)
+* [R Visualization](https://r-graph-gallery.com/index.html)
+  * [Visualization best practices](https://www.data-to-viz.com/caveats.html)
+  * [Animate ggplot](https://r-graph-gallery.com/animation.html)
+  * [Deciding on a visualization](https://www.data-to-viz.com/img/poster/poster_big.png)
+
+<br> 
+
+# Dimensions of `Data Quality`
+
+<br>
+
+
+# Pearson, Spearman and Kendall `correlation` measures
+
+<br>
+
+
+# `Concordant` and `discordant` pairs
+
+<br>
+
+
+# `ggplot2` 
+
+<br>
+
+
+# Label and identify `outliers` 
+
+<br>
+
+
+# Different types of `missing values`
+
+<br>
+
+
+# `Principal Component Analysis` & `dimension reduction`
+
+<br>
+
+
+# Principal Component Analysis in `R`
+
+<br>
+
