@@ -256,6 +256,42 @@ ggplot(data = mpg) +
 
 \newpage
 
-## (b)
+## (b): Recreate the Plot
+
+Please see the below plot recreated:
+
+```{r, fig.height=6}
+# Create a base plot defined about with hwy ~ displ
+mpg %>%
+  
+  # hwy vs. cyl
+  ggplot( aes(x = displ, y = hwy) ) +
+  
+  # Labels
+  labs(title = 'Reproduced Plot:',
+       x     = 'Displacement',
+       y     = 'Highway MPG' ) + 
+  
+  # Color theme: black an white
+  theme_bw() +
+  
+  # The jittered points
+  geom_jitter(alpha = 0.25,   # Transparency
+              width = 0.25) + # Jittering amount
+  
+  # Facet on Drive Shaft Type
+  facet_grid(. ~ drv) +
+  
+  # Linear model line
+  geom_smooth(method = lm, fill = NA, color = 'black') +
+  
+  # Loess smoother line
+  geom_smooth(method = 'loess')
+  
+```
+```
+
+
+\newpage
 
 # Housing Data
