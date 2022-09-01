@@ -51,6 +51,15 @@ fig-height: 4.5
 ```{r, message=FALSE}
 library(tidyverse) # get tidverse for piping
 library(ggthemes) # themes for plots
+library(skimr)
+library(knitr)
+library(GGally) # pairs
+library(scales)
+
+# Ridge lines
+library(ggridges)
+library(viridis)
+library(hrbrthemes)
 ```
 
 # `ggplot2`
@@ -117,24 +126,24 @@ mpg %>%
 ## (a) \| 3.3.1
 
 ### Problem 3
-Map a continuous variable to color, size, and shape. 
 
-*Assumptions*: 
+Map a continuous variable to color, size, and shape.
 
-1. Using same x and y variables as problem 1 of excercise 3.3.1
-2. Assuming we are only mapping a variable one at a time, just because all three mappings at once could be confusing and lose effectiveness.
+*Assumptions*:
+
+1.  Using same x and y variables as problem 1 of excercise 3.3.1
+2.  Assuming we are only mapping a variable one at a time, just because all three mappings at once could be confusing and lose effectiveness.
 
 How do these aesthetics behave differently for categorical vs. continuous variables?
 
-*Answer*: You need to be careful with continuous vs. categorical data when mapping.
-For example, you do not want to determine the size using a a categorical variable, since
-it will not provide much meaning on correlation. Generally, these will work well at telling a story:
+*Answer*: You need to be careful with continuous vs. categorical data when mapping. For example, you do not want to determine the size using a a categorical variable, since it will not provide much meaning on correlation. Generally, these will work well at telling a story:
 
-- size: continuous
-- color: categorical
-- shape: categorical
+-   size: continuous
+-   color: categorical
+-   shape: categorical
 
 Create a base plot for reuse:
+
 ```{r}
 title_base = 'MPG (Highway) ~ Engine Displacement (Lt)\n'
 
@@ -154,8 +163,8 @@ plot_base <- mpg %>%
   theme_get() # get the theme set before
 ```
 
-
 **Map a `color`**
+
 ```{r}
 plot_base + # Using a plot defined about with hwy ~ displ
   
@@ -167,6 +176,7 @@ plot_base + # Using a plot defined about with hwy ~ displ
 ```
 
 **Map a `size`**
+
 ```{r}
 plot_base + # Using a plot defined about with hwy ~ displ
   
@@ -178,6 +188,7 @@ plot_base + # Using a plot defined about with hwy ~ displ
 ```
 
 **Map a `shape`**
+
 ```{r}
 plot_base + # Using a plot defined about with hwy ~ displ
   
@@ -191,10 +202,11 @@ plot_base + # Using a plot defined about with hwy ~ displ
 <br>
 
 ### Problem 4
+
 What happens if you map the same variable to multiple aesthetics?
 
-*Answer*: It will condense the legend and it makes it much easier to read. This 
-would be a useful way to analyze the information.
+*Answer*: It will condense the legend and it makes it much easier to read. This would be a useful way to analyze the information.
+
 ```{r}
 plot_base + # Using a plot defined about with hwy ~ displ
   
@@ -210,11 +222,10 @@ plot_base + # Using a plot defined about with hwy ~ displ
 <br>
 
 ### Problem 6
-What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)? Note, you’ll also need to specify x and y.
 
-*Answer*: It will map the points above and below the right hand side of the 
-inequality. For example, below shows when the number of cylinders is < 7. 
-It also makes a note in the legend
+What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ \< 5)? Note, you'll also need to specify x and y.
+
+*Answer*: It will map the points above and below the right hand side of the inequality. For example, below shows when the number of cylinders is \< 7. It also makes a note in the legend
 
 ```{r}
 plot_base + # Using a plot defined about with hwy ~ displ
@@ -226,18 +237,22 @@ plot_base + # Using a plot defined about with hwy ~ displ
   ggtitle(paste0( title_base, 'Coloring: Split between # of Cylinders above and below 7' ))
 ```
 
-
 <br>
 
 ## (a) \| 3.5.1
 
-### Problem 4: 
+### Problem 4:
 
-What are the advantages to using faceting instead of the colour aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?
+What are the advantages to using faceting instead of the colour aesthetic?
 
-*Answer*: Faceting allows you to see trends within certain subgroups of a variable.
-For example, the below graph shows the relationships between the x and y variables
-given the type of car. You can see clear trends within some of the sub-groups.
+**Advantages**\
+Faceting allows you to see trends within certain subgroups of a variable. For example, the below graph shows the relationships between the x and y variables given the type of car. You can see clear trends within some of the sub-groups.
+
+**Disadvantages**\
+You may want to compare the variables on the same plot. If the data does not overlap, then a facet may not be needed.
+
+**How might the balance change if you had a larger dataset?**\
+If you have a lot of data, it may overlap or have disparate clusters. In that case having facets may be useful.
 
 ```{r}
 # Code from website 
@@ -268,7 +283,7 @@ mpg %>%
   ggplot( aes(x = displ, y = hwy) ) +
   
   # Labels
-  labs(title = 'Reproduced Plot:',
+  labs(title = 'Reproduced Plot by Daniel Carpenter',
        x     = 'Displacement',
        y     = 'Highway MPG' ) + 
   
@@ -283,15 +298,190 @@ mpg %>%
   facet_grid(. ~ drv) +
   
   # Linear model line
-  geom_smooth(method = lm, fill = NA, color = 'black') +
+  geom_smooth(method = lm, fill = NA, color = 'black', size = 1.5) +
   
   # Loess smoother line
-  geom_smooth(method = 'loess')
+  geom_smooth(method = 'loess', size = 1.5)
   
 ```
-```
-
 
 \newpage
 
-# Housing Data
+# House prices data: Exploratory Data Analysis and Visualization
+
+## Pull in Data
+
+```{r, cache=TRUE}
+housing <- read_csv('housingData.csv')
+```
+
+## Skimming Data
+
+-   Note looks like many `character` or `string` variables have limited number of unique values
+-   Some data not complete
+-   Here are some variables that I would imagine to have a large impact on the housing value. Let's look into each and see if we can reduce some of them if highly correlated
+    1.  LotArea: Lot size in square feet
+    2.  OverallQual: Rates the overall material and finish of the house
+    3.  OverallCond: Rates the overall condition of the house (might be correlated with qual)
+    4.  MSZoning: Identifies the general zoning classification of the sale.
+    5.  LandContour: Flatness of the property
+    6.  Condition1: Proximity to various conditions
+    7.  BldgType: Type of dwelling
+    8.  HouseStyle: Style of dwelling
+    9.  YearBuilt: Original construction date
+    10. YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
+    11. Foundation: Type of foundation
+
+```{r, fig.width=10, fig.height=10, message=FALSE, cache=TRUE}
+# Look only at what we assume may be important
+housingImportant <- housing %>%
+  
+  # Select only the variables above mentioned
+  select(Id,
+         SalePrice,
+         YrSold,
+         LotArea,
+         OverallQual,
+         OverallCond,
+         MSZoning,
+         LandContour,
+         Condition1,
+         BldgType,
+         HouseStyle,
+         YearBuilt,
+         YearRemodAdd,
+         Foundation
+         )
+
+# Take a look at the data
+skimmed <- skim(housing)
+
+# Check out missing value fields
+knitr::kable(skimmed %>% filter(n_missing > 0) )
+
+# heatmap of the numeric data for non-null values
+# Generally seems like these are for the categorical data that explains a 
+# Unique attribute of the house, like if the house has a basement, pool, fense or not.
+housingNumeric <- housing %>% select_if(is.numeric) %>% drop_na()
+
+correlationMatrix <- cor(housingNumeric )
+
+heatmap(correlationMatrix)
+
+# get top 10 highest correlated variables
+
+## Sort data on sale price descending
+corMatrixSorted <- as.data.frame(correlationMatrix) %>% arrange(desc(SalePrice))
+
+corVarsTop10 <- rownames(corMatrixSorted)[2:11] # 2:11 since exclude sale price variable
+
+# What are the top 10 (sorted by highest correlation)?
+kable(corVarsTop10)
+
+```
+
+## Reviewing Potential Visualizations
+
+### Are newer homes more popular?
+```{r}
+# unique(housing$YrSold)
+YEAR_THRESHOLD = 1950
+
+housing %>% # using the housing data
+  
+  # Get a count of homes sold by year built
+  group_by(YearBuilt) %>%
+  summarise(NumSold = n() ) %>%
+  
+  # Start ggplot with x axis being yearbuilt
+  ggplot(aes(x = YearBuilt,
+             color = YearBuilt > YEAR_THRESHOLD
+             )) +
+  
+      # Labels and Titles
+      labs(title = paste('Most homes Sold in Sample were Built after', YEAR_THRESHOLD),
+           x = 'Year Home was Built',
+           y = 'Number of Homes Sold') + 
+    
+      # Build a lollipop chart
+      # Basics here: https://r-graph-gallery.com/300-basic-lollipop-plot.html
+      geom_segment(aes(x=YearBuilt, xend=YearBuilt, y=0, yend=NumSold),
+                   alpha = 0.33) +
+      geom_point(aes(y = NumSold),
+                 alpha = 0.66) +
+    
+      # Diverge on colors based on the YEAR_THRESHOLD variable
+      # Splits based on the year built
+      scale_color_manual(values = c('steelblue3', 'darkorange2'),
+                         labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) ) +
+        
+      # Themes
+      theme_minimal() + 
+      theme(legend.title    = element_blank(), # Format the legend nicer
+            legend.position = 'top')
+```
+    
+    
+### Are there any changes happening to sale price overtime?
+```{r}
+base_ridgeline <- housing %>%
+  ggplot(aes(y     = YrSold,
+             group = YrSold,
+             x     = SalePrice,
+             color = YearBuilt > YEAR_THRESHOLD,
+             fill  = YearBuilt > YEAR_THRESHOLD
+             )
+         ) +
+  
+  # Labels
+  labs(title    = 'Distribution of Yearly Home Prices at Sale Date Remain Steady',
+       subtitle = paste('Note Homes Built after', YEAR_THRESHOLD, 'sell for Less'),
+       x        = 'Sale Price of Home (USD)',
+       y        = 'Year Home Sold') +
+  
+  # Ridge Line Density Plots
+  # More here: https://r-graph-gallery.com/294-basic-ridgeline-plot.html#color
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
+                               alpha = 0.5) +
+  
+  # Formatting of axis as comma
+  scale_x_continuous(labels = comma) +
+  
+  # Themes
+  theme_minimal() +
+    theme(
+      legend.position = "top",
+      legend.title    = element_blank(),
+      panel.spacing   = unit(0.1, "lines"),
+      strip.text      = element_blank()
+    ) +
+  
+  # Facet on the year threshold
+  facet_grid(. ~ YearBuilt > YEAR_THRESHOLD) +
+  
+  # Diverge on colors based on the YEAR_THRESHOLD variable
+  # Splits based on the year built
+  scale_color_manual(values = c('steelblue3', 'darkorange2'),
+                     labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) ) +
+  scale_fill_manual( values = c('lightsteelblue2', 'sandybrown'),
+                     labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) )
+  
+
+base_ridgeline # display
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
