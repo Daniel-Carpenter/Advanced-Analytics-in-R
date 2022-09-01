@@ -1,0 +1,261 @@
+---
+title: "Homework 2 - Data Exploration"
+author: "Daniel Carpenter"
+date: "August 2022"
+format: 
+  pdf:
+    toc: true
+    toc-depth: 2
+    # number-sections: true
+    highlight-style: github #arrow
+    code-block-border-left: "#D6D6D6"
+  gfm:
+    toc: true
+    toc-depth: 1
+    # number-sections: true
+execution:
+  echo:    true
+  include: true
+  cache:   true
+
+editor: visual
+
+fig-width:  7
+fig-height: 4.5
+---
+
+<!-- ## File Extension used: Quarto, the new version of R Markdown -->
+
+<!-- Please note that the file rendered is using the new (enhanced) R Markdown engine, called Quarto. [Please see the documentation here](https://quarto.org/docs/tools/rstudio.html#:~:text=You%20can%20download%20RStudio%20v2022,products%2Frstudio%2Fdownload%2F.&text=If%20you%20have%20already%20installed,activate%20from%20R%20Markdown%20Preferences.), which outlines which versions of RStudio works with quarto. I talked with Dr. Nicholson, and he is happy to let students use Quarto, since when RStudio rebrands to "Posit" in October, Quarto will become more mainstream. For our purposes, the main difference is the enhanced output, and the definition of the YAML header. -->
+
+<!-- For the TA's ease, you can do the following to render my `.qmd` file. If you have any trouble, we can meet or I can convert to R Markdown in the future. -->
+
+<!-- ```{r, eval=FALSE, echo=TRUE, include=TRUE} -->
+
+<!-- # NOT RUN: You can run this is regular R -->
+
+<!-- install.packages("quarto") -->
+
+<!-- library(quarto) -->
+
+<!-- quarto_render("Carpenter-HW1.qmd") -->
+
+<!-- ``` -->
+
+\newpage
+
+## Packages
+
+-   Ideally, these packages will install automatically if you do not have them already
+
+```{r, message=FALSE}
+library(tidyverse) # get tidverse for piping
+library(ggthemes) # themes for plots
+```
+
+# `ggplot2`
+
+## (a) \| 3.2.4
+
+### Problem 4
+
+Make a scatterplot of hwy vs cyl.
+
+```{r}
+theme_set(theme_light()) # set the theme
+
+# ?mpg
+mpg %>%
+  
+  # hwy vs. cyl
+  ggplot(aes(x = cyl,
+             y = hwy)
+         ) +
+  
+  # add points with a little but of jitter to see overlap
+  # since discrete number of cylinders
+  geom_jitter(color = 'steelblue3', size = 2, alpha = 0.3,
+              width = 0.15) + # add points
+  
+  # Labels
+  labs(title = 'How does the # of Cylinders relate to the Highway MPG?',
+       x     = 'Number of Cylinders',
+       y     = 'Highway MPG',
+       caption = '\nNote small amount of jittering since number of cylinders is discrete') +
+  
+  theme_get() # get the theme set before
+```
+
+### Problem 5
+
+What happens if you make a scatterplot of class vs drv? Why is the plot not useful?
+
+*Answer:* The below scatter is not useful since both the response and independant variables are discrete values (not continuous). This graph only shows the combinations between the dimensions. All data is overlapping.
+
+```{r}
+# ?mpg
+mpg %>%
+  
+  # hwy vs. cyl
+  ggplot(aes(x = drv,
+             y = class)
+         ) +
+  
+  # add points
+  geom_point(color = 'steelblue3', size = 2, alpha = 0.3) + 
+  
+  # Labels
+  labs(title = 'How does the Type of Car relate to the Type of Drive Train?',
+       x     = 'Type of Drive Train',
+       y     = 'Type of Car') +
+  
+  theme_get() # get the theme set before
+```
+
+\newpage
+
+## (a) \| 3.3.1
+
+### Problem 3
+Map a continuous variable to color, size, and shape. 
+
+*Assumptions*: 
+
+1. Using same x and y variables as problem 1 of excercise 3.3.1
+2. Assuming we are only mapping a variable one at a time, just because all three mappings at once could be confusing and lose effectiveness.
+
+How do these aesthetics behave differently for categorical vs. continuous variables?
+
+*Answer*: You need to be careful with continuous vs. categorical data when mapping.
+For example, you do not want to determine the size using a a categorical variable, since
+it will not provide much meaning on correlation. Generally, these will work well at telling a story:
+
+- size: continuous
+- color: categorical
+- shape: categorical
+
+Create a base plot for reuse:
+```{r}
+title_base = 'MPG (Highway) ~ Engine Displacement (Lt)\n'
+
+# Create a base plot defined about with hwy ~ displ
+plot_base <- mpg %>%
+  
+  # hwy vs. cyl
+  ggplot(aes(x = displ,
+             y = hwy 
+             )
+         ) +
+  
+  # Labels
+  labs(x     = 'Displacement of Engine (Liters)',
+       y     = 'Miles per Gallon (Highway)' ) +
+  
+  theme_get() # get the theme set before
+```
+
+
+**Map a `color`**
+```{r}
+plot_base + # Using a plot defined about with hwy ~ displ
+  
+  # Add mapping and other static aesthetics
+  geom_point(aes(color = cyl), size=2) + 
+  
+  # Update title
+  ggtitle(paste0( title_base, 'Coloring: Number of Cylinders' ))
+```
+
+**Map a `size`**
+```{r}
+plot_base + # Using a plot defined about with hwy ~ displ
+  
+  # Add mapping and other static aesthetics
+  geom_point(aes(size = cty), alpha=0.5) + 
+  
+  # Update title
+  ggtitle(paste0( title_base, 'Sizing: MPG (City)' ))
+```
+
+**Map a `shape`**
+```{r}
+plot_base + # Using a plot defined about with hwy ~ displ
+  
+  # Add mapping and other static aesthetics
+  geom_point(aes(shape = drv), size=3, alpha=0.5) + 
+  
+  # Update title
+  ggtitle(paste0( title_base, 'Shape: Type of Drive Train' ))
+```
+
+<br>
+
+### Problem 4
+What happens if you map the same variable to multiple aesthetics?
+
+*Answer*: It will condense the legend and it makes it much easier to read. This 
+would be a useful way to analyze the information.
+```{r}
+plot_base + # Using a plot defined about with hwy ~ displ
+  
+  # Add mapping and other static aesthetics
+  geom_point(aes(shape = drv,
+                 color = drv
+                 ), size=3, alpha=0.5) + 
+  
+  # Update title
+  ggtitle(paste0( title_base, 'Shape & Color: Type of Drive Train' ))
+```
+
+<br>
+
+### Problem 6
+What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)? Note, you’ll also need to specify x and y.
+
+*Answer*: It will map the points above and below the right hand side of the 
+inequality. For example, below shows when the number of cylinders is < 7. 
+It also makes a note in the legend
+
+```{r}
+plot_base + # Using a plot defined about with hwy ~ displ
+  
+  # Add mapping and other static aesthetics
+  geom_point(aes(color = cyl < 7), size=3, alpha=0.5) + 
+  
+  # Update title
+  ggtitle(paste0( title_base, 'Coloring: Split between # of Cylinders above and below 7' ))
+```
+
+
+<br>
+
+## (a) \| 3.5.1
+
+### Problem 4: 
+
+What are the advantages to using faceting instead of the colour aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?
+
+*Answer*: Faceting allows you to see trends within certain subgroups of a variable.
+For example, the below graph shows the relationships between the x and y variables
+given the type of car. You can see clear trends within some of the sub-groups.
+
+```{r}
+# Code from website 
+ggplot(data = mpg) + 
+  
+  # Create the x/y mapping
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  
+  # Facet on type of car
+  facet_wrap(~ class, nrow = 2) +
+  
+  # Title
+  ggtitle('Example of faceting on the type of car with mpg dataset') +
+  theme_get()
+```
+
+\newpage
+
+## (b)
+
+# Housing Data
