@@ -164,13 +164,26 @@ sleepstudy$fit <- predict(linModel)
 
 # Compare results of mixed lm and basic lm
 ggplot(sleepstudy, aes(x=Subject, y=res_mix)) +
-  geom_point() +
+  geom_point(aes(color = 'Mixed Residuals'),
+             alpha = 0.5) +
   
   # Residuals of the new mixed model
-  stat_summary(color="red", size=1) +
+  stat_summary(aes(color = 'Mixed Model'), size=1) +
   
   # Residuals of the old lm model
-  stat_summary(aes(y=res), color="blue", size=1) 
+  stat_summary(aes(y=res, color='Basic lm'), size=1) +
+  
+  scale_color_manual(name='Legend',
+                     breaks=c('Mixed Residuals', 'Mixed Model', 'Basic lm'),
+                     
+                     # Map the colors
+                     values=c('Mixed Residuals' = 'tomato', 
+                              'Mixed Model'     = 'tomato3', 
+                              'Basic lm'        = 'steelblue3')) +
+  
+  labs(title = 'Mixed Model vs. Basic Lm Results',
+       y     = 'Reaction',
+       x     = 'Number of Days')
 ```
 
     No summary function supplied, defaulting to `mean_se()`
