@@ -28,17 +28,18 @@ Daniel Carpenter
         <code>discordant</code> pairs</a>
 -   <a href="#outliers" id="toc-outliers"><span
     class="toc-section-number">5</span> Outliers</a>
+    -   <a href="#outlier-detection" id="toc-outlier-detection"><span
+        class="toc-section-number">5.1</span> Outlier Detection</a>
+    -   <a href="#outlier-identification" id="toc-outlier-identification"><span
+        class="toc-section-number">5.2</span> Outlier Identification</a>
 -   <a href="#missing-values" id="toc-missing-values"><span
     class="toc-section-number">6</span> Missing Values</a>
--   <a href="#principal-component-analysis-dimension-reduction"
-    id="toc-principal-component-analysis-dimension-reduction"><span
-    class="toc-section-number">7</span>
-    <code>Principal Component Analysis</code> &amp;
-    <code>dimension reduction</code></a>
--   <a href="#principal-component-analysis-in-r"
-    id="toc-principal-component-analysis-in-r"><span
-    class="toc-section-number">8</span> Principal Component Analysis in
-    <code>R</code></a>
+    -   <a href="#types-of-missing-value-mechanisms"
+        id="toc-types-of-missing-value-mechanisms"><span
+        class="toc-section-number">6.1</span> Types of Missing Value
+        Mechanisms</a>
+    -   <a href="#missingness-in-r" id="toc-missingness-in-r"><span
+        class="toc-section-number">6.2</span> Missingness in R</a>
 
 # Resources
 
@@ -596,16 +597,334 @@ heatmap(cor(mtcars))       # visual
 
 # Outliers
 
+## Outlier Detection
+
+Outlier detection may depend on distributional assumptions,
+e.g. normally distributed data.
+
+### Tools to check for normality:
+
+-   Visualizations, e.g. histograms, QQ plots
+    -   <img src = "Images/qq.png" height = 300>
+-   Statistical tests, e.g. Kolmogorov-Smirnov, Shapiro-Wilk,
+    Anderson-Darling test, chi-square goodness of fit test
+
+<br>
+
+### If the data is not normally distributed, then:
+
+-   Use caution in the formal/informal tests
+    -   standard deviation method; z-score
+    -   MADe method
+    -   modified z-score
+    -   boxplot; adjusted boxplot
+-   COnsider transforming data
+
+<br>
+
+### Standard deviation method; z-score
+
+<img src = "Images/out_1.png" height = 300> <br>
+<img src = "Images/out_2.png" height = 300> <br>
+<img src = "Images/out_3.png" height = 300> <br>
+
+<br>
+
+### MADe method
+
+> Less sensative to extreme values
+
+<img src = "Images/mad_1.png" height = 300> <br>
+<img src = "Images/mad_2.png" height = 300> <br>
+
+<br>
+
+### Boxplots
+
+-   Use basic boxplots to see outliers
+-   Adjusted bp method identifies fewer outliers usually
+
+<br>
+
+## Outlier Identification
+
+### Assumptions
+
+-   normality is assumed in most tests
+-   single outlier vs multiple outlier tests
+-   issues of masking and swamping
+-   Grubb’s test: generalized extreme studentized deviates (ESD)
+
+### Grubbs Test `grubbs.test`
+
+-   uses `outliers` package
+
+### Generalized ESD Test `removeoutliers()`
+
 <br>
 
 # Missing Values
 
-<br>
+> How to handle pissing values in stats analysis <br>
 
-# `Principal Component Analysis` & `dimension reduction`
+## Types of Missing Value Mechanisms
 
-<br>
+| Type | Description                              | Assumption                                      |
+|------|------------------------------------------|-------------------------------------------------|
+| MCAR | Completely random                        | Assume same distribution as non missing         |
+| MAR  | Missing depends on data                  | May not follow same distribution as non missing |
+| MNAR | Depends on the data missing. Most likley |                                                 |
 
-# Principal Component Analysis in `R`
+## Missingness in R
 
-<br>
+``` r
+# Question: 
+# How can I look at the proportion missing for each factor or group level?
+
+# To illustrate, let me create some 'missingness' in the Iris data:
+
+data(iris)
+
+iris[1:15,1] <- NA        #setting column 1 to NA for observations 1 thru 15 
+iris[1:35,2] <- NA        #setting column 2 to NA for observations 1 thru 35 
+iris[70:85,3] <- NA       #setting column 3 to NA for observations 70 thru 85
+iris[110:120,4] <- NA     #setting column 4 to NA for observations 110 thru 120
+
+
+# One solution is a creative use of the "aggregate" function
+# USAGE: 
+# df<-aggregate(DATAFRAME, by=list(GROUPING LIST), function(x) USER-DEFINED FUNCTION)
+
+# where DATAFRAME is the data set iris; 
+# GROUPING LIST is the set of values we use as factor levels
+# and the USER-DEFINED FUNCTION is a function we create to take 
+# the average of the is.na() logical vector.
+
+# quick digression:  -- we can perform sums and means on logic vectors, e.g.
+mean(is.na(iris$Sepal.Length))  # --  overall missing proportion for Sepal.Length
+```
+
+    [1] 0.1
+
+``` r
+# so we can do now do the following:
+aggregate(iris, by=list(iris$Species), function(x) mean(is.na(x)))
+```
+
+         Group.1 Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+    1     setosa          0.3         0.7         0.00        0.00       0
+    2 versicolor          0.0         0.0         0.32        0.00       0
+    3  virginica          0.0         0.0         0.00        0.22       0
+
+``` r
+# Question: 
+# ------------------
+# How can I look patterns of missingness among variables?
+
+# let's look at some packages that deal with Missing Values explicitly
+# two packages: mice and VIM
+
+# install.packages("mice")   #install and load the MICE
+library(mice)              #load the MICE package:  Multivariate Imputation by Chained Equations 
+```
+
+
+    Attaching package: 'mice'
+
+    The following object is masked from 'package:stats':
+
+        filter
+
+    The following objects are masked from 'package:base':
+
+        cbind, rbind
+
+``` r
+data(mtcars)             #some data to play with
+
+#let's just grab a few of the variables
+mtcars<-mtcars[,c("mpg","hp","qsec")]
+
+# set a few variable cases to missing 
+mtcars[1:9,"mpg"]<-NA    
+mtcars[7:11,"hp"]<-NA
+mtcars[c(2,3,10,19,31),"qsec"]<-NA
+
+# can use the mice function "md.pattern" 
+# and "md.pairs" to get a quick overview of missingness
+ 
+#check out ?md.pairs and ?md.pattern for details
+# ?md.pairs
+# ?md.pattern
+
+md.pairs(mtcars)
+```
+
+    $rr
+         mpg hp qsec
+    mpg   23 21   20
+    hp    21 27   23
+    qsec  20 23   27
+
+    $rm
+         mpg hp qsec
+    mpg    0  2    3
+    hp     6  0    4
+    qsec   7  4    0
+
+    $mr
+         mpg hp qsec
+    mpg    0  6    7
+    hp     2  0    4
+    qsec   3  4    0
+
+    $mm
+         mpg hp qsec
+    mpg    9  3    2
+    hp     3  5    1
+    qsec   2  1    5
+
+``` r
+md.pattern(mtcars)       
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-1.png)
+
+       hp qsec mpg   
+    19  1    1   1  0
+    4   1    1   0  1
+    2   1    0   1  1
+    2   1    0   0  2
+    1   0    1   1  1
+    3   0    1   0  2
+    1   0    0   1  2
+        5    5   9 19
+
+``` r
+# Question: 
+# ------------------
+# What about visualizing missingness?
+
+library(VIM)  #package for "Visualization and Imputation of Missing Values"
+```
+
+    Loading required package: colorspace
+
+    Loading required package: grid
+
+    VIM is ready to use.
+
+    Suggestions and bug-reports can be submitted at: https://github.com/statistikat/VIM/issues
+
+
+    Attaching package: 'VIM'
+
+    The following object is masked from 'package:datasets':
+
+        sleep
+
+``` r
+# can use VIM's "aggr" function to also get overall information on missing
+a<-aggr(mtcars)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-2.png)
+
+``` r
+summary(a)
+```
+
+
+     Missings per variable: 
+     Variable Count
+          mpg     9
+           hp     5
+         qsec     5
+
+     Missings in combinations of variables: 
+     Combinations Count Percent
+            0:0:0    19  59.375
+            0:0:1     2   6.250
+            0:1:0     1   3.125
+            0:1:1     1   3.125
+            1:0:0     4  12.500
+            1:0:1     2   6.250
+            1:1:0     3   9.375
+
+``` r
+# use VIM function "marginplot" to get a scatter plot that includes information on missing values
+marginplot(mtcars[c("mpg","qsec")], col = c("blue", "red", "orange"))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-3.png)
+
+``` r
+# can also look at all of the plots with Missing Information
+scattmatrixMiss(mtcars)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-4.png)
+
+``` r
+#----------------------------------------------------------------------------------
+
+
+#create some more fake data and examine different kinds of MVM
+
+x<-rexp(1000)
+y<-rnorm(1000) 
+z<-runif(1000)
+
+
+df<-data.frame(x,y)
+scattmatrixMiss(df)   #no missing data
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-5.png)
+
+``` r
+df[z>0.9,"y"]<-NA  #MCAR
+sum(is.na(df[,"y"]))
+```
+
+    [1] 101
+
+``` r
+scattmatrixMiss(df) 
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-6.png)
+
+``` r
+df<-data.frame(x,y)
+df[df$x>2.1,"y"]<-NA  #MAR
+sum(is.na(df[,"y"]))
+```
+
+    [1] 123
+
+``` r
+scattmatrixMiss(df)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-7.png)
+
+``` r
+df<-data.frame(x,y)
+df[df$y>1.10,"y"]<-NA  #MNAR
+sum(is.na(df[,"y"]))
+```
+
+    [1] 130
+
+``` r
+scattmatrixMiss(df)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-8.png)
+
+<!-- <br> -->
+<!-- # `Principal Component Analysis` & `dimension reduction` -->
+<!-- <br> -->
+<!-- # Principal Component Analysis in `R` -->
+<!-- <br> -->
