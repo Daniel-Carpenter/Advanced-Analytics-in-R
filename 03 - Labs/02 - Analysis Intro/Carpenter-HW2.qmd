@@ -316,49 +316,10 @@ housing <- read_csv('housingData.csv')
 ```
 
 ## Skimming Data
+### Quick look at data to see what variables are correlated
 
--   Note looks like many `character` or `string` variables have limited number of unique values
--   Some data not complete
--   Here are some variables that I would imagine to have a large impact on the housing value. Let's look into each and see if we can reduce some of them if highly correlated
-    1.  LotArea: Lot size in square feet
-    2.  OverallQual: Rates the overall material and finish of the house
-    3.  OverallCond: Rates the overall condition of the house (might be correlated with qual)
-    4.  MSZoning: Identifies the general zoning classification of the sale.
-    5.  LandContour: Flatness of the property
-    6.  Condition1: Proximity to various conditions
-    7.  BldgType: Type of dwelling
-    8.  HouseStyle: Style of dwelling
-    9.  YearBuilt: Original construction date
-    10. YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
-    11. Foundation: Type of foundation
 
-```{r, fig.width=10, fig.height=10, message=FALSE, cache=TRUE}
-# Look only at what we assume may be important
-housingImportant <- housing %>%
-  
-  # Select only the variables above mentioned
-  select(Id,
-         SalePrice,
-         YrSold,
-         LotArea,
-         OverallQual,
-         OverallCond,
-         MSZoning,
-         LandContour,
-         Condition1,
-         BldgType,
-         HouseStyle,
-         YearBuilt,
-         YearRemodAdd,
-         Foundation
-         )
-
-# Take a look at the data
-skimmed <- skim(housing)
-
-# Check out missing value fields
-knitr::kable(skimmed %>% filter(n_missing > 0) )
-
+```{r}
 # heatmap of the numeric data for non-null values
 # Generally seems like these are for the categorical data that explains a 
 # Unique attribute of the house, like if the house has a basement, pool, fense or not.
@@ -367,7 +328,10 @@ housingNumeric <- housing %>% select_if(is.numeric) %>% drop_na()
 correlationMatrix <- cor(housingNumeric )
 
 heatmap(correlationMatrix)
+```
 
+### Looks to be 10 or so highly correlated variables
+```{r}
 # get top 10 highest correlated variables
 
 ## Sort data on sale price descending
@@ -381,15 +345,19 @@ kable(corVarsTop10)
 ```
 
 ## Reviewing Potential Visualizations
+> Shows 5 Visualizations to explore data
 
-### Are newer homes more popular?
+### 1. Are newer homes more popular?
+* Looks like newer homes are selling more, or at least more representative in the 
+sample
+
 ```{r}
 # unique(housing$YrSold)
 YEAR_THRESHOLD = 1950
 
 housing %>% # using the housing data
   
-  # Get a count of homes sold by year built
+  # Get a count of homes sold by year built 
   group_by(YearBuilt) %>%
   summarise(NumSold = n() ) %>%
   
@@ -420,15 +388,17 @@ housing %>% # using the housing data
       theme(legend.title    = element_blank(), # Format the legend nicer
             legend.position = 'top')
 ```
-    
-    
-### Are there any changes happening to sale price overtime?
+
+### 2. Are there any changes happening to sale price overtime?
+* No real change insale price over time among larger higher-level groupings
+* Appears that older homes sell for less.
+
 ```{r}
 base_ridgeline <- housing %>%
   ggplot(aes(y     = YrSold,
-             group = YrSold,
+             group = YrSold,  # key here is that we are grouping by year sold
              x     = SalePrice,
-             color = YearBuilt > YEAR_THRESHOLD,
+             color = YearBuilt > YEAR_THRESHOLD, # 2-colors that show split in years
              fill  = YearBuilt > YEAR_THRESHOLD
              )
          ) +
@@ -463,25 +433,12 @@ base_ridgeline <- housing %>%
   # Splits based on the year built
   scale_color_manual(values = c('steelblue3', 'darkorange2'),
                      labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) ) +
-  scale_fill_manual( values = c('lightsteelblue2', 'sandybrown'),
+  scale_fill_manual( values = c('lightsteelblue2', '#FFDEBD'),
                      labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) )
   
 
 base_ridgeline # display
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
