@@ -312,7 +312,21 @@ mpg %>%
 ## Pull in Data
 
 ```{r, cache=TRUE}
+require(lubridate)
+
 housing <- read_csv('housingData.csv')
+
+# Create a date field using month and year
+housing <- housing %>%
+  
+  # Create date field in YYY-MM-DD format, and please note end of month
+  mutate(EndOfMonth = ceiling_date(
+      as.Date(paste0(YrSold, '-', MoSold, '-01')),
+      'month') - days(1)
+  )
+
+# This is what the new data looks like
+head(housing$EndOfMonth)
 ```
 
 ## Skimming Data
@@ -350,11 +364,25 @@ kable(corVarsTop10)
 ### 1. Are newer homes more popular?
 * Looks like newer homes are selling more, or at least more representative in the 
 sample
+* This information is useful to understand from a high level that if you are selling or buying
+a house, the demand for your home may depend on the age of the house. Again, this 
+assumption depends on the representatives of the sample to the population.
 
+#### Some resuable theming
 ```{r}
 # unique(housing$YrSold)
 YEAR_THRESHOLD = 1950
 
+# Colors
+getFillPal = c('#A8D3DE', '#F2A896')
+getColorPal  = c('#7A9BA3', '#B27A6D')
+
+# Names associated with colors
+getColNames = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD)
+```
+
+#### The actual plot
+```{r}
 housing %>% # using the housing data
   
   # Get a count of homes sold by year built 
@@ -373,15 +401,15 @@ housing %>% # using the housing data
     
       # Build a lollipop chart
       # Basics here: https://r-graph-gallery.com/300-basic-lollipop-plot.html
-      geom_segment(aes(x=YearBuilt, xend=YearBuilt, y=0, yend=NumSold),
-                   alpha = 0.33) +
-      geom_point(aes(y = NumSold),
-                 alpha = 0.66) +
+      geom_segment(aes(x=YearBuilt, xend=YearBuilt, y=0, yend=NumSold), 
+                   alpha = 0.5 ) +
+      geom_point(aes(y = NumSold) ) +
     
       # Diverge on colors based on the YEAR_THRESHOLD variable
       # Splits based on the year built
-      scale_color_manual(values = c('steelblue3', 'darkorange2'),
-                         labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) ) +
+      scale_color_manual(values = getFillPal, # See chunk above. just 2 colors
+                         labels = getColNames 
+                         ) +
         
       # Themes
       theme_minimal() + 
@@ -390,11 +418,13 @@ housing %>% # using the housing data
 ```
 
 ### 2. Are there any changes happening to sale price overtime?
-* No real change insale price over time among larger higher-level groupings
+* No real change in sale price over time among larger higher-level groupings
 * Appears that older homes sell for less.
+* Useful to understand that there are little fluctuations in the overall trend of the
+market over the four year period in order to understand the market trends.
 
 ```{r}
-base_ridgeline <- housing %>%
+housing %>%
   ggplot(aes(y     = YrSold,
              group = YrSold,  # key here is that we are grouping by year sold
              x     = SalePrice,
@@ -405,14 +435,13 @@ base_ridgeline <- housing %>%
   
   # Labels
   labs(title    = 'Distribution of Yearly Home Prices at Sale Date Remain Steady',
-       subtitle = paste('Note Homes Built after', YEAR_THRESHOLD, 'sell for Less'),
+       subtitle = paste('Note Homes Built before', YEAR_THRESHOLD, 'sell for Less'),
        x        = 'Sale Price of Home (USD)',
        y        = 'Year Home Sold') +
   
   # Ridge Line Density Plots
   # More here: https://r-graph-gallery.com/294-basic-ridgeline-plot.html#color
-  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
-                               alpha = 0.5) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01 ) +
   
   # Formatting of axis as comma
   scale_x_continuous(labels = comma) +
@@ -431,14 +460,130 @@ base_ridgeline <- housing %>%
   
   # Diverge on colors based on the YEAR_THRESHOLD variable
   # Splits based on the year built
-  scale_color_manual(values = c('steelblue3', 'darkorange2'),
-                     labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) ) +
-  scale_fill_manual( values = c('lightsteelblue2', '#FFDEBD'),
-                     labels = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD) )
-  
+  scale_color_manual(values = getColorPal, labels = getColNames ) +
+  scale_fill_manual( values = getFillPal,  labels = getColNames )
+```
 
-base_ridgeline # display
+### 3. How does the overall quality of the home correlate with sale price overtime?
+* Note the plot includes pre/post 1950 as seen above
+* As noted before, the overall quality of home rating correlates highly with the sale price of the home
+* Appears that no Pre-1950 homes receive quality rating of 10, which are of the highest selling homes in the other portion of the sample (post-1950)
+* Useful to understand for a seller that older homes have limit on potential for resale.
+
+```{r, cache=TRUE}
+housing %>%
+  ggplot(aes(y     = SalePrice,
+             x     = OverallQual,
+             color = YearBuilt > YEAR_THRESHOLD # 2-colors that show split in years
+             )
+         ) +
+  
+  # Labels
+  labs(title    = 'Better Quality & Newer Homes Sell for More',
+       subtitle = 'Note no Pre-1950 homes receive quality rating of 10',
+       x        = 'Overall Quality of Home (Scale 1-10, 10 being best)',
+       y        = 'Sale Price of Home (USD)',
+       caption  = '\nOnly showing equal-tail 95% of home sale prices for clarity') +
+  
+  # Points
+  geom_jitter(alpha = 0.5, # transparency
+              width = 0.25, # jitter amt
+              size  = 1.5  
+              ) +
+
+  # Formatting of axis as comma
+  scale_y_continuous(labels = comma,
+                     # Limit the x axis to 95% percentile (equal tailed)
+                     limits = c(0.025, quantile(housing$SalePrice, 0.975))) +
+  
+  # Themes
+  theme_minimal() +
+    theme(
+      legend.position = "top",
+      legend.title    = element_blank(),
+      panel.spacing   = unit(1, "lines"),
+      strip.text      = element_blank()
+    ) +
+  
+  # Facet on the year threshold
+  facet_grid(. ~ YearBuilt > YEAR_THRESHOLD) +
+  
+  # Add a linear method
+  geom_smooth(method = lm, fill = 'grey80') +
+
+  # Diverge on colors based on the YEAR_THRESHOLD variable
+  # Splits based on the year built
+  scale_color_manual(values = getFillPal,
+                     labels = getColNames )
+```
+
+### 4. Does the neighborhood that you live in affect the sale price?
+* Yes, living near positive conditions will positively impact the sale price of the home
+* What is interesting is that living near a railroad does not drastically decrease the sale price
+* Note that the sample mainly represents the "normal" conditions, skewing the data some.
+* Implication: you may more for your surrounding public amenities.
+
+```{r}
+# Note most homes are "normal" in the sample!
+table(housing$Condition1)
+
+# Remap the factor levels
+# Note condensed decriptions from data dictionary for ease of viewing
+housing$Condition1 <- recode(housing$Condition1,
+                             'Artery' = 'Near Arterial St.',
+                             'Feedr'  = 'Near Feeder Street',
+                             'Norm'   = 'Normal',
+                             'PosN'   = 'Near Park, Greenbelt, etc.',
+                             'PosA'   = 'Near Other Public Ammenity',
+                             'RR'     = 'Near Railroad'
+                             )
+
+housing %>%
+  ggplot(aes(y     = reorder(Condition1, SalePrice),
+             x     = SalePrice
+             )
+         ) +
+  
+  # Labels
+  labs(title    = 'Homes Near Public Amenities Sell Higher',
+       subtitle = '',
+       x        = 'Sale Price of Home (USD)',
+       y        = 'Home Proximity to Various Conditions\n',
+       caption  = '\nOnly showing equal-tail 99% of home sale prices for clarity') +
+  
+  # boxplots and colors
+  geom_boxplot(color = '#8EA199',
+               fill  = '#C2DCD1') +
+
+  # Formatting of axis as comma
+  scale_x_continuous(labels = comma,
+                     
+                     # Limit the x axis to 99% percentile (equal tailed)
+                     limits = c((1 - 0.99) / 2, quantile(housing$SalePrice, 
+                                                         1 - (1 - 0.99) / 2))) +
+  
+  # Themes
+  theme_minimal()
 ```
 
 
+### 5. 
 
+```{r}
+# Plot
+data %>%
+  arrange(desc(Species)) %>%
+  ggparcoord(
+    columns = 1:4, groupColumn = 5, order = "anyClass",
+    showPoints = TRUE, 
+    title = "Original",
+    alphaLines = 1
+    ) + 
+  scale_color_manual(values=c( "#69b3a2", "#E8E8E8", "#E8E8E8") ) +
+  theme_ipsum()+
+  theme(
+    legend.position="Default",
+    plot.title = element_text(size=10)
+  ) +
+  xlab("")
+```
