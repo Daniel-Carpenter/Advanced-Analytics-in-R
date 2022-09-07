@@ -1,0 +1,14 @@
+---
+title: "4+ More Dimension Reduction!"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+standalone: true
+    
+editor: visual
+---
+
+# Dimension Reduction Analysis
