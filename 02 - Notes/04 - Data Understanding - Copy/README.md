@@ -2,8 +2,17 @@
 ================
 Daniel Carpenter
 
--   <a href="#dimension-reduction-analysis"
-    id="toc-dimension-reduction-analysis"><span
-    class="toc-section-number">1</span> Dimension Reduction Analysis</a>
+-   <a href="#objectives" id="toc-objectives"><span
+    class="toc-section-number">1</span> Objectives</a>
 
-# Dimension Reduction Analysis
+## Objectives
+
+-   Explain how **Principal Component Analysis** works and outline the
+    motivation of using dimension reduction techniques
+
+-   Compare and contrast `PCA`, `LDA`, and `t-SNE`
+
+-   Perform `PCA`, `LDA`, and `t-SNE` in **`R`** and **visualize** the
+    results
+
+-   **Interpret** dimension reduction results
