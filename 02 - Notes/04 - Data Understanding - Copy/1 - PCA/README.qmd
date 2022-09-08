@@ -19,7 +19,7 @@ Reading: Applied Predictive Modeling: 3.3
 
 -   Goal is to maintain the same variance as the upper level dimension
 
--   ![](images/paste-3F88191E.png)
+-   ![](images/paste-3F88191E.png){width="781"}
 
 ### Example 1: Rotation of Data
 
@@ -32,28 +32,28 @@ Reading: Applied Predictive Modeling: 3.3
 ## Math Behind PCA
 
 +-------------------+------------------------------------------------------------------+
-| Variance          | ![](images/paste-BD5F3A4E.png)                                   |
+| Variance          | ![](images/paste-BD5F3A4E.png){width="354"}                      |
 +-------------------+------------------------------------------------------------------+
-| Covariance Matrix | ![](images/paste-E4390E88.png)                                   |
+| Covariance Matrix | ![](images/paste-E4390E88.png){width="512"}                      |
 +-------------------+------------------------------------------------------------------+
 | Solution to PCA   | Make a judgement call on the % of variation that you contain     |
 |                   |                                                                  |
-|                   | ![](images/paste-76E5BAE4.png)                                   |
+|                   | ![](images/paste-76E5BAE4.png){width="391"}                      |
 |                   |                                                                  |
-|                   | ![](images/paste-63633851.png)                                   |
+|                   | ![](images/paste-63633851.png){width="375"}                      |
 +-------------------+------------------------------------------------------------------+
 | Normalization     | Each Attribute should contribute equally to the overall variance |
 |                   |                                                                  |
-|                   | ![](images/paste-158F08ED.png)                                   |
+|                   | ![](images/paste-158F08ED.png){width="550"}                      |
 +-------------------+------------------------------------------------------------------+
 
 ## Conceptual Example of PCA
 
-![](images/paste-925C48F1.png){width="1152"}
+![](images/paste-925C48F1.png){width="550"}
 
 ### Two possible principal components:
 
-![](images/paste-4D02DAD2.png){width="1196"}
+![](images/paste-4D02DAD2.png){width="550"}
 
 ### How do the two PC's perform?
 

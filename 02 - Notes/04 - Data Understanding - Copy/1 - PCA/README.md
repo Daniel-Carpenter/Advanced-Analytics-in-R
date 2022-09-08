@@ -20,7 +20,7 @@ Reading: Applied Predictive Modeling: 3.3
 
 -   Goal is to maintain the same variance as the upper level dimension
 
--   ![](images/paste-3F88191E.png)
+-   <img src="images/paste-3F88191E.png" width="781" />
 
 ### Example 1: Rotation of Data
 
@@ -40,34 +40,34 @@ Reading: Applied Predictive Modeling: 3.3
 <tbody>
 <tr class="odd">
 <td>Variance</td>
-<td><img src="images/paste-BD5F3A4E.png" /></td>
+<td><img src="images/paste-BD5F3A4E.png" width="354" /></td>
 </tr>
 <tr class="even">
 <td>Covariance Matrix</td>
-<td><img src="images/paste-E4390E88.png" /></td>
+<td><img src="images/paste-E4390E88.png" width="512" /></td>
 </tr>
 <tr class="odd">
 <td>Solution to PCA</td>
 <td><p>Make a judgement call on the % of variation that you contain</p>
-<p><img src="images/paste-76E5BAE4.png" /></p>
-<p><img src="images/paste-63633851.png" /></p></td>
+<p><img src="images/paste-76E5BAE4.png" width="391" /></p>
+<p><img src="images/paste-63633851.png" width="375" /></p></td>
 </tr>
 <tr class="even">
 <td>Normalization</td>
 <td><p>Each Attribute should contribute equally to the overall
 variance</p>
-<p><img src="images/paste-158F08ED.png" /></p></td>
+<p><img src="images/paste-158F08ED.png" width="550" /></p></td>
 </tr>
 </tbody>
 </table>
 
 ## Conceptual Example of PCA
 
-<img src="images/paste-925C48F1.png" width="1152" />
+<img src="images/paste-925C48F1.png" width="550" />
 
 ### Two possible principal components:
 
-<img src="images/paste-4D02DAD2.png" width="1196" />
+<img src="images/paste-4D02DAD2.png" width="550" />
 
 ### How do the two PC’s perform?
 
@@ -126,13 +126,13 @@ pc
 ```
 
     Standard deviations (1, .., p=3):
-    [1] 22.721519 11.203602  1.727381
+    [1] 23.18262 11.36526  1.74433
 
     Rotation (n x k) = (3 x 3):
-                PC1         PC2           PC3
-    x -0.9996569391  0.02617929  0.0008055776
-    y -0.0261839327 -0.99963646 -0.0064295823
-    z -0.0006369629  0.00644847 -0.9999790055
+             PC1          PC2          PC3
+    x 0.99986461 -0.016350327  0.001849095
+    y 0.01635242  0.999865658 -0.001124551
+    z 0.00183046 -0.001154635 -0.999997658
 
 ``` r
 summary(pc)
@@ -140,9 +140,9 @@ summary(pc)
 
     Importance of components:
                                PC1     PC2     PC3
-    Standard deviation     22.7215 11.2036 1.72738
-    Proportion of Variance  0.8007  0.1947 0.00463
-    Cumulative Proportion   0.8007  0.9954 1.00000
+    Standard deviation     23.1826 11.3653 1.74433
+    Proportion of Variance  0.8026  0.1929 0.00454
+    Cumulative Proportion   0.8026  0.9955 1.00000
 
 ``` r
 plot(pc)
@@ -155,15 +155,15 @@ str(pc)    #look at component pieces of the prcomp obj
 ```
 
     List of 5
-     $ sdev    : num [1:3] 22.72 11.2 1.73
-     $ rotation: num [1:3, 1:3] -0.999657 -0.026184 -0.000637 0.026179 -0.999636 ...
+     $ sdev    : num [1:3] 23.18 11.37 1.74
+     $ rotation: num [1:3, 1:3] 0.99986 0.01635 0.00183 -0.01635 0.99987 ...
       ..- attr(*, "dimnames")=List of 2
       .. ..$ : chr [1:3] "x" "y" "z"
       .. ..$ : chr [1:3] "PC1" "PC2" "PC3"
-     $ center  : Named num [1:3] -0.2793 -0.1573 -0.0488
+     $ center  : Named num [1:3] 0.7067 0.2255 0.0227
       ..- attr(*, "names")= chr [1:3] "x" "y" "z"
      $ scale   : logi FALSE
-     $ x       : num [1:1000, 1:3] -36.36 -5.84 -22.81 19.81 -16.53 ...
+     $ x       : num [1:1000, 1:3] -26.71 -9.86 -26.09 22.63 -3.58 ...
       ..- attr(*, "dimnames")=List of 2
       .. ..$ : NULL
       .. ..$ : chr [1:3] "PC1" "PC2" "PC3"
@@ -181,22 +181,22 @@ str(pc)    #look at component pieces of the prcomp obj
 pc$rotation
 ```
 
-                PC1         PC2           PC3
-    x -0.9996569391  0.02617929  0.0008055776
-    y -0.0261839327 -0.99963646 -0.0064295823
-    z -0.0006369629  0.00644847 -0.9999790055
+             PC1          PC2          PC3
+    x 0.99986461 -0.016350327  0.001849095
+    y 0.01635242  0.999865658 -0.001124551
+    z 0.00183046 -0.001154635 -0.999997658
 
 ``` r
 head(pc$x)
 ```
 
-                PC1       PC2        PC3
-    [1,] -36.364279 10.479770 -2.3380491
-    [2,]  -5.839716 15.275111  1.6951654
-    [3,] -22.810936 -9.507178 -1.9729993
-    [4,]  19.813894  2.160270 -0.3612566
-    [5,] -16.529847 12.364697 -0.2126987
-    [6,] -25.488714  7.762937  0.2762267
+                PC1       PC2         PC3
+    [1,] -26.712863  9.963198 -1.69957281
+    [2,]  -9.861888 13.774103  0.09355149
+    [3,] -26.091668 -3.496968 -0.57767646
+    [4,]  22.634889  2.638372 -1.29813087
+    [5,]  -3.575430 -7.973293 -1.53807538
+    [6,]  -8.340154  7.655477 -1.54402539
 
 ``` r
 df2<-scale(df,scale=F)
@@ -205,12 +205,12 @@ mat<-df2%*%pc$rotation
 mat[1:5,]
 ```
 
-                PC1       PC2        PC3
-    [1,] -36.364279 10.479770 -2.3380491
-    [2,]  -5.839716 15.275111  1.6951654
-    [3,] -22.810936 -9.507178 -1.9729993
-    [4,]  19.813894  2.160270 -0.3612566
-    [5,] -16.529847 12.364697 -0.2126987
+                PC1       PC2         PC3
+    [1,] -26.712863  9.963198 -1.69957281
+    [2,]  -9.861888 13.774103  0.09355149
+    [3,] -26.091668 -3.496968 -0.57767646
+    [4,]  22.634889  2.638372 -1.29813087
+    [5,]  -3.575430 -7.973293 -1.53807538
 
 ``` r
 #for convenience:
