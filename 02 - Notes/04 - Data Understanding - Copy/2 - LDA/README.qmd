@@ -1,5 +1,5 @@
 ---
-title: "4+ More Dimension Reduction!"
+title: "Linear Discriminant Analysis"
 author: "Daniel Carpenter"
 format: 
   gfm:
@@ -11,10 +11,74 @@ standalone: true
 editor: visual
 ---
 
-## \# Resources
-
-<br> <br>
-
 Reading: Applied Predictive Modeling: 3.3
 
-# 
+## Goals
+
+-   Discriminate between classes of information
+
+## Fisher Solution (Math)
+
+> Goal: Maximize the ratio of between and in class scatter
+
+### Overview of Fisher
+
+![](images/paste-58666D2A.png){width="550"}
+
+![](images/paste-10C74E31.png){width="550"}
+
+### How do you analyze the outcome?
+
+![](images/paste-BD3424D5.png){width="550"}
+
+## LDA in `R`
+
+```{r}
+library(tidyverse) 
+library(caret)
+library(MASS)
+
+
+# use the trusty old “iris” data for an example
+data(iris)
+
+# Mean center the data; ignores factor data
+# SCaled for the SD to be 1
+preproc.param <- iris %>% preProcess(method = c("center", "scale")) 
+
+# Transform the data using the estimated parameters 
+transformed <- preproc.param %>% predict(iris)
+
+# Fit the model , '.' means *
+lda.model <- lda(Species ~ ., data = transformed) 
+
+# Note petals values are higher
+# See that 99% of the explanatory power is within the first function
+# LD2 does not do much.
+print(lda.model)
+
+predictions <- lda.model %>% predict(transformed) 
+
+names(predictions)
+
+tail(predictions$x)         # Predicted values
+tail(predictions$posterior) # Posterior probabilities
+tail(predictions$class)     # Max of the posterior probs
+
+# How did the actual compare to the predicted
+table(Original=iris$Species,Predicted=predictions$class)
+
+# On average how many successes did we have
+mean(predictions$class==transformed$Species)
+
+# Now look at how the classification model does
+lda.data <- cbind(transformed, predict(lda.model)$x)
+
+# Visual representation
+lda.data %>%
+  ggplot(aes(LD1, LD2) ) +
+  
+    geom_point(aes(color = Species)) +
+    
+    ggtitle('Note that seperation between Species in Model')
+```
