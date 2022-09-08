@@ -1,5 +1,5 @@
 ---
-title: "4+ More Dimension Reduction!"
+title: "Digits Example in R"
 author: "Daniel Carpenter"
 format: 
   gfm:
@@ -11,11 +11,4 @@ standalone: true
 editor: visual
 ---
 
-# Resources
--
-
-<br> <br>
-
-> 
-
-# 
+## 
