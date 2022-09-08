@@ -7,10 +7,9 @@ library(ggplot2)
 #to install ggbiplot, first install and load "devtools"
 #then download ggbiplot from CRAN then load
 ----------------------------------------------------------
-#install.packages("devtools")
-#library(devtools)
-#install_github("ggbiplot", "vqv")
-
+# install.packages("devtools")
+# library(devtools)
+# install_github("vqv/ggbiplot")
 library(ggbiplot)
 
 
