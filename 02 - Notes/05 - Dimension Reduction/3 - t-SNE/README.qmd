@@ -1,5 +1,5 @@
 ---
-title: "4+ More Dimension Reduction!"
+title: "t-Distributed Stochastic Neighbor Embedding"
 author: "Daniel Carpenter"
 format: 
   gfm:
@@ -11,11 +11,88 @@ standalone: true
 editor: visual
 ---
 
-# Resources
--
+## Overview
 
-<br> <br>
+-   Specialization for Visualization
 
-> 
+-   Non-linear
 
-# 
+-   Unsupervised
+
+-   Maps large datasets to 2-3 dimensions **for visualization**
+
+## SNE
+
+### Overview
+
+![](images/paste-64485809.png){width="550"}
+
+### t-SNE
+
+![](images/paste-115734B7.png){width="550"}
+
+![](images/paste-81F9EB3B.png){width="550"}
+
+![](images/paste-527C4185.png){width="550"}
+
+## Examples in R
+
+```{r}
+# | cache: true
+library(mlbench)
+library(tidyverse)
+library("Rtsne")
+
+iris_unique <- unique(iris) # Remove duplicates
+iris_matrix <- as.matrix(iris_unique[,1:4])
+
+set.seed(42) # Set a seed if you want reproducible results
+
+tsne_out <- Rtsne(iris_matrix) # Run TSNE
+
+# ?Rtsne
+
+# Base R: Show the objects in the 2D tsne representation
+plot(tsne_out$Y,col=iris_unique$Species)
+
+# ggplot:
+df<-data.frame(x    = tsne_out$Y[,1],
+               y    = tsne_out$Y[,2], 
+               type = iris_unique$Species)
+
+ggplot(data=df,aes(x=x,
+                   y=y,
+                   group=type,
+                   color=type)) + 
+  geom_point()
+
+
+# From the mlbench package
+data(Glass)
+str(Glass)
+
+# REmove duplicates
+Glass<-Glass[!duplicated(Glass),]
+
+summary(Glass$Type)
+
+
+# Run the model
+tsne_out <- Rtsne(Glass[,-10],
+                  perplexity=12,
+                  theta=0.0, 
+                  max_iter = 3000) # Run TSNE
+
+# Plot data
+df<-data.frame(x    = tsne_out$Y[,1],
+               y    = tsne_out$Y[,2], 
+               type = Glass[,10])
+
+ggplot(data=df,
+       aes(x=x,
+           y=y,
+           group=type,
+           color=type))+
+  geom_point()
+
+```
