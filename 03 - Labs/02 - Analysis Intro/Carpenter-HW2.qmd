@@ -335,14 +335,17 @@ head(housing$EndOfMonth)
 \newpage
 
 ## Visualizations of Data
+
 > Shows 5 Visualizations to explore data
 
 ### 1. How do Numeric Variables Correlate with Sale Price of Home?
-* 10 or so highly correlated variables (see listing below).
-* Goal is to understand what information matters to begin data investigation.
-* Used this information for future visualizations to tell story.
+
+-   10 or so highly correlated variables (see listing below).
+-   Goal is to understand what information matters to begin data investigation.
+-   Used this information for future visualizations to tell story.
 
 Create heatmap of correlated data for exploration
+
 ```{r, fig.height=3, fig.width=3}
 # heatmap of the numeric data for non-null values
 
@@ -359,6 +362,7 @@ heatmap(correlationMatrix)
 ```
 
 Looks to be 10 or so highly correlated variables
+
 ```{r}
 # get top 10 highest correlated variables
 
@@ -375,13 +379,12 @@ kable(corVarsTop10)
 \newpage
 
 ### 2. Are newer homes more popular?
-* Looks like newer homes are selling more, or at least more representative in the 
-sample.
-* This information is useful to understand from a high level that if you are selling or buying
-a house, the demand for your home may depend on the age of the house. Again, this 
-assumption depends on the representatives of the sample to the population.
+
+-   Looks like newer homes are selling more, or at least more representative in the sample.
+-   This information is useful to understand from a high level that if you are selling or buying a house, the demand for your home may depend on the age of the house. Again, this assumption depends on the representatives of the sample to the population.
 
 #### Some resuable theming
+
 ```{r, fig.height=5, fig.width=7}
 # unique(housing$YrSold)
 YEAR_THRESHOLD = 1950
@@ -395,6 +398,7 @@ getColNames = paste0(c('Pre-', 'Post-'), YEAR_THRESHOLD)
 ```
 
 #### The actual plot
+
 ```{r, fig.height=4, fig.width=7}
 housing %>% # using the housing data
   
@@ -433,10 +437,10 @@ housing %>% # using the housing data
 \newpage
 
 ### 3. Are there any changes happening to sale price overtime?
-* No real change in sale price over time among larger higher-level groupings.
-* Appears that older homes sell for less.
-* Useful to understand that there are little fluctuations in the overall trend of the
-market over the four year period in order to understand the market trends.
+
+-   No real change in sale price over time among larger higher-level groupings.
+-   Appears that older homes sell for less.
+-   Useful to understand that there are little fluctuations in the overall trend of the market over the four year period in order to understand the market trends.
 
 ```{r, fig.height=5, fig.width=7}
 housing %>%
@@ -482,10 +486,11 @@ housing %>%
 \newpage
 
 ### 4. How does the overall quality of the home correlate with sale price overtime?
-* Note the plot includes pre/post 1950 as seen above
-* As noted before, the overall quality of home rating correlates highly with the sale price of the home
-* Appears that no Pre-1950 homes receive quality rating of 10, which are of the highest selling homes in the other portion of the sample (post-1950)
-* Useful to understand for a seller that older homes have limit on potential for resale.
+
+-   Note the plot includes pre/post 1950 as seen above
+-   As noted before, the overall quality of home rating correlates highly with the sale price of the home
+-   Appears that no Pre-1950 homes receive quality rating of 10, which are of the highest selling homes in the other portion of the sample (post-1950)
+-   Useful to understand for a seller that older homes have limit on potential for resale.
 
 ```{r, fig.height=5, fig.width=7, cache=TRUE}
 housing %>%
@@ -537,10 +542,11 @@ housing %>%
 \newpage
 
 ### 5. Does the neighborhood that you live in affect the sale price?
-* Yes, living near positive conditions will positively impact the sale price of the home.
-* What is interesting is that living near a railroad does not drastically decrease the sale price.
-* Note that the sample mainly represents the "normal" conditions, skewing the data some.
-* Implication: you may more for your surrounding public amenities.
+
+-   Yes, living near positive conditions will positively impact the sale price of the home.
+-   What is interesting is that living near a railroad does not drastically decrease the sale price.
+-   Note that the sample mainly represents the "normal" conditions, skewing the data some.
+-   Implication: you may more for your surrounding public amenities.
 
 ```{r, fig.height=4, fig.width=7}
 # Note most homes are "normal" in the sample!

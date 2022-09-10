@@ -47,7 +47,11 @@ library(ggbiplot) # biplots
 library(corrplot)
 library(caret)    # preProcess for centering and z score scaling 
 library(MASS)     # Linear discreiminant analysis with lda 
-```
+
+library(HSAUR2)   # olympic data
+library(outliers) # grubbs.test
+library(DescTools) # for the %like% operator
+``` 
 
 # 1. Glass Data
 
@@ -286,12 +290,142 @@ predictedLD1 %>%
 
 # 2. Principal components for dimension reduction
 
+## 2 (a) Remove outlier
+
+* Launa from PNG is the outlier. She is an outlier in highjump, longjump, run800m, and hurdles. See image below. 
+
+* Notice that Joyner is an outlier too, but not removed since problem does not specify
+
+```{r}
+data(heptathlon)
+
+grubbs.test(heptathlon$score)
+
+heptathlonPivot <- heptathlon %>%
+
+  # Get the competitor name as own col
+  mutate(competitor = rownames(heptathlon) )  %>%
+  
+  pivot_longer(cols      = hurdles:score,
+               names_to  = 'event',
+               values_to = 'eventScore')
+
+# Create a plot of each event
+heptathlonPivot %>%
+  
+  ggplot(aes(x = 1,
+             y = eventScore)) +
+
+  # To see the distribution
+  geom_boxplot(color = 'steelblue4', fill = 'lightsteelblue') +
+  
+  # Display the olympians
+  geom_text(label = heptathlonPivot$competitor, size = 1.5) +
+  
+  facet_wrap(. ~ event, nrow = 1, scales = 'free') + 
+  
+  # Aesthetics
+  ggtitle('Distribution of Event Scores from the Heptathlon') +
+  theme_minimal() + theme(axis.text.x  = element_blank(),
+                          axis.title.x = element_blank())
+
+
+# Remove outlier with name like Launa
+heptathlon <- heptathlon %>% 
+  filter(!(rownames(heptathlon) %like% 'Launa%'))
+
+```
+
+## 2 (b)
+
+### Transform the running events (hurdles, run200m, run800m) so that large values are good. 
+
+```{r}
+heptathlon.goodBad <- heptathlon %>%
+  mutate(hurdles = max(hurdles) - hurdles, 
+         run200m = max(run200m) - run200m, 
+         run800m = max(run800m) - run800m 
+         )
+```
+
+
+## 2 (c)
+
+### Perform PCA and store in `Hpca`
+
+```{r}
+Hpca <- prcomp(heptathlon.goodBad,
+               center = TRUE, # Mean centered  
+               scale  = TRUE  # Z-SCore standardized
+               )
+```
+
+
+## 2 (d)
+
+### Visualize first two principal components
+```{r}
+# Create the biplot
+ggbiplot(Hpca,
+         obs.scale    = 1, 
+         var.scale    = 1, 
+         varname.size = 4, 
+         labels.size  = 10, 
+         circle       = TRUE
+         ) +
+  
+  # Titles and caption
+  labs(title   = 'Representativeness of First Two Principal Components',
+       caption = '\nUsing scaled and centered heptathlon data from HSAUR2') +
+  
+  # Add color to points by glass type
+  geom_point(color = 'darkseagreen3', size = 2) +
+  
+  theme_minimal() # the theme
+
+```
+
+### Interpretation of Results
+
+#### `PC1`:
+
+* Explains 66% of the variation in the data
+
+* Explains all variables very well *(except for `run800m`, `javelin`, and `highjump`)* 
+
+
+#### `PC2`:
+
+* Explains 11% of the variation in the data
+
+* Explains some of `run800m`, `javelin`, and `highjump`. Since the angles are nearly 45 degrees, you can tell that the explanatory power splits between `PC1` and `PC2`
 
 \newpage
 
 # 3. Housing data dimension reduction and exploration
 
+## Read and Clean data
+```{r}
+# Read data
+housing <- read_csv('housingData.csv')
 
+
+hd <- housingData %>%
+  
+  # selects only numeric columns
+  select_if(is.numeric) %>%
+  
+  # creates new variables age, ageSinceRemodel, and ageofGarage, and
+  dplyr::mutate(age = YrSold - YearBuilt,
+                ageSinceRemodel = YrSold - YearRemodAdd,
+                ageofGarage = ifelse(is.na(GarageYrBlt), age, YrSold - GarageYrBlt)) %>%
+  
+  # removes a few columns that are not needed
+  dplyr::select(!c(Id,MSSubClass, LotFrontage, GarageYrBlt,
+                   MiscVal, YrSold , MoSold, YearBuilt,
+                   YearRemodAdd, MasVnrArea))
+
+```
 
 
 
