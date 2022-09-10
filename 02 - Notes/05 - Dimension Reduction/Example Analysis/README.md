@@ -82,7 +82,7 @@ qplot(data=iris, Sepal.Length)
 
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](Example_files/figure-gfm/unnamed-chunk-2-1.png)
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)
 
 ``` r
 # GGplot
@@ -98,7 +98,7 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) +
         axis.title = element_text(size = 14))
 ```
 
-![](Example_files/figure-gfm/unnamed-chunk-2-2.png)
+![](README_files/figure-gfm/unnamed-chunk-2-2.png)
 
 ``` r
 # Outliers
@@ -122,7 +122,7 @@ Animals %>%
   geom_text(label = rownames(Animals))
 ```
 
-![](Example_files/figure-gfm/unnamed-chunk-2-3.png)
+![](README_files/figure-gfm/unnamed-chunk-2-3.png)
 
 ``` r
 # Missingness Proportion
@@ -196,7 +196,7 @@ pc
 plot(pc, main = 'Most can be contained within one variable')
 ```
 
-![](Example_files/figure-gfm/unnamed-chunk-2-4.png)
+![](README_files/figure-gfm/unnamed-chunk-2-4.png)
 
 ``` r
 pc$rotation
@@ -248,4 +248,4 @@ ggbiplot(pc,obs.scale = 1, var.scale = 1,
   geom_text(label = rownames(mtcars), size = 3)
 ```
 
-![](Example_files/figure-gfm/unnamed-chunk-2-5.png)
+![](README_files/figure-gfm/unnamed-chunk-2-5.png)
