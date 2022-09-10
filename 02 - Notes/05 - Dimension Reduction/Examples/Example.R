@@ -24,22 +24,22 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) +
         axis.title = element_text(size = 14))
 
 # Outliers
-# library(MASS)
-# 
-# head(MASS::Animals)
-# 
-# Animals %>%
-#   ggplot(aes(x =1,
-#              y = brain)) +
-#   
-#   geom_boxplot() +
-#   geom_text(label = rownames(Animals))
-# 
+library(MASS)
+
+head(MASS::Animals)
+
+Animals %>%
+  ggplot(aes(x =1,
+             y = brain)) +
+
+  geom_boxplot() +
+  geom_text(label = rownames(Animals))
+
 
 
 # Missingness Proportion
 df <- mtcars %>%
-  select(mpg, cyl, hp, qsec)
+  dplyr::select(mpg, cyl, hp, qsec)
 
 df$mpg[6:15]   <- NA # Make missing vals
 df$hp[13:21]   <- NA 
@@ -48,15 +48,15 @@ df$qsec[10:18] <- NA
 df.filtered <- df %>%
   filter(cyl == 4)
 
-sum(is.na(df.filtered$mpg)) / nrow(df.filtered)
-sum(is.na(df.filtered$hp)) / nrow(df.filtered)
+sum(is.na(df.filtered$mpg))  / nrow(df.filtered)
+sum(is.na(df.filtered$hp))   / nrow(df.filtered)
 sum(is.na(df.filtered$qsec)) / nrow(df.filtered)
 
 
 # Principal COmponent analysis
 pc<-prcomp(mtcars,
            center = TRUE, # Mean centered  
-           scale  = TRUE  # Z-SCore standardized
+           scale  = TRUE  # Z-SCore standardized``
            )
 pc
 
@@ -66,7 +66,9 @@ pc$rotation
 
 summary(pc) # Cumulative proportion
 
+# Which PC's represent which variables?
 ggbiplot(pc,obs.scale = 1, var.scale = 1, 
-         varname.size = 4, labels.size=10, circle = TRUE)
+         varname.size = 4, labels.size=10, circle = TRUE) +
+  geom_text(label = rownames(mtcars), size = 3)
 
 
