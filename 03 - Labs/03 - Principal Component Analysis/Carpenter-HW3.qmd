@@ -62,7 +62,7 @@ data(Glass)
 Glass <- Glass[!duplicated(Glass), ]
 ```
 
-## (a) Mathematics of PCA
+## 1 (a) Mathematics of PCA
 
 `i.` Create the correlation matrix of all the numerical attributes in the `Glass` data and store the results in a new object `corMat`
 
@@ -124,7 +124,7 @@ angle
 
 \newpage
 
-## (b) Applications of PCA
+## 1 (b) Applications of PCA
 
 i.  Create a visualization of the corMat correlation matrix (i.e., a heatmap or variant).
 
@@ -211,7 +211,7 @@ iv. Based on the PCA results, do you believe that you can effectively reduce the
 
 \newpage
 
-## (c) Application of LDA
+## 1 (c) Application of LDA
 
 i.  Since the `Glass` data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the `lda` method from the `MASS` package to reduce the `Glass` data dimensionality.
 
@@ -390,6 +390,47 @@ ggbiplot(Hpca,
 
 \newpage
 
+## 2 (e)
+
+Plot the heptathlon score against the principal component 1 projections
+
+```{r}
+
+heptathlon %>%
+  
+  # Add PC1 to dataset
+  mutate(PC1 = Hpca$x[, 1]) %>%
+  
+  # Using PC1 and score
+  ggplot(aes(y = score, 
+             x = PC1
+             ) ) +
+    
+    # Add OLS
+    geom_smooth(method = lm, color = 'grey80', alpha = 0.10) +
+  
+    # Add points
+    geom_point(color = 'steelblue3',
+               alpha = 0.5, 
+               size  = 5) +
+  
+    # Labels and colors
+    labs(
+       title = 'How well does PC1 explain the competitor score',
+       y = 'Competor Score'
+    ) +
+    
+    scale_y_continuous(labels = comma) + 
+    
+    theme_minimal()
+```
+
+### Interpretation of Score ~ PC1
+
+* You can see that PC1 explains the competitor score extremely well just by this simple visual.
+
+\newpage
+
 # 3. Housing data dimension reduction and exploration
 
 ## Read and Clean data
@@ -419,7 +460,16 @@ hd <- housingData %>%
 ```
 
 ## Correlation Analysis
-```{r}
+
+Please see interpretation of correlation analysis below:
+
+* You can see that there are many variables within the data set that are highly correlated
+
+* Some variables do not show high correlation
+
+* Please see correlation plot in depth for variable specific correlations.
+
+```{r, fig.height=8, fig.width=8}
 # Parameters
 numericData = hd
 confInt     = 0.90
@@ -435,4 +485,94 @@ corrplot(corMatHouse,
          order     = 'hclust',    # Clustering
          addrect   = 2,
          method    = 'ellipse')   # Show spread and direction  
+```
+
+\newpage
+
+## Principal Component Analysis
+
+### Cumulative Proportions
+
+Please see interpretation of cumulative proportions below:
+
+* The first two principal components explain ~36% of the variation in the data, so we would need to use more than just those
+
+* If our `q` threshold for variation kept within the data was arounf 95%, then we could keep only the first 20 principal components while removing 10 columns from the original data set.
+
+* If we were satisfied with retaining 80% of the variation via these PC's, we could remove 18 variables from the data set.
+
+* Note that there are 30 numeric variables within the dataset
+
+```{r}
+ncol(hd) # Number of columns in the dataset
+
+# Perform PCA while centering and scaling data
+pc.house <- prcomp(hd,
+                   center = TRUE, # Mean centered  
+                   scale  = TRUE  # Z-SCore standardized
+                   )
+
+# See first 10 cumulative proportions
+pc.house.summary <- summary(pc.house)
+pc.house.summary$importance[, 1:6]
+
+# Create a data frame for ggplot
+pc.hd.cumProportion <- data.frame(cumProp = pc.house.summary$importance['Cumulative Proportion', ])
+
+# See how Individual PC's perform
+pc.hd.cumProportion %>%
+  
+  # Create the plot with x summarizing the PC's as only their number
+  ggplot(aes(x = reorder(1:nrow(pc.hd.cumProportion), cumProp),
+             group = 1,
+             y = cumProp)
+         ) +
+  
+  # Area chart
+  geom_area(alpha = 0.5,
+            color = 'steelblue3',
+            fill  = 'lightsteelblue1'
+            ) +
+  
+  # Labels, scales, and colors
+  labs(title   = 'Cumulative Proportion of Principal Components',
+       x       = 'Principal Component',
+       y       = 'Cumulative Proportion of Explanatory Power',
+       caption = '\nUsing housing dataset. Data centered and scaled.'
+       ) +
+  
+  scale_y_continuous(labels = percent) +
+  
+  theme_minimal() + theme(panel.grid.major.x = element_line(color = 'grey95'),
+                          panel.grid.major.y = element_line(color = 'grey65'))
+
+```
+
+\newpage
+
+### Bi-Plots
+
+* Since there are so many variables, it can be difficult to interpret all of the results
+
+* However, you can see that there are not many outliers affecting the analysis
+
+* Some variables that PC1 contains well: `Fireplaces`, `OverallQual`, `GarageCars.`
+
+* Some variables that PC2 contains well: `BsmtFullBath`, `BsmtFinSF1`, `EncPorchSF`
+
+```{r, fig.width=8, fig.height=4}
+ggbiplot(pc.house,
+         obs.scale    = 1, 
+         var.scale    = 1, 
+         varname.size = 3, 
+         labels.size  = 10, 
+         circle       = TRUE,
+         alpha        = 0.1
+         ) +
+  
+  # Titles and caption
+  labs(title   = 'Representativeness of First Two Principal Components',
+       caption = '\nUsing housing dataset. Data centered and scaled.') +
+  
+  theme_minimal() # the theme
 ```
