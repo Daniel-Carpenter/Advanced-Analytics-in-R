@@ -1,0 +1,154 @@
+---
+title: "Homework 3 - Principal Component Analysis"
+author: "Daniel Carpenter"
+date: "August 2022"
+format: 
+  pdf:
+    toc: true
+    toc-depth: 2
+    # number-sections: true
+    highlight-style: github #arrow
+    code-block-border-left: "#D6D6D6"
+  gfm:
+    toc: true
+    toc-depth: 1
+    
+execution:
+  echo:    true
+  include: true
+  cache:   true
+  message: false
+  warning: false
+
+editor: visual
+
+fig-width:  7
+fig-height: 3.5
+---
+
+
+***Check list:***
+
+* 1 (iv - v)
+
+\newpage
+
+## Packages
+
+```{r, message=FALSE}
+library(tidyverse) # get tidverse for piping
+library(skimr)
+library(knitr)
+library(scales)
+require(lubridate)
+
+library(mlbench)   # Glass data
+library(ggbiplot) # biplots
+library(scatterplot3d)
+
+```
+
+# 1. Glass Data
+
+## Get and Clean Data
+```{r}
+data(Glass)
+
+# Remove duplicates
+Glass <- Glass[!duplicated(Glass), ]
+```
+
+## (a) Mathematics of PCA
+
+`i.` Create the correlation matrix of all the numerical attributes in the `Glass` data and store the results in a new object `corMat`
+
+```{r}
+skimmed <- skim(Glass)
+
+# Notice one factor data, for variable `type`
+skimmed$skim_type
+
+# Get only numeric data
+GlassNumeric <- Glass %>% select(where(is.numeric))
+
+# Create correlation matrix using only numeric data type
+corMat <- cor(GlassNumeric)
+```
+
+
+`ii.` Compute the eigenvalues and eigenvectors of `corMat.`
+
+Eigenvalues
+```{r}
+# prcomp(corMat)
+eigenValues = eigen(corMat)$values
+eigenValues
+```
+
+Eigenvectors
+```{r}
+eigenVectors = eigen(corMat)$vectors
+eigenVectors
+```
+
+
+`iii.` Use `prcomp` to compute the principal components of the `Glass` attributes (make sure to use the scale option).
+```{r}
+# Using only numeric data
+pc.glass <- prcomp(GlassNumeric, scale = TRUE)
+pc.glass
+```
+
+
+`iv.` Compare the results from (ii) and (iii) - Are they the same? Different? Why? <br>
+
+* The eigenvalues differ
+* The eigenvectors are the same in absolute value, but the signs are the opposite within each value of the vectors
+* Why do they differ? Past `ii` uses the correlation matrix; the principal component analysis (`ii`) uses the covariance matrix, which is a scaled, or *normalized*, version of the correlation matrix. 
+
+
+`v.` Using R demonstrate that principal components 1 and 2 from (iii) are orthogonal. (Hint: the inner product between two vectors is useful in determining the angle between the two vectors)
+
+```{r}
+PC1.glass <- pc.glass$x[,1]
+PC2.glass <- pc.glass$x[,2]
+
+angle <- acos( sum(PC1.glass*PC2.glass) / ( sqrt(sum(PC1.glass * PC1.glass)) * sqrt(sum(PC2.glass * PC2.glass)) ) )
+
+angle
+
+```
+
+
+\newpage
+
+## (b) Applications of PCA
+
+i. Create a visualization of the corMat correlation matrix (i.e., a heatmap or variant) If you are interested and have time, consider the corrplot package for very nice options, https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html.
+
+```{r}
+heatmap(corMat)
+```
+
+ii. Provide visualizations of the principal component analysis results from the Glass data. Consider incorporating the glass type to group and color your biplot.
+
+
+iii. Provide an interpretation of the first two prinicpal components the Glass data.
+
+
+iv. Based on the PCA results, do you believe that you can effectively reduce the dimension of the data? If so, to what degree? If not, why?
+
+
+
+\newpage
+
+## (c) !!
+
+# 2. Principal components for dimension reduction
+
+
+\newpage
+
+# 3. Housing data dimension reduction and exploration
+
+
