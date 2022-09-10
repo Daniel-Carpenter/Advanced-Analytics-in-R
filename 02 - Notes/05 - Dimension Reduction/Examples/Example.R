@@ -54,7 +54,10 @@ sum(is.na(df.filtered$qsec)) / nrow(df.filtered)
 
 
 # Principal COmponent analysis
-pc<-prcomp(mtcars,center=T)
+pc<-prcomp(mtcars,
+           center = TRUE, # Mean centered  
+           scale  = TRUE  # Z-SCore standardized
+           )
 pc
 
 plot(pc, main = 'Most can be contained within one variable')

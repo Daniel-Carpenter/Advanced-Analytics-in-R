@@ -23,7 +23,7 @@ Reading: Applied Predictive Modeling: 3.3
 
 Data must be:
 
--   Z-score standardized. Can scale with `prcomp(data, scale = TRUE)`
+-   Z-score standardized. Can mean center and Z-score scale with `prcomp(data, center = TRUE, scale = TRUE)`
 
 -   Mean centered
 
