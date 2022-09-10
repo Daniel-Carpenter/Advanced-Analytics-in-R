@@ -164,6 +164,8 @@ pc
 
 ### Visualize and Interpret PCA
 
+#### Overview of the Variation Contained
+
 ``` r
 # Visualize indivual proportion of variance, for each PC
 plot(pc, 
@@ -190,6 +192,15 @@ summary(pc)
     Proportion of Variance 0.01117 0.0070 0.00473 0.0020
     Cumulative Proportion  0.98626 0.9933 0.99800 1.0000
 
+#### Representativeness for each Variable in Data Set
+
+-   PC1 represents `mpg`, `disp`, and `cyl` very well since nearly
+    parallel with x axis
+
+-   PC2 doesn’t do AS good of a job as PC2 (expected since PC1 contains
+    \~60% of the overall variation). However, it helps in representing
+    `carb`, `gear`, and `qsec`
+
 ``` r
 # Which PC's represent which variables?
   # E.g., PC1 represents carb and mpg well
@@ -204,4 +215,4 @@ ggbiplot(pc,
   geom_text(label = rownames(mtcars), size = 3)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-2.png)
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)
