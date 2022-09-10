@@ -26,12 +26,10 @@ fig-width:  7
 fig-height: 3.5
 ---
 
-
 ***Check list:***
 
-* 1 (iv - v)
-* 1 c (iii)
-\newpage
+-   1 (iv - v)
+-   1 c (iii) \newpage
 
 ## Packages
 
@@ -51,11 +49,12 @@ library(MASS)     # Linear discreiminant analysis with lda
 library(HSAUR2)   # olympic data
 library(outliers) # grubbs.test
 library(DescTools) # for the %like% operator
-``` 
+```
 
 # 1. Glass Data
 
 ## Get and Clean Data
+
 ```{r}
 data(Glass)
 
@@ -80,10 +79,10 @@ GlassNumeric <- Glass %>% dplyr::select(where(is.numeric))
 corMat <- cor(GlassNumeric)
 ```
 
-
 `ii.` Compute the eigenvalues and eigenvectors of `corMat.`
 
 Eigenvalues
+
 ```{r}
 # prcomp(corMat)
 eigenValues = eigen(corMat)$values
@@ -91,28 +90,27 @@ eigenValues
 ```
 
 Eigenvectors
+
 ```{r}
 eigenVectors = eigen(corMat)$vectors
 eigenVectors
 ```
 
-
 `iii.` Use `prcomp` to compute the principal components of the `Glass` attributes (make sure to use the scale option).
+
 ```{r}
 # Using only numeric data
 pc.glass <- prcomp(GlassNumeric, scale = TRUE)
 pc.glass
 ```
 
-
 `iv.` Compare the results from (ii) and (iii) - Are they the same? Different? Why? <br>
 
-* The eigenvalues differ
-* The eigenvectors are the same in absolute value, but the signs are the opposite within each value of the vectors
-* Why do they differ? Past `ii` uses the correlation matrix; the principal component analysis (`ii`) uses the covariance matrix, which is a scaled, or *normalized*, version of the correlation matrix. 
+-   The eigenvalues differ
+-   The eigenvectors are the same in absolute value, but the signs are the opposite within each value of the vectors
+-   Why do they differ? Past `ii` uses the correlation matrix; the principal component analysis (`ii`) uses the covariance matrix, which is a scaled, or *normalized*, version of the correlation matrix.
 
-
-`v.` Using R demonstrate that principal components 1 and 2 from (iii) are orthogonal. (Hint: the inner product between two    vectors is useful in determining the angle between the two vectors)
+`v.` Using R demonstrate that principal components 1 and 2 from (iii) are orthogonal. (Hint: the inner product between two vectors is useful in determining the angle between the two vectors)
 
 ```{r}
 PC1.glass <- pc.glass$x[,1]
@@ -124,14 +122,13 @@ angle
 
 ```
 
-
 \newpage
 
 ## (b) Applications of PCA
 
-i. Create a visualization of the corMat correlation matrix (i.e., a heatmap or variant).
+i.  Create a visualization of the corMat correlation matrix (i.e., a heatmap or variant).
 
-* [`corrplot` options](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html).
+-   [`corrplot` options](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html).
 
 ```{r}
 testRes = cor.mtest(GlassNumeric, conf.level = 0.90)
@@ -188,39 +185,35 @@ ggbiplot(pc.glass,
 
 ```
 
-
 iii. Provide an interpretation of the first two prinicpal components the Glass data.
 
-* Both PC1 and PC2 represent roughly half (50%) of the cumulative proportion of variance (see summary below)
+-   Both PC1 and PC2 represent roughly half (50%) of the cumulative proportion of variance (see summary below)
 
-* PC1 best explains `Fe`, `K`, and `Si` glass types, since they lie closest to parallel with the x axis
+-   PC1 best explains `Fe`, `K`, and `Si` glass types, since they lie closest to parallel with the x axis
 
-* PC2 best represents `Ba`, and `Mg`, since they lie close to parallel with the y axis.
+-   PC2 best represents `Ba`, and `Mg`, since they lie close to parallel with the y axis.
 
-* Other variables appear to be explained by both principal components, since they are near a 45 degree angle.
-
+-   Other variables appear to be explained by both principal components, since they are near a 45 degree angle.
 
 Summary of cumulative proportion located here
+
 ```{r}
 summary(pc.glass)
 ```
 
-
 iv. Based on the PCA results, do you believe that you can effectively reduce the dimension of the data? If so, to what degree? If not, why?
 
-* Given the cumulative proportions above, it is clear that the first two principal components capture only half (~50%) of the variation in the original data. We could compare that to a coin flip, or a random chance.
+-   Given the cumulative proportions above, it is clear that the first two principal components capture only half (\~50%) of the variation in the original data. We could compare that to a coin flip, or a random chance.
 
-* However, the *first four* PC's capture roughly 80%. This cuts the number of variables in half, which is impressive. 
+-   However, the *first four* PC's capture roughly 80%. This cuts the number of variables in half, which is impressive.
 
-* Note that if your `q` threshold was set to 95%, then this analysis would not perform well, since all but one of the PC's capture 95% of the variation in the actual data.
-
+-   Note that if your `q` threshold was set to 95%, then this analysis would not perform well, since all but one of the PC's capture 95% of the variation in the actual data.
 
 \newpage
 
 ## (c) Application of LDA
 
-i. Since the `Glass` data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the `lda` method from the `MASS` package to reduce the `Glass` data dimensionality.
-
+i.  Since the `Glass` data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the `lda` method from the `MASS` package to reduce the `Glass` data dimensionality.
 
 ```{r}
 preproc.param <- Glass %>% preProcess(method = c("center", "scale")) 
@@ -236,17 +229,15 @@ lda.model
 
 ii. How would you interpret the first discriminant function, LD1?
 
-* Within the coefficient matric, you can see that LD1's top 3 coefficients contain Na, Si, and Al, which shows that there are greater levels of separation 
+-   Within the coefficient matric, you can see that LD1's top 3 coefficients contain Na, Si, and Al, which shows that there are greater levels of separation
 
-* Additionally, LD1 holds 81% of the discriminitory power. This values holds an important role in between group discrimination.
+-   Additionally, LD1 holds 81% of the discriminitory power. This values holds an important role in between group discrimination.
 
+iii. Use the ldahist function from the MASS package to visualize the results for LD1 and LD2. Comment on the results.
 
-iii. Use the ldahist function from the MASS package to visualize the results for LD1 and LD2.
-Comment on the results. 
+-   Please see below on my best ability to use `ldahist()`
 
-* Please see below on my best ability to use `ldahist()`
-
-* For the most part the predictions do well, although you can see that there is a spread from the average by type from reviewing the original and centered data
+-   For the most part the predictions do well, although you can see that there is a spread from the average by type from reviewing the original and centered data
 
 ```{r, fig.height=4}
 # ------------
@@ -285,16 +276,15 @@ predictedLD1 %>%
     )
 ```
 
-
 \newpage
 
 # 2. Principal components for dimension reduction
 
 ## 2 (a) Remove outlier
 
-* Launa from PNG is the outlier. She is an outlier in highjump, longjump, run800m, and hurdles. See image below. 
+-   Launa from PNG is the outlier. She is an outlier in highjump, longjump, run800m, and hurdles. See image below.
 
-* Notice that Joyner is an outlier too, but not removed since problem does not specify
+-   Notice that Joyner is an outlier too, but not removed since problem does not specify
 
 ```{r}
 data(heptathlon)
@@ -338,7 +328,7 @@ heptathlon <- heptathlon %>%
 
 ## 2 (b)
 
-### Transform the running events (hurdles, run200m, run800m) so that large values are good. 
+### Transform the running events (hurdles, run200m, run800m) so that large values are good.
 
 ```{r}
 heptathlon.goodBad <- heptathlon %>%
@@ -347,7 +337,6 @@ heptathlon.goodBad <- heptathlon %>%
          run800m = max(run800m) - run800m 
          )
 ```
-
 
 ## 2 (c)
 
@@ -360,10 +349,10 @@ Hpca <- prcomp(heptathlon.goodBad,
                )
 ```
 
-
 ## 2 (d)
 
 ### Visualize first two principal components
+
 ```{r}
 # Create the biplot
 ggbiplot(Hpca,
@@ -389,25 +378,25 @@ ggbiplot(Hpca,
 
 #### `PC1`:
 
-* Explains 66% of the variation in the data
+-   Explains 66% of the variation in the data
 
-* Explains all variables very well *(except for `run800m`, `javelin`, and `highjump`)* 
-
+-   Explains all variables very well *(except for `run800m`, `javelin`, and `highjump`)*
 
 #### `PC2`:
 
-* Explains 11% of the variation in the data
+-   Explains 11% of the variation in the data
 
-* Explains some of `run800m`, `javelin`, and `highjump`. Since the angles are nearly 45 degrees, you can tell that the explanatory power splits between `PC1` and `PC2`
+-   Explains some of `run800m`, `javelin`, and `highjump`. Since the angles are nearly 45 degrees, you can tell that the explanatory power splits between `PC1` and `PC2`
 
 \newpage
 
 # 3. Housing data dimension reduction and exploration
 
 ## Read and Clean data
+
 ```{r}
 # Read data
-housing <- read_csv('housingData.csv')
+housingData <- read_csv('housingData.csv')
 
 
 hd <- housingData %>%
@@ -425,18 +414,25 @@ hd <- housingData %>%
                    MiscVal, YrSold , MoSold, YearBuilt,
                    YearRemodAdd, MasVnrArea))
 
+
+
 ```
 
+## Correlation Analysis
+```{r}
+# Parameters
+numericData = hd
+confInt     = 0.90
+
+# Create correlation matrix
+corMatHouse <- cor(numericData)
+
+testRes = cor.mtest(numericData, conf.level = confInt)
 
 
-
-
-
-
-
-
-
-
-
-
-
+# Correlation matrix to show spread and significance
+corrplot(corMatHouse, 
+         order     = 'hclust',    # Clustering
+         addrect   = 2,
+         method    = 'ellipse')   # Show spread and direction  
+```
