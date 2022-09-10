@@ -30,7 +30,7 @@ fig-height: 3.5
 ***Check list:***
 
 * 1 (iv - v)
-
+* 1 c (iii)
 \newpage
 
 ## Packages
@@ -42,10 +42,11 @@ library(knitr)
 library(scales)
 require(lubridate)
 
-library(mlbench)       # Glass data
-library(ggbiplot)      # biplots
+library(mlbench)  # Glass data
+library(ggbiplot) # biplots
 library(corrplot)
-library(caret)
+library(caret)    # preProcess for centering and z score scaling 
+library(MASS)     # Linear discreiminant analysis with lda 
 ```
 
 # 1. Glass Data
@@ -69,7 +70,7 @@ skimmed <- skim(Glass)
 skimmed$skim_type
 
 # Get only numeric data
-GlassNumeric <- Glass %>% select(where(is.numeric))
+GlassNumeric <- Glass %>% dplyr::select(where(is.numeric))
 
 # Create correlation matrix using only numeric data type
 corMat <- cor(GlassNumeric)
@@ -214,14 +215,71 @@ iv. Based on the PCA results, do you believe that you can effectively reduce the
 
 ## (c) Application of LDA
 
-i. Since the Glass data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the lda method from the MASS package to reduce the Glass data dimensionality.
+i. Since the `Glass` data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the `lda` method from the `MASS` package to reduce the `Glass` data dimensionality.
 
+
+```{r}
+preproc.param <- Glass %>% preProcess(method = c("center", "scale")) 
+
+# Transform the data using the estimated parameters 
+# Apply centering and scaling to the dataset
+transformed <- preproc.param %>% predict(Glass)
+
+# Fit the model , '.' means *
+lda.model <- lda(Type ~ ., data = transformed) 
+lda.model
+```
 
 ii. How would you interpret the first discriminant function, LD1?
+
+* Within the coefficient matric, you can see that LD1's top 3 coefficients contain Na, Si, and Al, which shows that there are greater levels of separation 
+
+* Additionally, LD1 holds 81% of the discriminitory power. This values holds an important role in between group discrimination.
 
 
 iii. Use the ldahist function from the MASS package to visualize the results for LD1 and LD2.
 Comment on the results. 
+
+* Please see below on my best ability to use `ldahist()`
+
+* For the most part the predictions do well, although you can see that there is a spread from the average by type from reviewing the original and centered data
+
+```{r, fig.height=4}
+# ------------
+
+# Predict the values
+predictions <- lda.model %>% predict(transformed) 
+
+# Tried below and did not work, which is everything that I found online
+# https://www.r-bloggers.com/2018/03/discriminant-analysis-statistics-all-the-way/
+# https://www.andreaperlato.com/mlpost/linear-discriminant-analysis/
+# ldahist(data=predictions$x[ , 1], g = Type)
+
+
+# Recreating the ldahist to the best of my ability in ggplot2...
+
+# Get LD1 and type from the predicted data, combine into single dataset
+LD1 <- predictions$x[ , 1]
+Type = predictions$class
+
+predictedLD1 <- data.frame(Type, LD1)
+
+# Recreate the ldahist() output
+predictedLD1 %>%
+  ggplot(aes(x = LD1)) +
+  
+    # Create a histogram
+  geom_histogram() +
+  
+    # Facet on type
+    facet_grid(Type ~ .) +
+    labs(title    = 'LD1 Predictions by Type',
+         subtitle = 'Recreation of the ldahist() function in ggplot (See captions or comments)',
+         caption  = paste0('\nTried ldahist() (see above) and did not work, Sources attempted:',
+                           '\nhttps://www.r-bloggers.com/2018/03/discriminant-analysis-statistics-all-the-way/',
+'\nhttps://www.andreaperlato.com/mlpost/linear-discriminant-analysis/')
+    )
+```
 
 
 \newpage
