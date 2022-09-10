@@ -1,15 +1,24 @@
 ---
 title: "Example of Correlation, Outliers, Nulls, and PCA"
-format: gfm
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
 editor: visual
 ---
+
+## Library
 
 ```{r}
 suppressMessages(library(tidyverse)) 
 suppressMessages(library(MASS))      # Animals dataset
 suppressMessages(library(ggbiplot))  # biplot or screeplot using ggplot
 
+```
 
+## Correlations
+
+```{r}
 # Spearman coefficient
 cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
 
@@ -17,7 +26,11 @@ cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
 # Plot like a plotter
 qplot(data=iris, Sepal.Length)
 
+```
 
+## Basic `ggplot`
+
+```{r}
 # GGplot
 ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) + 
   geom_point(aes(fill=Species), 
@@ -30,7 +43,11 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) +
   theme(legend.key=element_blank(),
         axis.title = element_text(size = 14))
 
+```
 
+## Visualizing Outliers
+
+```{r}
 # Outliers
 head(MASS::Animals)
 
@@ -41,40 +58,68 @@ Animals %>%
   geom_boxplot() +
   geom_text(label = rownames(Animals))
 
+```
 
+## Understanding Missing Data
+
+```{r}
 # Missingness Proportion
 df <- mtcars %>%
   dplyr::select(mpg, cyl, hp, qsec)
 
+# Make a missing value dataset
 df$mpg[6:15]   <- NA # Make missing vals
 df$hp[13:21]   <- NA 
 df$qsec[10:18] <- NA
 
+# For a subset of the dataset, what is the missingness proportion?
 df.filtered <- df %>%
   filter(cyl == 4)
 
+# See missingness of certain variables
 sum(is.na(df.filtered$mpg))  / nrow(df.filtered)
 sum(is.na(df.filtered$hp))   / nrow(df.filtered)
 sum(is.na(df.filtered$qsec)) / nrow(df.filtered)
+```
 
+## Principal Component Analysis using `mtcars`
 
-# Principal COmponent analysis
+### Run Analysis
+
+```{r}
+# Conduct Principal COmponents
 pc<-prcomp(mtcars,
            center = TRUE, # Mean centered  
            scale  = TRUE  # Z-SCore standardized
            )
+
+# What does the data look like for pc's?
 pc
+```
 
-plot(pc, main = 'Most can be contained within one variable')
+###  Visualize and Interpret PCA
 
-pc$rotation
+```{r}
+# Visualize indivual proportion of variance, for each PC
+plot(pc, 
+     main = '\nTop 3 Principal Components Explain ~90% of the Variation\nin the Real Data',
+     xlab = 'Principal Components (Ordered)')
 
-summary(pc) # Cumulative proportion
+# pc$rotation
+
+# How much Cumulative variance do each PC hold?
+summary(pc) 
 
 
 # Which PC's represent which variables?
-ggbiplot(pc,obs.scale = 1, var.scale = 1, 
-         varname.size = 4, labels.size=10, circle = TRUE) +
+  # E.g., PC1 represents carb and mpg well
+ggbiplot(pc,
+         obs.scale    = 1, 
+         var.scale    = 1, 
+         varname.size = 4, 
+         labels.size  = 10, 
+         circle       = TRUE) +
+  
+  # Add the names of the cars for context
   geom_text(label = rownames(mtcars), size = 3)
-
 ```
