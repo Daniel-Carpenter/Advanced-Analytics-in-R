@@ -19,9 +19,16 @@ Example of Correlation, Outliers, Nulls, and PCA
 suppressMessages(library(tidyverse)) 
 suppressMessages(library(MASS))      # Animals dataset
 suppressMessages(library(ggbiplot))  # biplot or screeplot using ggplot
+suppressMessages(library(outliers))  # grubbs.test for outlier detection
 ```
 
 ## Correlations
+
+-   Pearson’s correlation does well for `linear` relationships
+
+<!-- -->
+
+-   Spearman does well for `non-linear` correlation.
 
 ``` r
 # Spearman coefficient
@@ -30,6 +37,8 @@ cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
 
     [1] -0.9108013
 
+## Basic `ggplot`
+
 ``` r
 # Plot like a plotter
 qplot(data=iris, Sepal.Length)
@@ -37,9 +46,7 @@ qplot(data=iris, Sepal.Length)
 
     `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)
-
-## Basic `ggplot`
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)
 
 ``` r
 # GGplot
@@ -55,12 +62,39 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) +
         axis.title = element_text(size = 14))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)
+![](README_files/figure-gfm/unnamed-chunk-6-2.png)
 
 ## Visualizing Outliers
 
+### Is there an outlier?
+
+-   Note using `grubbs.test` would identify if there is the most
+    outlying data
+
 ``` r
-# Outliers
+# Is there an outlier? (Exactly one)
+outlierTest <- grubbs.test(MASS::Animals$brain)
+
+outlierTest$p.value < 0.05
+```
+
+    [1] TRUE
+
+``` r
+outlierTest
+```
+
+
+        Grubbs test for one outlier
+
+    data:  MASS::Animals$brain
+    G = 3.84850, U = 0.43113, p-value = 4.985e-05
+    alternative hypothesis: highest value 5712 is an outlier
+
+### Visualize the outlier
+
+``` r
+# Visualize Outliers
 head(MASS::Animals)
 ```
 
@@ -81,7 +115,7 @@ Animals %>%
   geom_text(label = rownames(Animals))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)
 
 ## Understanding Missing Data
 
@@ -173,7 +207,7 @@ plot(pc,
      xlab = 'Principal Components (Ordered)')
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)
 
 ``` r
 # pc$rotation
@@ -215,4 +249,4 @@ ggbiplot(pc,
   geom_text(label = rownames(mtcars), size = 3)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)

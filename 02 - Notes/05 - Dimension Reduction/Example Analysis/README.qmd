@@ -13,24 +13,30 @@ editor: visual
 suppressMessages(library(tidyverse)) 
 suppressMessages(library(MASS))      # Animals dataset
 suppressMessages(library(ggbiplot))  # biplot or screeplot using ggplot
+suppressMessages(library(outliers))  # grubbs.test for outlier detection
 
 ```
 
 ## Correlations
 
+-   Pearson's correlation does well for `linear` relationships
+
+```{=html}
+<!-- -->
+```
+-   Spearman does well for `non-linear` correlation.
+
 ```{r}
 # Spearman coefficient
 cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
-
-
-# Plot like a plotter
-qplot(data=iris, Sepal.Length)
-
 ```
 
 ## Basic `ggplot`
 
 ```{r}
+# Plot like a plotter
+qplot(data=iris, Sepal.Length)
+
 # GGplot
 ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) + 
   geom_point(aes(fill=Species), 
@@ -47,8 +53,23 @@ ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) +
 
 ## Visualizing Outliers
 
+### Is there an outlier?
+
+-   Note using `grubbs.test` would identify if there is the most outlying data
+
 ```{r}
-# Outliers
+# Is there an outlier? (Exactly one)
+outlierTest <- grubbs.test(MASS::Animals$brain)
+
+outlierTest$p.value < 0.05
+
+outlierTest
+```
+
+### Visualize the outlier
+
+```{r}
+# Visualize Outliers
 head(MASS::Animals)
 
 Animals %>%
