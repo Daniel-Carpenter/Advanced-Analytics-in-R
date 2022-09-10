@@ -5,9 +5,9 @@ editor: visual
 ---
 
 ```{r}
-library(tidyverse) 
-library(MASS)      # Animals dataset
-library(ggbiplot)  # biplot or screeplot using ggplot
+suppressMessages(library(tidyverse)) 
+suppressMessages(library(MASS))      # Animals dataset
+suppressMessages(library(ggbiplot))  # biplot or screeplot using ggplot
 
 
 # Spearman coefficient

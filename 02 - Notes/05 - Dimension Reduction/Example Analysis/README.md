@@ -2,73 +2,11 @@ Example of Correlation, Outliers, Nulls, and PCA
 ================
 
 ``` r
-library(tidyverse) 
-```
-
-    -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-
-    v ggplot2 3.3.6     v purrr   0.3.4
-    v tibble  3.1.8     v dplyr   1.0.8
-    v tidyr   1.2.0     v stringr 1.4.0
-    v readr   2.1.2     v forcats 0.5.1
-
-    -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-    x dplyr::filter() masks stats::filter()
-    x dplyr::lag()    masks stats::lag()
-
-``` r
-library(MASS)      # Animals dataset
-```
+suppressMessages(library(tidyverse)) 
+suppressMessages(library(MASS))      # Animals dataset
+suppressMessages(library(ggbiplot))  # biplot or screeplot using ggplot
 
 
-    Attaching package: 'MASS'
-
-    The following object is masked from 'package:dplyr':
-
-        select
-
-``` r
-library(ggbiplot)  # biplot or screeplot using ggplot
-```
-
-    Loading required package: plyr
-
-    ------------------------------------------------------------------------------
-
-    You have loaded plyr after dplyr - this is likely to cause problems.
-    If you need functions from both plyr and dplyr, please load plyr first, then dplyr:
-    library(plyr); library(dplyr)
-
-    ------------------------------------------------------------------------------
-
-
-    Attaching package: 'plyr'
-
-    The following objects are masked from 'package:dplyr':
-
-        arrange, count, desc, failwith, id, mutate, rename, summarise,
-        summarize
-
-    The following object is masked from 'package:purrr':
-
-        compact
-
-    Loading required package: scales
-
-
-    Attaching package: 'scales'
-
-    The following object is masked from 'package:purrr':
-
-        discard
-
-    The following object is masked from 'package:readr':
-
-        col_factor
-
-    Loading required package: grid
-
-``` r
 # Spearman coefficient
 cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
 ```
