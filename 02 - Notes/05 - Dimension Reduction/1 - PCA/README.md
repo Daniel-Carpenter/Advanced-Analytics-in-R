@@ -20,6 +20,14 @@ Reading: Applied Predictive Modeling: 3.3
 
 -   Goal is to maintain the same variance as the upper level dimension
 
+### Data Requirements
+
+Data must be:
+
+-   Z-score standardized. Can scale with `prcomp(data, scale = TRUE)`
+
+-   Mean centered
+
 -   <img src="images/paste-3F88191E.png" width="781" />
 
 ### Example 1: Rotation of Data
@@ -34,8 +42,8 @@ Reading: Applied Predictive Modeling: 3.3
 
 <table>
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 77%" />
+<col style="width: 17%" />
+<col style="width: 82%" />
 </colgroup>
 <tbody>
 <tr class="odd">
@@ -44,19 +52,27 @@ Reading: Applied Predictive Modeling: 3.3
 </tr>
 <tr class="even">
 <td>Covariance Matrix</td>
-<td><img src="images/paste-E4390E88.png" width="512" /></td>
+<td><img src="images/paste-E4390E88.png" width="450" /></td>
 </tr>
 <tr class="odd">
 <td>Solution to PCA</td>
-<td><p>Make a judgement call on the % of variation that you contain</p>
-<p><img src="images/paste-76E5BAE4.png" width="391" /></p>
-<p><img src="images/paste-63633851.png" width="375" /></p></td>
+<td><p>Make a judgement call on the % of variation that you contain.</p>
+<ul>
+<li><p>Why do you have to make the call?</p></li>
+<li><p>Because maybe you need 2-3 variables for visualization, but 4
+PC’s are given.</p></li>
+<li><p>Adjusting <code>q</code> could give you <strong>less
+variables</strong>, at the <strong>expense of the
+representatives</strong></p></li>
+</ul>
+<p><img src="images/paste-76E5BAE4.png" width="450" /></p>
+<p><img src="images/paste-63633851.png" width="450" /></p></td>
 </tr>
 <tr class="even">
 <td>Normalization</td>
 <td><p>Each Attribute should contribute equally to the overall
 variance</p>
-<p><img src="images/paste-158F08ED.png" width="550" /></p></td>
+<p><img src="images/paste-158F08ED.png" width="450" /></p></td>
 </tr>
 </tbody>
 </table>
@@ -114,7 +130,7 @@ df<-as.matrix(df)       #convert to matrix
 scatterplot3d(df,xlim=c(-40,40),ylim=c(-40,40),zlim=c(-40,40))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)
 
 ``` r
 #notice the axes views --
@@ -126,13 +142,13 @@ pc
 ```
 
     Standard deviations (1, .., p=3):
-    [1] 23.18262 11.36526  1.74433
+    [1] 23.267051 11.487085  1.754263
 
     Rotation (n x k) = (3 x 3):
-             PC1          PC2          PC3
-    x 0.99986461 -0.016350327  0.001849095
-    y 0.01635242  0.999865658 -0.001124551
-    z 0.00183046 -0.001154635 -0.999997658
+             PC1           PC2           PC3
+    x 0.99985198 -0.0171663277 -0.0011574217
+    y 0.01716593  0.9998525919 -0.0003541299
+    z 0.00116333  0.0003342092  0.9999992675
 
 ``` r
 summary(pc)
@@ -140,63 +156,57 @@ summary(pc)
 
     Importance of components:
                                PC1     PC2     PC3
-    Standard deviation     23.1826 11.3653 1.74433
-    Proportion of Variance  0.8026  0.1929 0.00454
-    Cumulative Proportion   0.8026  0.9955 1.00000
+    Standard deviation     23.2671 11.4871 1.75426
+    Proportion of Variance  0.8004  0.1951 0.00455
+    Cumulative Proportion   0.8004  0.9954 1.00000
 
 ``` r
 plot(pc)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-2.png)
+![](README_files/figure-gfm/unnamed-chunk-2-2.png)
 
 ``` r
 str(pc)    #look at component pieces of the prcomp obj
 ```
 
     List of 5
-     $ sdev    : num [1:3] 23.18 11.37 1.74
-     $ rotation: num [1:3, 1:3] 0.99986 0.01635 0.00183 -0.01635 0.99987 ...
+     $ sdev    : num [1:3] 23.27 11.49 1.75
+     $ rotation: num [1:3, 1:3] 0.99985 0.01717 0.00116 -0.01717 0.99985 ...
       ..- attr(*, "dimnames")=List of 2
       .. ..$ : chr [1:3] "x" "y" "z"
       .. ..$ : chr [1:3] "PC1" "PC2" "PC3"
-     $ center  : Named num [1:3] 0.7067 0.2255 0.0227
+     $ center  : Named num [1:3] -0.0509 -0.322 -0.0641
       ..- attr(*, "names")= chr [1:3] "x" "y" "z"
      $ scale   : logi FALSE
-     $ x       : num [1:1000, 1:3] -26.71 -9.86 -26.09 22.63 -3.58 ...
+     $ x       : num [1:1000, 1:3] -18.62 9.57 21.03 12.64 -21.21 ...
       ..- attr(*, "dimnames")=List of 2
       .. ..$ : NULL
       .. ..$ : chr [1:3] "PC1" "PC2" "PC3"
      - attr(*, "class")= chr "prcomp"
 
 ``` r
-?prcomp    #notice defaults regarding centering and scaling
-```
+# ?prcomp    #notice defaults regarding centering and scaling
 
-    starting httpd help server ...
-
-     done
-
-``` r
 pc$rotation
 ```
 
-             PC1          PC2          PC3
-    x 0.99986461 -0.016350327  0.001849095
-    y 0.01635242  0.999865658 -0.001124551
-    z 0.00183046 -0.001154635 -0.999997658
+             PC1           PC2           PC3
+    x 0.99985198 -0.0171663277 -0.0011574217
+    y 0.01716593  0.9998525919 -0.0003541299
+    z 0.00116333  0.0003342092  0.9999992675
 
 ``` r
 head(pc$x)
 ```
 
-                PC1       PC2         PC3
-    [1,] -26.712863  9.963198 -1.69957281
-    [2,]  -9.861888 13.774103  0.09355149
-    [3,] -26.091668 -3.496968 -0.57767646
-    [4,]  22.634889  2.638372 -1.29813087
-    [5,]  -3.575430 -7.973293 -1.53807538
-    [6,]  -8.340154  7.655477 -1.54402539
+                PC1        PC2        PC3
+    [1,] -18.620174  -9.409723 -1.8032447
+    [2,]   9.568554   7.286573  0.3076658
+    [3,]  21.026286  16.766349 -2.7092782
+    [4,]  12.638230 -10.515107 -1.4185336
+    [5,] -21.205887  -4.537647 -1.1944727
+    [6,] -34.342231  -8.190175 -1.8873512
 
 ``` r
 df2<-scale(df,scale=F)
@@ -205,12 +215,12 @@ mat<-df2%*%pc$rotation
 mat[1:5,]
 ```
 
-                PC1       PC2         PC3
-    [1,] -26.712863  9.963198 -1.69957281
-    [2,]  -9.861888 13.774103  0.09355149
-    [3,] -26.091668 -3.496968 -0.57767646
-    [4,]  22.634889  2.638372 -1.29813087
-    [5,]  -3.575430 -7.973293 -1.53807538
+                PC1        PC2        PC3
+    [1,] -18.620174  -9.409723 -1.8032447
+    [2,]   9.568554   7.286573  0.3076658
+    [3,]  21.026286  16.766349 -2.7092782
+    [4,]  12.638230 -10.515107 -1.4185336
+    [5,] -21.205887  -4.537647 -1.1944727
 
 ``` r
 #for convenience:
@@ -221,7 +231,7 @@ newZ<-pc$x[,3]
 scatterplot3d(newX,newZ,newY,xlim=c(-40,40),ylim=c(-40,40),zlim=c(-40,40),xlab="PC1",ylab="PC3",zlab="PC2")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-3.png)
+![](README_files/figure-gfm/unnamed-chunk-2-3.png)
 
 ``` r
 #now the 2D plots
@@ -229,19 +239,19 @@ scatterplot3d(newX,newZ,newY,xlim=c(-40,40),ylim=c(-40,40),zlim=c(-40,40),xlab="
 plot(newX,newY,xlim=c(-40,40),ylim=c(-40,40))          #plot x vs y
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-4.png)
+![](README_files/figure-gfm/unnamed-chunk-2-4.png)
 
 ``` r
 plot(newX,newZ,xlim=c(-40,40),ylim=c(-40,40))          #plot x vs z
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-5.png)
+![](README_files/figure-gfm/unnamed-chunk-2-5.png)
 
 ``` r
 plot(newY,newZ,xlim=c(-40,40),ylim=c(-40,40))          #plot y vs z
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-6.png)
+![](README_files/figure-gfm/unnamed-chunk-2-6.png)
 
 ``` r
 #now the biplots
@@ -249,19 +259,19 @@ plot(newY,newZ,xlim=c(-40,40),ylim=c(-40,40))          #plot y vs z
 biplot(pc)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-7.png)
+![](README_files/figure-gfm/unnamed-chunk-2-7.png)
 
 ``` r
 ggbiplot(pc,circle=T,obs.scale=1,varname.size=20)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-8.png)
+![](README_files/figure-gfm/unnamed-chunk-2-8.png)
 
 ``` r
 ggbiplot(pc,circle=T,choices=c(1,3),obs.scale=1,varname.size=20)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-9.png)
+![](README_files/figure-gfm/unnamed-chunk-2-9.png)
 
 ``` r
 #re-run the above with the following inputs
@@ -276,12 +286,12 @@ z<-y+3*rnorm(1000)
 
 #let's see what we have to start with...
 
-?state.x77
+# ?state.x77
 
 plot(state.x77[,8],state.x77[,2])
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-10.png)
+![](README_files/figure-gfm/unnamed-chunk-2-10.png)
 
 ``` r
 #PC with and without scaling...
@@ -364,20 +374,20 @@ summary(state.pca)
 plot(state.pca)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-11.png)
+![](README_files/figure-gfm/unnamed-chunk-2-11.png)
 
 ``` r
 ggbiplot(state.pca)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-12.png)
+![](README_files/figure-gfm/unnamed-chunk-2-12.png)
 
 ``` r
 ggbiplot(state.pca,obs.scale = 1, var.scale = 1, 
          varname.size = 4, labels.size=10, circle = TRUE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-13.png)
+![](README_files/figure-gfm/unnamed-chunk-2-13.png)
 
 ``` r
 #PC1 distinguishes between cold states with educated, harmless,

@@ -1,0 +1,77 @@
+---
+title: "Example"
+format: gfm
+editor: visual
+---
+
+
+```{r}
+library(tidyverse)
+
+
+# Spearman coefficient
+cor(mtcars$cyl, mtcars$mpg, method = 'spearman')
+
+
+
+# Plot like a plotter
+qplot(data=iris, Sepal.Length)
+
+
+# GGplot
+ggplot(data=iris, aes(x=Sepal.Length,y=Petal.Width)) + 
+  geom_point(aes(fill=Species), 
+             alpha=I(.75),                               
+             position = "jitter",                        
+             colour="black",pch=21, size=5) +
+  theme_bw() +
+  labs(y = "Petal Width (cm)",
+       x = "Sepal Length (cm)") +
+  theme(legend.key=element_blank(),
+        axis.title = element_text(size = 14))
+
+# Outliers
+# library(MASS)
+# 
+# head(MASS::Animals)
+# 
+# Animals %>%
+#   ggplot(aes(x =1,
+#              y = brain)) +
+#   
+#   geom_boxplot() +
+#   geom_text(label = rownames(Animals))
+# 
+
+
+# Missingness Proportion
+df <- mtcars %>%
+  select(mpg, cyl, hp, qsec)
+
+df$mpg[6:15]   <- NA # Make missing vals
+df$hp[13:21]   <- NA 
+df$qsec[10:18] <- NA
+
+df.filtered <- df %>%
+  filter(cyl == 4)
+
+sum(is.na(df.filtered$mpg)) / nrow(df.filtered)
+sum(is.na(df.filtered$hp)) / nrow(df.filtered)
+sum(is.na(df.filtered$qsec)) / nrow(df.filtered)
+
+
+# Principal COmponent analysis
+pc<-prcomp(mtcars,center=T)
+pc
+
+plot(pc, main = 'Most can be contained within one variable')
+
+pc$rotation
+
+summary(pc) # Cumulative proportion
+
+
+
+
+```
+

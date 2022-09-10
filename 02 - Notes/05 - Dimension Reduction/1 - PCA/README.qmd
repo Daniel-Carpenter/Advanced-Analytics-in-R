@@ -19,6 +19,14 @@ Reading: Applied Predictive Modeling: 3.3
 
 -   Goal is to maintain the same variance as the upper level dimension
 
+### Data Requirements
+
+Data must be:
+
+-   Z-score standardized. Can scale with `prcomp(data, scale = TRUE)`
+
+-   Mean centered
+
 -   ![](images/paste-3F88191E.png){width="781"}
 
 ### Example 1: Rotation of Data
@@ -31,21 +39,27 @@ Reading: Applied Predictive Modeling: 3.3
 
 ## Math Behind PCA
 
-+-------------------+------------------------------------------------------------------+
-| Variance          | ![](images/paste-BD5F3A4E.png){width="354"}                      |
-+-------------------+------------------------------------------------------------------+
-| Covariance Matrix | ![](images/paste-E4390E88.png){width="512"}                      |
-+-------------------+------------------------------------------------------------------+
-| Solution to PCA   | Make a judgement call on the % of variation that you contain     |
-|                   |                                                                  |
-|                   | ![](images/paste-76E5BAE4.png){width="391"}                      |
-|                   |                                                                  |
-|                   | ![](images/paste-63633851.png){width="375"}                      |
-+-------------------+------------------------------------------------------------------+
-| Normalization     | Each Attribute should contribute equally to the overall variance |
-|                   |                                                                  |
-|                   | ![](images/paste-158F08ED.png){width="550"}                      |
-+-------------------+------------------------------------------------------------------+
++-------------------+------------------------------------------------------------------------------------------------+
+| Variance          | ![](images/paste-BD5F3A4E.png){width="354"}                                                    |
++-------------------+------------------------------------------------------------------------------------------------+
+| Covariance Matrix | ![](images/paste-E4390E88.png){width="450"}                                                    |
++-------------------+------------------------------------------------------------------------------------------------+
+| Solution to PCA   | Make a judgement call on the % of variation that you contain.                                  |
+|                   |                                                                                                |
+|                   | -   Why do you have to make the call?                                                          |
+|                   |                                                                                                |
+|                   | -   Because maybe you need 2-3 variables for visualization, but 4 PC's are given.              |
+|                   |                                                                                                |
+|                   | -   Adjusting `q` could give you **less variables**, at the **expense of the representatives** |
+|                   |                                                                                                |
+|                   | ![](images/paste-76E5BAE4.png){width="450"}                                                    |
+|                   |                                                                                                |
+|                   | ![](images/paste-63633851.png){width="450"}                                                    |
++-------------------+------------------------------------------------------------------------------------------------+
+| Normalization     | Each Attribute should contribute equally to the overall variance                               |
+|                   |                                                                                                |
+|                   | ![](images/paste-158F08ED.png){width="450"}                                                    |
++-------------------+------------------------------------------------------------------------------------------------+
 
 ## Conceptual Example of PCA
 
@@ -108,7 +122,7 @@ plot(pc)
 
 str(pc)    #look at component pieces of the prcomp obj
 
-?prcomp    #notice defaults regarding centering and scaling
+# ?prcomp    #notice defaults regarding centering and scaling
 
 pc$rotation
 
@@ -157,7 +171,7 @@ z<-y+3*rnorm(1000)
 
 #let's see what we have to start with...
 
-?state.x77
+# ?state.x77
 
 plot(state.x77[,8],state.x77[,2])
 
