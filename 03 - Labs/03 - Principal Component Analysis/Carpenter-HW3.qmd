@@ -1,6 +1,6 @@
 ---
 title: "Homework 3 - Principal Component Analysis"
-author: "Daniel Carpenter"
+author: "Daniel Carpenter & Zachary Knepp"
 date: "August 2022"
 format: 
   pdf:
@@ -214,6 +214,9 @@ iv. Based on the PCA results, do you believe that you can effectively reduce the
 i.  Since the `Glass` data is grouped into various labeled glass types we can consider linear discriminant analysis (LDA) as another form of dimension reduction. Use the `lda` method from the `MASS` package to reduce the `Glass` data dimensionality.
 
 ```{r}
+# Prep type for the lda hist
+GlassNumType<- Glass %>% mutate(Type = as.numeric(as.factor(Type)))
+
 preproc.param <- Glass %>% preProcess(method = c("center", "scale")) 
 
 # Transform the data using the estimated parameters 
@@ -233,45 +236,17 @@ ii. How would you interpret the first discriminant function, LD1?
 
 iii. Use the ldahist function from the MASS package to visualize the results for LD1 and LD2. Comment on the results.
 
--   Please see below on my best ability to use `ldahist()`
-
--   For the most part the predictions do well, although you can see that there is a spread from the average by type from reviewing the original and centered data
+-   You can see that there is some spread from 0 between the first 3 graphs, and the last 3 graphs. The first graphs are on the negative side of 0, where the bottom 3 are primarily on the positive side of 0.
 
 ```{r, fig.height=4}
 # ------------
 
 # Predict the values
-predictions <- lda.model %>% predict(transformed) 
+predictions <- predict(lda.model) 
 
-# Tried below and did not work, which is everything that I found online
-# https://www.r-bloggers.com/2018/03/discriminant-analysis-statistics-all-the-way/
-# https://www.andreaperlato.com/mlpost/linear-discriminant-analysis/
-# ldahist(data=predictions$x[ , 1], g = Type)
-
-
-# Recreating the ldahist to the best of my ability in ggplot2...
-
-# Get LD1 and type from the predicted data, combine into single dataset
-LD1 <- predictions$x[ , 1]
-Type = predictions$class
-
-predictedLD1 <- data.frame(Type, LD1)
-
-# Recreate the ldahist() output
-predictedLD1 %>%
-  ggplot(aes(x = LD1)) +
-  
-    # Create a histogram
-  geom_histogram() +
-  
-    # Facet on type
-    facet_grid(Type ~ .) +
-    labs(title    = 'LD1 Predictions by Type',
-         subtitle = 'Recreation of the ldahist() function in ggplot (See captions or comments)',
-         caption  = paste0('\nTried ldahist() (see above) and did not work, Sources attempted:',
-                           '\nhttps://www.r-bloggers.com/2018/03/discriminant-analysis-statistics-all-the-way/',
-'\nhttps://www.andreaperlato.com/mlpost/linear-discriminant-analysis/')
-    )
+# Create the LDA histogram
+par(mar=c(1,1,1,1))
+ldahist(predictions$x[ , 1], GlassNumType$Type)
 ```
 
 \newpage
