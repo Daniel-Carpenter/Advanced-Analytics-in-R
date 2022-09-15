@@ -26,10 +26,7 @@ fig-width:  7
 fig-height: 3.5
 ---
 
-***Check list:***
-
--   1 (iv - v)
--   1 c (iii) \newpage
+\newpage
 
 ## Packages
 
@@ -112,13 +109,14 @@ pc.glass
 
 `v.` Using R demonstrate that principal components 1 and 2 from (iii) are orthogonal. (Hint: the inner product between two vectors is useful in determining the angle between the two vectors)
 
+-   The dot product the two vectors is nearly 0, so we can assume orthoginal
+
 ```{r}
-PC1.glass <- pc.glass$x[,1]
-PC2.glass <- pc.glass$x[,2]
+df.pc.glass <- data.frame(pc.glass$x)
 
-angle <- acos( sum(PC1.glass*PC2.glass) / ( sqrt(sum(PC1.glass * PC1.glass)) * sqrt(sum(PC2.glass * PC2.glass)) ) )
+#Orthogonal because they dot product is practically 0
+df.pc.glass$PC2 %*% df.pc.glass$PC1
 
-angle
 
 ```
 
@@ -291,6 +289,11 @@ data(heptathlon)
 
 grubbs.test(heptathlon$score)
 
+# Who is the outlier?
+heptathlon[heptathlon$score==outlier(heptathlon$score),]
+
+
+# To show the outlier
 heptathlonPivot <- heptathlon %>%
 
   # Get the competitor name as own col
@@ -317,12 +320,13 @@ heptathlonPivot %>%
   # Aesthetics
   ggtitle('Distribution of Event Scores from the Heptathlon') +
   theme_minimal() + theme(axis.text.x  = element_blank(),
-                          axis.title.x = element_blank())
+                          axis.title.x = element_blank(),
+                          panel.grid.major.x = element_blank(),
+                          panel.grid.minor.x = element_blank())
 
 
-# Remove outlier with name like Launa
-heptathlon <- heptathlon %>% 
-  filter(!(rownames(heptathlon) %like% 'Launa%'))
+# Remove outlier from data set
+heptathlon <- heptathlon[heptathlon$score!=outlier(heptathlon$score),]
 
 ```
 
@@ -425,9 +429,9 @@ heptathlon %>%
     theme_minimal()
 ```
 
-### Interpretation of Score ~ PC1
+### Interpretation of Score \~ PC1
 
-* You can see that PC1 explains the competitor score extremely well just by this simple visual.
+-   You can see that PC1 explains the competitor score extremely well just by this simple visual.
 
 \newpage
 
@@ -463,11 +467,11 @@ hd <- housingData %>%
 
 Please see interpretation of correlation analysis below:
 
-* You can see that there are many variables within the data set that are highly correlated
+-   You can see that there are many variables within the data set that are highly correlated
 
-* Some variables do not show high correlation
+-   Some variables do not show high correlation
 
-* Please see correlation plot in depth for variable specific correlations.
+-   Please see correlation plot in depth for variable specific correlations.
 
 ```{r, fig.height=8, fig.width=8}
 # Parameters
@@ -482,9 +486,10 @@ testRes = cor.mtest(numericData, conf.level = confInt)
 
 # Correlation matrix to show spread and significance
 corrplot(corMatHouse, 
-         order     = 'hclust',    # Clustering
+         order     = 'hclust',  # Clustering
          addrect   = 2,
-         method    = 'ellipse')   # Show spread and direction  
+         method    = 'ellipse', # Show spread and direction  
+         type      = 'lower')   
 ```
 
 \newpage
@@ -495,13 +500,13 @@ corrplot(corMatHouse,
 
 Please see interpretation of cumulative proportions below:
 
-* The first two principal components explain ~36% of the variation in the data, so we would need to use more than just those
+-   The first two principal components explain \~36% of the variation in the data, so we would need to use more than just those
 
-* If our `q` threshold for variation kept within the data was arounf 95%, then we could keep only the first 20 principal components while removing 10 columns from the original data set.
+-   If our `q` threshold for variation kept within the data was arounf 95%, then we could keep only the first 20 principal components while removing 10 columns from the original data set.
 
-* If we were satisfied with retaining 80% of the variation via these PC's, we could remove 18 variables from the data set.
+-   If we were satisfied with retaining 80% of the variation via these PC's, we could remove 18 variables from the data set.
 
-* Note that there are 30 numeric variables within the dataset
+-   Note that there are 30 numeric variables within the dataset
 
 ```{r}
 ncol(hd) # Number of columns in the dataset
@@ -552,13 +557,13 @@ pc.hd.cumProportion %>%
 
 ### Bi-Plots
 
-* Since there are so many variables, it can be difficult to interpret all of the results
+-   Since there are so many variables, it can be difficult to interpret all of the results
 
-* However, you can see that there are not many outliers affecting the analysis
+-   However, you can see that there are not many outliers affecting the analysis
 
-* Some variables that PC1 contains well: `Fireplaces`, `OverallQual`, `GarageCars.`
+-   Some variables that PC1 contains well: `Fireplaces`, `OverallQual`, `GarageCars.`
 
-* Some variables that PC2 contains well: `BsmtFullBath`, `BsmtFinSF1`, `EncPorchSF`
+-   Some variables that PC2 contains well: `BsmtFullBath`, `BsmtFinSF1`, `EncPorchSF`
 
 ```{r, fig.width=8, fig.height=4}
 ggbiplot(pc.house,
