@@ -5,7 +5,7 @@ format:
   gfm:
     toc: true
     number-sections: true
-    toc-depth: 2
+    toc-depth: 3
 standalone: true
     
 editor: visual
@@ -29,7 +29,7 @@ editor: visual
 
 ![](images/paste-C1688B8C.png){width="550"}
 
-## Example in R
+### Example in R
 
 ```{r}
 # Example code to demonstrate skewed distribution transformations
@@ -120,3 +120,17 @@ legend(0,6,c("p=-1", "p=0 (log)", "p=1", "p=2", "p=3"), col=c(1,2,3,4,5),
 # ------------------------------------------------------------------------------------
 
 ```
+
+## Feature Construction
+
+![](images/paste-C6E2955B.png){width="550"}
+
+![](images/paste-823FC445.png){width="550"}
+
+![](images/paste-E0295AF4.png){width="550"}
+
+### Questions for Feature Extraction
+
+![](images/paste-9780FA40.png){width="550"}
+
+![](images/paste-52B63335.png){width="550"}

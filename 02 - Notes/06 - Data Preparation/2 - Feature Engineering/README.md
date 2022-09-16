@@ -4,11 +4,21 @@ Daniel Carpenter
 
 -   <a href="#standardize-data" id="toc-standardize-data"><span
     class="toc-section-number">1</span> Standardize Data</a>
+    -   <a href="#techniques" id="toc-techniques"><span
+        class="toc-section-number">1.1</span> Techniques</a>
 -   <a href="#how-to-transform-skewness"
     id="toc-how-to-transform-skewness"><span
     class="toc-section-number">2</span> How to Transform Skewness</a>
--   <a href="#example-in-r" id="toc-example-in-r"><span
-    class="toc-section-number">3</span> Example in R</a>
+    -   <a href="#example-1-concepts" id="toc-example-1-concepts"><span
+        class="toc-section-number">2.1</span> Example 1 (Concepts)</a>
+    -   <a href="#example-in-r" id="toc-example-in-r"><span
+        class="toc-section-number">2.2</span> Example in R</a>
+-   <a href="#feature-construction" id="toc-feature-construction"><span
+    class="toc-section-number">3</span> Feature Construction</a>
+    -   <a href="#questions-for-feature-extraction"
+        id="toc-questions-for-feature-extraction"><span
+        class="toc-section-number">3.1</span> Questions for Feature
+        Extraction</a>
 
 ## Standardize Data
 
@@ -28,7 +38,7 @@ Daniel Carpenter
 
 <img src="images/paste-C1688B8C.png" width="550" />
 
-## Example in R
+### Example in R
 
 ``` r
 # Example code to demonstrate skewed distribution transformations
@@ -150,8 +160,8 @@ head(boxcox(x))     # produces a PPCC (probability plot correlation coefficient)
     [1] -2.0 -1.5 -1.0 -0.5  0.0  0.5  1.0  1.5  2.0
 
     $objective
-    [1] 0.07707657 0.09860491 0.17978042 0.57420895 0.96979524 0.98564238 0.90046064
-    [8] 0.77837618 0.64132502
+    [1] 0.06848235 0.09440019 0.19171049 0.60367967 0.96994933 0.98636790 0.90605047
+    [8] 0.79914442 0.69079080
 
     $objective.name
     [1] "PPCC"
@@ -182,10 +192,10 @@ head(boxcox(x, optimize = TRUE, lambda=c(-3,3)))    # if optimize = TRUE, then y
 ```
 
     $lambda
-    [1] 0.2671363
+    [1] 0.2714186
 
     $objective
-    [1] 0.9993702
+    [1] 0.9992788
 
     $objective.name
     [1] "PPCC"
@@ -240,3 +250,17 @@ legend(0,6,c("p=-1", "p=0 (log)", "p=1", "p=2", "p=3"), col=c(1,2,3,4,5),
 
 # ------------------------------------------------------------------------------------
 ```
+
+## Feature Construction
+
+<img src="images/paste-C6E2955B.png" width="550" />
+
+<img src="images/paste-823FC445.png" width="550" />
+
+<img src="images/paste-E0295AF4.png" width="550" />
+
+### Questions for Feature Extraction
+
+<img src="images/paste-9780FA40.png" width="550" />
+
+<img src="images/paste-52B63335.png" width="550" />
