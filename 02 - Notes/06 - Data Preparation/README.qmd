@@ -1,0 +1,66 @@
+---
+title: "4+ More Dimension Reduction!"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+standalone: true
+    
+editor: visual
+---
+
+## Objectives
+
+-   Explain how **Principal Component Analysis** works and outline the motivation of using dimension reduction techniques
+
+-   Compare and contrast `PCA`, `LDA`, and `t-SNE`
+
+-   Perform `PCA`, `LDA`, and `t-SNE` in **`R`** and **visualize** the results
+
+-   **Interpret** dimension reduction results
+
+## Why is Large Dimensions Bad?
+
+-   Algorithms become meaningless
+
+-   Algorithms could increase in size and complexity
+
+-   Hard to visualize in more than 3 dimensions\
+
+## Goals of Dimension Reduction
+
+-   Feature: function of the original data
+
+-   Feature Extraction: defining set of features that represent information important to analysis
+
+## Overview of Dim. Reduction
+
+-   Could be linear or non-linear
+
+### Goals
+
++--------------------+------------------------------------------------------------+
+| **Representation** | Represent the data accurately in a lower dimensional space |
++--------------------+------------------------------------------------------------+
+| **Classification** | enhance the information in a lower dimension space         |
++--------------------+------------------------------------------------------------+
+
+### Common Techniques
+
++--------------------------------------+---------------------------------------------------------------------------------------+
+| `PCA` (Principal Component Analysis) | Representation Method to preserve variance.                                           |
+|                                      |                                                                                       |
+|                                      | Project data onto a lower dimension using PCA:                                        |
+|                                      |                                                                                       |
+|                                      | ![](images/paste-6025F5F4.png)                                                        |
+|                                      |                                                                                       |
+|                                      | Good for classification (divides dataset)                                             |
++--------------------------------------+---------------------------------------------------------------------------------------+
+| `LDA` (Linear Discriminant Analysis) | Classification that **enhances separability**                                         |
+|                                      |                                                                                       |
+|                                      | Useful when you already have classes of data. E.g. below could be for Male and female |
+|                                      |                                                                                       |
+|                                      | ![](images/paste-10ECBCD6.png)                                                        |
++--------------------------------------+---------------------------------------------------------------------------------------+
