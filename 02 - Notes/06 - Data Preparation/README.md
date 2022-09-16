@@ -1,15 +1,9 @@
----
-title: "Data Preparation"
-author: "Daniel Carpenter"
-format: 
-  gfm:
-    toc: true
-    number-sections: true
-    toc-depth: 2
-standalone: true
-    
-editor: visual
----
+Data Preparation
+================
+Daniel Carpenter
+
+-   <a href="#objectives" id="toc-objectives"><span
+    class="toc-section-number">1</span> Objectives</a>
 
 ## Objectives
 
