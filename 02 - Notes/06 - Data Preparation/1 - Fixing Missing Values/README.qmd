@@ -1,5 +1,5 @@
 ---
-title: "Handiling Missing Data"
+title: "Handling Missing Data"
 author: "Daniel Carpenter"
 format: 
   gfm:
@@ -333,6 +333,8 @@ plot(dfRegErr.imp$x, dfRegErr.imp$y, col = factor(dfRegErr.imp$missing) , main="
 ## Multiple Imputation in R
 
 ```{r}
+rm(list = ls())
+
 # Example code to demonstrate multivariate imputation by chained equations (mice)
 # ISE 5103 Intelligent Data Analytics
 # Charles Nicholson
@@ -424,55 +426,4 @@ summary(missfit<-lm(data=df,y~x1+x2+x3+x4))
 summary(est)
 ```
 
-## Other R Examples of Missingness
-
-```{r, cache=TRUE}
-#there are other methods as well, e.g.,
-
-#Sequential imputation for missing values ----------------------- 
-# need to install library rrcovNA first
-
-library(rrcovNA)   
-
-dfSeq.imp <- data.frame(impSeq(dfMiss[,1:3]))
-dfSeq<-merge(dfSeq.imp,dfMiss[,c(1,4)],by.x="x", by.y="x")
-
-par(mfrow=c(2,1))
-hist(df$y, xlim=c(-1,xmax), main="All Data")
-abline(v = trueMV, col = "blue", lwd = 2)
-text(4, 205, label=paste("Mean:",trueMV, "  Var:", trueVar))
-
-hist(dfSeq$y, xlim=c(-1,xmax), main="Sequential Imputation")
-mv<-round(mean(dfSeq$y),3)
-svar<-round(var(dfSeq$y),3)
-abline(v = mv, col = "blue", lwd = 2)
-text(4, 100, label=paste("Mean:",mv, "  Var:", svar))
-
-par(mfrow=c(1,1))
-
-plot(df$x,df$y,ylim=c(ymin,ymax), xlim=c(0,xmax), main="All Data", xlab="x", ylab="y")
-plot(dfMiss$x,dfMiss$y,ylim=c(ymin,ymax), xlim=c(0,xmax), main="Data without Imputation", xlab="x", ylab="y")
-plot(dfSeq$x,dfSeq$y,ylim=c(ymin,ymax), xlim=c(0,xmax), col = factor(dfSeq$missing), main="Sequential Imputation", xlab="x", ylab="y")
-
-
-#robust sequential imputation ----------------------------------
-dfSeq.imp <- data.frame(impSeqRob(dfMiss[,1:3]))
-dfSeq<-merge(dfSeq.imp,dfMiss[,c(1,4)],by.x="x.x", by.y="x")
-
-par(mfrow=c(2,1))
-hist(df$y, xlim=c(-1,xmax), main="All Data")
-abline(v = trueMV, col = "blue", lwd = 2)
-text(4, 205, label=paste("Mean:",trueMV, "  Var:", trueVar))
-
-hist(dfSeq$x.y, xlim=c(-1,xmax), main="Robust Sequential Imputation")
-mv<-round(mean(dfSeq$x.y),3)
-svar<-round(var(dfSeq$x.y),3)
-abline(v = mv, col = "blue", lwd = 2)
-text(4, 100, label=paste("Mean:",mv, "  Var:", svar))
-
-par(mfrow=c(1,1))
-
-plot(df$x,df$y,ylim=c(ymin,ymax), xlim=c(0,xmax), main="All Data", xlab="x", ylab="y")
-plot(dfSeq$x.x,dfSeq$x.y,ylim=c(ymin,ymax), xlim=c(0,xmax), col = factor(dfSeq$missing), main="Robust Sequential Imputation", xlab="x", ylab="y")
-
-```
+## 
