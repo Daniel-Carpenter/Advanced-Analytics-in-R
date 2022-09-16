@@ -16,8 +16,6 @@ Daniel Carpenter
     -   <a href="#multiple-imputation-in-r"
         id="toc-multiple-imputation-in-r"><span
         class="toc-section-number">1.5</span> Multiple Imputation in R</a>
-    -   <a href="#section" id="toc-section"><span
-        class="toc-section-number">1.6</span> </a>
 
 # Deletion and Indicators
 
@@ -685,15 +683,15 @@ str(imp)
      $ visitSequence  : chr [1:5] "y" "x1" "x2" "x3" ...
      $ formulas       :List of 5
       ..$ y :Class 'formula'  language y ~ x1 + x2 + x3 + x4
-      .. .. ..- attr(*, ".Environment")=<environment: 0x000001785b1a7750> 
+      .. .. ..- attr(*, ".Environment")=<environment: 0x000002570c04de60> 
       ..$ x1:Class 'formula'  language x1 ~ y + x2 + x3 + x4
-      .. .. ..- attr(*, ".Environment")=<environment: 0x000001785b1a7750> 
+      .. .. ..- attr(*, ".Environment")=<environment: 0x000002570c04de60> 
       ..$ x2:Class 'formula'  language x2 ~ y + x1 + x3 + x4
-      .. .. ..- attr(*, ".Environment")=<environment: 0x000001785b1a7750> 
+      .. .. ..- attr(*, ".Environment")=<environment: 0x000002570c04de60> 
       ..$ x3:Class 'formula'  language x3 ~ y + x1 + x2 + x4
-      .. .. ..- attr(*, ".Environment")=<environment: 0x000001785b1a7750> 
+      .. .. ..- attr(*, ".Environment")=<environment: 0x000002570c04de60> 
       ..$ x4:Class 'formula'  language x4 ~ y + x1 + x2 + x3
-      .. .. ..- attr(*, ".Environment")=<environment: 0x000001785b1a7750> 
+      .. .. ..- attr(*, ".Environment")=<environment: 0x000002570c04de60> 
      $ post           : Named chr [1:5] "" "" "" "" ...
       ..- attr(*, "names")= chr [1:5] "y" "x1" "x2" "x3" ...
      $ blots          :List of 5
@@ -940,5 +938,3 @@ summary(est)
     3          x2  4.1912998 0.1958684 21.398555 10.929553 2.859446e-10
     4          x3  1.6940625 0.1165017 14.541095  4.048363 1.203495e-04
     5          x4 -0.2121735 0.1115440 -1.902152 10.711391 8.436470e-02
-
-## 
