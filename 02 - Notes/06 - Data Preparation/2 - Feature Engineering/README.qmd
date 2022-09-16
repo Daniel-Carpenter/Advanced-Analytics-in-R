@@ -1,3 +1,37 @@
+---
+title: "Feature Engineering"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+standalone: true
+    
+editor: visual
+---
+
+## Standardize Data
+
+### Techniques
+
+![](images/paste-8B6D62E8.png){width="550"}
+
+## How to Transform Skewness
+
+> Approach 1: Take the `log` of the skewed variable
+
+![](images/paste-568DB390.png){width="550"}
+
+![](images/paste-A9BC2A9E.png){width="550"}
+
+### Example 1 (Concepts)
+
+![](images/paste-C1688B8C.png){width="550"}
+
+## Example in R
+
+```{r}
 # Example code to demonstrate skewed distribution transformations
 # ISE 5103 Intelligent Data Analytics
 # Charles Nicholson
@@ -8,7 +42,7 @@ library("car")        #<-- used to get Prestige dataset; and 'symbox' function
 library("EnvStats")   #<-- used to get "boxcox" function
 
 data(Prestige)   #Prestige of Canadian Occupations based on Pineo-Porter prestige score
-?Prestige
+# ?Prestige
 
 head(Prestige)
 
@@ -38,7 +72,7 @@ hist(x)
 hist(log(x))
 
 
-boxcox(x)     # produces a PPCC (probability plot correlation coefficient) value 
+head(boxcox(x))     # produces a PPCC (probability plot correlation coefficient) value 
               # for several values of lambda -- the highest PPCC value is the better lambda
 
 par(mfrow=c(2,2))  # setup the output area to plot the histograms in 2 rows of 3 columns
@@ -85,3 +119,4 @@ legend(0,6,c("p=-1", "p=0 (log)", "p=1", "p=2", "p=3"), col=c(1,2,3,4,5),
 
 # ------------------------------------------------------------------------------------
 
+```
