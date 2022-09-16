@@ -1,4 +1,4 @@
-4+ More Dimension Reduction!
+Handiling Missing Data
 ================
 Daniel Carpenter
 
