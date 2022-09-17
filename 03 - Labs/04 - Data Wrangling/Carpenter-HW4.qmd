@@ -299,11 +299,19 @@ hist( housingData$normYearBuilt,
 ## `2 (b)` - Impute Missing Values
 
 ### Function to plot comparison of imputation methods
+Highlights of function include:
+
+* Histogram of actual data, with mean line on x-axis
+
+* Histogram of imputed data, with mean line on x-axis
+
+* Regression of actual and imputed data, spread across trival x-axis. Goal is to show variation in data
+
 ```{r}
 seeImputation <- function(df, df.meanInputed, 
                           imputationMethod) {
   
-  # Equal tail 95% distributional ranges
+  # Min/Max ranges so actual and imputed histograms align
   yMin = min(df.meanInputed$y)
   yMax = max(df.meanInputed$y)
   
@@ -423,6 +431,9 @@ seeImputation(df, df.meanInputed, imputationMethod = 'Mean')
 \newpage
 
 ### `ii` Regression with Error Imputation
+* Output seems to capture appropriate variance of the actual data.
+
+* It is clear that the mean does not change
 ```{r, fig.height=8, warning=FALSE, message=FALSE}
 fit <- lm(y ~ x, data = df)    # fit a linear model to the data
 f   <- summary(fit)
@@ -447,6 +458,9 @@ seeImputation(df, df.regErrorImputed, imputationMethod = 'Regression with Error'
 
 ### `iii` Predictive Mean Matching Imputation
 * Output seems to capture appropriate variance of the actual data. 
+
+* It is clear that the mean does not change much, if at all.
+
 ```{r, fig.height=8, warning=FALSE, message=FALSE}
 df.pmmImputed <- df # copy data with missingness
 
