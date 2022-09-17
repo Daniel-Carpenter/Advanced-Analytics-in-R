@@ -35,6 +35,7 @@ library(tidyverse)
 
 library(car)      # symbox 
 library(EnvStats) # boxcox function
+library(cowplot)  # multiple ggplots on one plot
 ```
 
 # `1` - Data Quality Report
@@ -290,8 +291,115 @@ hist( housingData$normYearBuilt,
 
 \newpage
 
-## `2 (b)`
+## `2 (b)` - Impute Missing Values
 
+### Function to plot comparison of imputation methods
+```{r}
+seeImputation <- function(df, df.inputed, 
+                          imputationMethod) {
+  
+  # Non Altered data -------------------------------------------------
+  
+  meanVal = mean(df$y, na.rm=T) # mean of the non altered data
+  
+  # Create the plot
+  p1 <- df %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanVal, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data with Missing Values',
+         y     = 'Frequency', 
+         x     = '' ) +
+    
+    theme_minimal() # Theme
+  
+  
+  # Imputed data -------------------------------------------------
+
+  meanValImpute = mean(df.inputed$y, na.rm=T)
+  
+  # Create the plot
+  p2 <- df.inputed %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanValImpute, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data without Missing Values',
+             subtitle = paste('Using', imputationMethod, 'Imputation Method'),
+             y = 'Frequency', 
+             x = ' Linear feet of street connected to property' ,
+             caption = '\nUsing housing.csv data') +
+    
+    theme_minimal() # Theme
+  
+  # Combine the plots for the final returned output
+  combinedPlots <- plot_grid(p1, p2, 
+                             ncol = 1, label_size = 12)
+  return(combinedPlots)
+}
+```
+
+### Create Reusable data set `df`
+```{r}
+# How much is missing?
+missing <- is.na(housingData$LotFrontage)
+paste('There are', sum(missing), 'missing values')
+
+# Create a data frame to easily reference the lot frontage for other inputation
+df <- data.frame(y = housingData$LotFrontage, missing = missing)
+```
+
+\newpage
+
+### `i` Mean Value Imputation
+```{r, fig.height=6, warning=FALSE, message=FALSE}
+# Create copy of the data with NAs
+df.inputed <- df  
+
+# Conduct Mean imputation
+df.inputed[missing,"y"]<-mean(df.inputed$y, na.rm=T)
+
+# Compare missing vs. non missing for given imputation method
+seeImputation(df, df.inputed, imputationMethod = 'Mean')
+```
+
+\newpage
+
+### `ii` Regression with Error Imputation
+```{r}
+
+```
+
+
+\newpage
+
+### `iii` Predicive Mean Matching Imputation
+```{r}
+
+```
 
 \newpage
 
