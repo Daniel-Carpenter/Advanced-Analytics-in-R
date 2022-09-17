@@ -32,6 +32,9 @@ fig-height: 3.5
 
 ```{r, message=FALSE}
 library(tidyverse)
+
+library(car)      # symbox 
+library(EnvStats) # boxcox function
 ```
 
 # `1` - Data Quality Report
@@ -183,6 +186,116 @@ numericSummaryFinal %>% kable()
 
 # `2` - Transformation
 
+
+## `2 (a)` - Fixing Skewed Data
+
+### Function to Convert Skewed Data to Normally Distributed Vector
 ```{r}
-housingData
+normalizeDist <- function(aVector) {
+  
+  # Get the optimal lambda. Used later for converting to normal distribution
+  normLambda = boxcox(aVector, optimize = TRUE)$lambda
+
+  # Now convert vector to normal distribution, using the optimal lambda
+  normalizedVector <- (aVector ** normLambda - 1) / normLambda
+  
+  return(normalizedVector)
+}
+
+# Colors
+goodCol = 'darkseagreen3'
+badCol  = 'tomato3'
 ```
+
+
+### `i.` Fix `LotArea` in Housing Data Set
+
+#### Lot area is highly skewed
+
+```{r}
+varTitle = 'Lot Size (Sq. Ft.)'
+
+# See that LotArea is highly skewed
+hist(housingData$LotArea, 
+      main = varTitle, xlab = varTitle, col = badCol)
+
+# Look at the symbox to see where optimal may lie
+symbox(housingData$LotArea, data=housingData, powers=c(3,2,1,0,-0.5,-1,-2),
+       ylab = varTitle)
+
+# Normalize the data and store in data
+housingData <- housingData %>% 
+  mutate(normLotArea = normalizeDist(housingData$LotArea) )
+```
+
+#### See the normalized Lot Area variable 
+* You can see that the data is definitely more normal
+
+* However, much of the data is near the median, which may or may not be fine, depending on the analysis
+
+```{r, fig.width=6, fig.height=6}
+# Now see the results of the normalization
+par(mfrow=c(2,1))
+
+hist( housingData$LotArea, 
+      main = paste('Raw', varTitle), xlab = paste('Raw', varTitle), 
+      col = badCol )
+
+hist( housingData$normLotArea,
+      main = paste('Normalized', varTitle), xlab = paste('Normalized', varTitle), 
+      col = goodCol)
+
+```
+
+
+\newpage
+
+### `i.` Fix `GrLivArea` in Housing Data Set
+
+#### Above Ground Living Area is highly skewed
+
+```{r, fig.height=4}
+varTitle = 'Above Ground Living Area (Sq. Ft.)'
+
+# See that LotArea is highly skewed
+hist(housingData$GrLivArea, 
+      main = varTitle, xlab = varTitle, col = badCol )
+
+# Look at the symbox to see where optimal may lie
+symbox(housingData$GrLivArea, data=housingData, powers=c(3,2,1,0,-0.5,-1,-2),
+       ylab = varTitle)
+
+# Normalize the data and store in data
+housingData <- housingData %>% 
+  mutate(normYearBuilt = normalizeDist(housingData$GrLivArea) )
+```
+
+#### See the normalized Lot Area variable 
+* You can see that the data is definitely more normal
+
+```{r, fig.width=6, fig.height=6}
+# Now see the results of the normalization
+par(mfrow=c(2,1))
+
+hist( housingData$GrLivArea, 
+      main = paste('Raw', varTitle), xlab = paste('Raw', varTitle), 
+      col = badCol )
+
+hist( housingData$normYearBuilt,
+      main = paste('Normalized', varTitle), xlab = paste('Normalized', varTitle),
+      col = goodCol )
+
+```
+
+
+\newpage
+
+## `2 (b)`
+
+
+\newpage
+
+## `2 (c)`
+
+
+
