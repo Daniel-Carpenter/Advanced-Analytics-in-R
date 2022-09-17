@@ -476,7 +476,16 @@ seeImputation(df, df.regErrorImputed,
 
 \newpage
 
-## `2 (c)`
+## `2 (c)` - Dummy Variable Manipulation
+```{r}
+housingData <- housingData %>%
+  
+  # lumps all levels except for the n most frequent 
+  mutate(Exterior1st = fct_lump_n(Exterior1st, n=4))
 
+# See that there are only 5 levels now
+unique(housingData$Exterior1st)
+```
 
+## `2 (d)` - More fun with Factors
 
