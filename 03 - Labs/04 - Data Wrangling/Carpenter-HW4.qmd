@@ -1,5 +1,5 @@
 ---
-title: "Homework 3 - Principal Component Analysis"
+title: "Homework 4 - Data Wrangling in R"
 author: "Daniel Carpenter & NAME HERE"
 date: "September 2022"
 format: 
@@ -31,21 +31,104 @@ fig-height: 3.5
 ## Packages
 
 ```{r, message=FALSE}
-library(tidyverse) # get tidverse for piping
-library(skimr)
-library(knitr)
-library(scales)
-require(lubridate)
-
-library(mlbench)  # Glass data
-library(ggbiplot) # biplots
-library(corrplot)
-library(caret)    # preProcess for centering and z score scaling 
-library(MASS)     # Linear discreiminant analysis with lda 
-
-library(HSAUR2)   # olympic data
-library(outliers) # grubbs.test
-library(DescTools) # for the %like% operator
+library(tidyverse)
 ```
 
-# 1. 
+# `1` - Data Quality Report
+
+## `1 (a)`
+
+```{r}
+# Read data
+housingData <- read_csv('housingData.csv')
+```
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (b)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (c)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (d)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (e)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (f)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (g)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (h)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (i)`
+
+
+```{r}
+```
+
+
+\newpage
+
+## `1 (j)`
+
+
+```{r}
+```
+
+
+\newpage
+
+
+# `2` - Transformation
