@@ -31,10 +31,15 @@ fig-height: 3.5
 ## Packages
 
 ```{r, message=FALSE}
+# Data Wrangling
 library(tidyverse)
 
+# Modeling
 library(car)      # symbox 
 library(EnvStats) # boxcox function
+library(mice)     # Predictive mean matching for missing values
+
+# Aesthetics
 library(cowplot)  # multiple ggplots on one plot with plot_grid()
 ```
 
@@ -298,6 +303,10 @@ hist( housingData$normYearBuilt,
 seeImputation <- function(df, df.meanInputed, 
                           imputationMethod) {
   
+  # Equal tail 95% distributional ranges
+  yMin = min(df.meanInputed$y)
+  yMax = max(df.meanInputed$y)
+  
   # Non Altered data -------------------------------------------------
   
   meanVal = mean(df$y, na.rm=T) # mean of the non altered data
@@ -323,6 +332,7 @@ seeImputation <- function(df, df.meanInputed,
          y     = 'Frequency', 
          x     = '' ) +
     
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
     theme_minimal() # Theme
   
   
@@ -352,6 +362,7 @@ seeImputation <- function(df, df.meanInputed,
              y = 'Frequency', 
              x = 'Linear feet of street connected to property') +
     
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
     theme_minimal() # Theme
   
   # Variation scatter ----------------------------------------------------------
@@ -434,9 +445,19 @@ seeImputation(df, df.regErrorImputed, imputationMethod = 'Regression with Error'
 
 \newpage
 
-### `iii` Predicive Mean Matching Imputation
-```{r}
+### `iii` Predictive Mean Matching Imputation
+* Output seems to capture appropriate variance of the actual data. 
+```{r, fig.height=8, warning=FALSE, message=FALSE}
+df.pmmImputed <- df # copy data with missingness
 
+# imputation by PMM
+df.pmmImputed[missing,"y"] <- mice.impute.pmm( df.pmmImputed$y, 
+                                              !df.pmmImputed$missing, 
+                                               df.pmmImputed$x)
+
+# Compare missing vs. non missing for given imputation method
+seeImputation(df, df.regErrorImputed, 
+              imputationMethod = 'Predictive Mean Matching (PMM)')
 ```
 
 \newpage
