@@ -36,95 +36,145 @@ library(tidyverse)
 
 # `1` - Data Quality Report
 
-## `1 (a)`
+## `1 (a)` - Read data
 
 ```{r}
 # Read data
 housingData <- read_csv('housingData.csv')
+
+# create three new variables
+housingData <- housingData %>%
+  dplyr::mutate(age             = YrSold - YearBuilt,
+                ageSinceRemodel = YrSold - YearRemodAdd,
+                ageofGarage     = YrSold - GarageYrBlt
+                )
 ```
 
+
+## `1 (b)` - Numeric Housing Tibble
+* Create a tibble named `housingNumeric` which contains all of the numeric variables from the original data. 
+
+* use the `dplyr::select` command along with the `is.numeric` function to complete this task.
+
 ```{r}
+# Convert df to a tibble
+housingNumeric <- as_tibble(housingData) %>%
+  
+  # Only select numeric data 
+  # note would usually use command select_if(is.numeric)
+  select(where(is.numeric))
+```
+
+
+## `1 (c)` - Factor Housing Tibble
+* create a tibble named `housingFactor` which contains all of the character variables from the original data. 
+
+```{r}
+housingFactor <- as_tibble(housingData) %>%
+  
+  # Change all character variables to factors
+  # Keep only the changed data. Implicitly keeping only factor (prev. char vars)
+  transmute_if(is.character, as.factor) 
+```
+
+
+## `1 (d)` - Use Glimpse
+
+```{r}
+# NOT RUN
+# glimpse(housingNumeric)
+# glimpse(housingFactor)
+```
+
+
+## `1 (e)` - Get Q1 and Q3
+* create our own user-defined functions for extracting only first and 3rd quantile
+
+* Explanation: Gets the quantiles of a vector using quantile function, but we use the `[]` brackets to retrieve the 2nd or 4th objects in the vector, which are `Q1` and `Q3`
+
+```{r}
+Q1 <- function(x,na.rm=TRUE) {
+  quantile(x,na.rm=na.rm)[2]
+}
+Q3 <- function(x,na.rm=TRUE) {
+  quantile(x,na.rm=na.rm)[4]
+}
+```
+
+
+## `1 (f)` - Vectorized Summary Stats
+* Function that will help apply several summary statistics to our data all at once
+
+* Contains vector of functions with default to not evaluate if `na`
+
+```{r}
+
+# Vector of functions
+myNumericSummary <- function(x){
+  c(length(x), n_distinct(x), sum(is.na(x)), mean(x, na.rm=TRUE),
+  min(x,na.rm=TRUE), Q1(x,na.rm=TRUE), median(x,na.rm=TRUE), Q3(x,na.rm=TRUE),
+  max(x,na.rm=TRUE), sd(x,na.rm=TRUE))
+}
+
+# Name of each functions within the vector
+statNames <- c('n', 'unique', 'missing', 'mean', 'min', 'Q1', 'median', 'Q3', 'max', 'sd')
+```
+
+
+## `1 (g)` - Apply Summary Stats
+* Apply summary stats function with `summarize` function
+
+```{r}
+numericSummary <- housingNumeric %>%
+  
+  # Apply vector of functions using summarise
+  summarise( across( where(is.numeric), ~myNumericSummary(.x) ) )
+```
+
+
+## `1 (h)` - Add Stats Names
+* Combine original data set and the names of each summary statistic
+
+```{r}
+numericSummary <- cbind(
+  stat=c("n","unique","missing","mean","min","Q1","median","Q3","max","sd"),
+  numericSummary
+)
+
+# glimpse(numericSummary) # uncomment to see effects
+```
+
+\newpage
+
+## `1 (i)` - Pretty up data
+
+### Transform data to make it ready for output format
+
+```{r}
+numericSummaryFinal <- numericSummary %>%
+  pivot_longer("Id":"ageofGarage", names_to = "variable", values_to = "value") %>%
+  pivot_wider(names_from = stat, values_from = value) %>%
+  mutate(missing_pct = 100*missing/n,
+         unique_pct = 100*unique/n) %>%
+  select(variable, n, missing, missing_pct, unique, unique_pct, everything())
+```
+
+### Show the output
+```{r}
+library(knitr)
+options(digits=3)
+options(scipen=99)
+numericSummaryFinal %>% kable()
 ```
 
 
 \newpage
 
-## `1 (b)`
+## `1 (j)` - Factor Data Report
 
 
 ```{r}
-```
-
-
-\newpage
-
-## `1 (c)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (d)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (e)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (f)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (g)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (h)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (i)`
-
-
-```{r}
-```
-
-
-\newpage
-
-## `1 (j)`
-
-
-```{r}
+# TODO
 ```
 
 
@@ -132,3 +182,7 @@ housingData <- read_csv('housingData.csv')
 
 
 # `2` - Transformation
+
+```{r}
+housingData
+```
