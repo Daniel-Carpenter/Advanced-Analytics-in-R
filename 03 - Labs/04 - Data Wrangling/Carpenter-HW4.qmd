@@ -35,7 +35,7 @@ library(tidyverse)
 
 library(car)      # symbox 
 library(EnvStats) # boxcox function
-library(cowplot)  # multiple ggplots on one plot
+library(cowplot)  # multiple ggplots on one plot with plot_grid()
 ```
 
 # `1` - Data Quality Report
@@ -295,7 +295,7 @@ hist( housingData$normYearBuilt,
 
 ### Function to plot comparison of imputation methods
 ```{r}
-seeImputation <- function(df, df.inputed, 
+seeImputation <- function(df, df.meanInputed, 
                           imputationMethod) {
   
   # Non Altered data -------------------------------------------------
@@ -328,10 +328,10 @@ seeImputation <- function(df, df.inputed,
   
   # Imputed data -------------------------------------------------
 
-  meanValImpute = mean(df.inputed$y, na.rm=T)
+  meanValImpute = mean(df.meanInputed$y, na.rm=T)
   
   # Create the plot
-  p2 <- df.inputed %>%
+  p2 <- df.meanInputed %>%
     ggplot(aes(x = y)) +
     
     # Histogram
@@ -350,14 +350,35 @@ seeImputation <- function(df, df.inputed,
     labs(title = 'Data without Missing Values',
              subtitle = paste('Using', imputationMethod, 'Imputation Method'),
              y = 'Frequency', 
-             x = ' Linear feet of street connected to property' ,
-             caption = '\nUsing housing.csv data') +
+             x = 'Linear feet of street connected to property') +
     
     theme_minimal() # Theme
   
+  # Variation scatter ----------------------------------------------------------
+  
+  p3 <- df.meanInputed %>% ggplot(aes(x=x, y=y, color=missing)) + 
+    
+    # Add points
+    geom_point(alpha = 0.5) +
+    
+    # Colors, limits, labels, and themes
+    scale_color_manual(values = c('grey80', badCol),
+                       labels = c('Actuals', 'Imputed') ) +
+    ylim(0, quantile(df.meanInputed$y, 0.99)) + # lower 99% of dist
+    labs(title   = 'Variation of Actuals vs. Imputed Data',
+         x       = 'x', 
+         y       = 'Lot Frontage',
+         caption =paste0('\nUsing housing.csv data',
+                         '\nOnly showing lower 99% of distribution for viewing') 
+         ) +
+    theme_minimal() + theme(legend.position = 'bottom',
+                            legend.title    = element_blank())
+  
+  
   # Combine the plots for the final returned output
-  combinedPlots <- plot_grid(p1, p2, 
-                             ncol = 1, label_size = 12)
+  combinedPlots <- plot_grid(p1, p2, p3, 
+                             ncol = 1, label_size = 12,
+                             rel_heights = c(1, 1.1, 1.75))
   return(combinedPlots)
 }
 ```
@@ -369,28 +390,45 @@ missing <- is.na(housingData$LotFrontage)
 paste('There are', sum(missing), 'missing values')
 
 # Create a data frame to easily reference the lot frontage for other inputation
-df <- data.frame(y = housingData$LotFrontage, missing = missing)
+df <- data.frame(x = rexp(nrow(housingData)), # meaningless x to help show varation 
+                 y = housingData$LotFrontage, 
+                 missing = missing)
 ```
 
 \newpage
 
 ### `i` Mean Value Imputation
-```{r, fig.height=6, warning=FALSE, message=FALSE}
+```{r, fig.height=6.5, warning=FALSE, message=FALSE}
 # Create copy of the data with NAs
-df.inputed <- df  
+df.meanInputed <- df  
 
 # Conduct Mean imputation
-df.inputed[missing,"y"]<-mean(df.inputed$y, na.rm=T)
+df.meanInputed[missing,"y"] <- mean(df.meanInputed$y, na.rm=T)
 
 # Compare missing vs. non missing for given imputation method
-seeImputation(df, df.inputed, imputationMethod = 'Mean')
+seeImputation(df, df.meanInputed, imputationMethod = 'Mean')
 ```
 
 \newpage
 
 ### `ii` Regression with Error Imputation
-```{r}
+```{r, fig.height=8, warning=FALSE, message=FALSE}
+fit <- lm(y ~ x, data = df)    # fit a linear model to the data
+f   <- summary(fit)
 
+c  <- f[[4]] # extract the coefficients 
+se <- f[[6]] # extract the model standard error
+
+# Regression with NO error
+dfReg.imp <- df
+dfReg.imp[missing,"y"]<- (c[1] + c[2] * dfReg.imp[missing,"x"])
+
+# Imputation by Regression with error. Note se = standard error of model
+df.regErrorImputed <- dfReg.imp %>%
+  mutate(y = y + if_else(missing, rnorm(n(), 0, se), 0))
+
+# Compare missing vs. non missing for given imputation method
+seeImputation(df, df.regErrorImputed, imputationMethod = 'Regression with Error')
 ```
 
 
