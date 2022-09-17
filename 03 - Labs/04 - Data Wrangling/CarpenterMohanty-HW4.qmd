@@ -1,6 +1,6 @@
 ---
 title: "Homework 4 - Data Wrangling in R"
-author: "Daniel Carpenter & NAME HERE"
+author: "Daniel Carpenter & Sonaxy Mohanty"
 date: "September 2022"
 format: 
   pdf:
@@ -41,6 +41,7 @@ library(mice)     # Predictive mean matching for missing values
 
 # Aesthetics
 library(cowplot)  # multiple ggplots on one plot with plot_grid()
+library(scales)
 ```
 
 # `1` - Data Quality Report
@@ -59,11 +60,11 @@ housingData <- housingData %>%
                 )
 ```
 
-
 ## `1 (b)` - Numeric Housing Tibble
-* Create a tibble named `housingNumeric` which contains all of the numeric variables from the original data. 
 
-* use the `dplyr::select` command along with the `is.numeric` function to complete this task.
+-   Create a tibble named `housingNumeric` which contains all of the numeric variables from the original data.
+
+-   use the `dplyr::select` command along with the `is.numeric` function to complete this task.
 
 ```{r}
 # Convert df to a tibble
@@ -74,9 +75,9 @@ housingNumeric <- as_tibble(housingData) %>%
   select(where(is.numeric))
 ```
 
-
 ## `1 (c)` - Factor Housing Tibble
-* create a tibble named `housingFactor` which contains all of the character variables from the original data. 
+
+-   create a tibble named `housingFactor` which contains all of the character variables from the original data.
 
 ```{r}
 housingFactor <- as_tibble(housingData) %>%
@@ -86,7 +87,6 @@ housingFactor <- as_tibble(housingData) %>%
   transmute_if(is.character, as.factor) 
 ```
 
-
 ## `1 (d)` - Use Glimpse
 
 ```{r}
@@ -95,11 +95,11 @@ housingFactor <- as_tibble(housingData) %>%
 # glimpse(housingFactor)
 ```
 
-
 ## `1 (e)` - Get Q1 and Q3
-* create our own user-defined functions for extracting only first and 3rd quantile
 
-* Explanation: Gets the quantiles of a vector using quantile function, but we use the `[]` brackets to retrieve the 2nd or 4th objects in the vector, which are `Q1` and `Q3`
+-   create our own user-defined functions for extracting only first and 3rd quantile
+
+-   Explanation: Gets the quantiles of a vector using quantile function, but we use the `[]` brackets to retrieve the 2nd or 4th objects in the vector, which are `Q1` and `Q3`
 
 ```{r}
 Q1 <- function(x,na.rm=TRUE) {
@@ -110,11 +110,11 @@ Q3 <- function(x,na.rm=TRUE) {
 }
 ```
 
-
 ## `1 (f)` - Vectorized Summary Stats
-* Function that will help apply several summary statistics to our data all at once
 
-* Contains vector of functions with default to not evaluate if `na`
+-   Function that will help apply several summary statistics to our data all at once
+
+-   Contains vector of functions with default to not evaluate if `na`
 
 ```{r}
 
@@ -129,9 +129,9 @@ myNumericSummary <- function(x){
 statNames <- c('n', 'unique', 'missing', 'mean', 'min', 'Q1', 'median', 'Q3', 'max', 'sd')
 ```
 
-
 ## `1 (g)` - Apply Summary Stats
-* Apply summary stats function with `summarize` function
+
+-   Apply summary stats function with `summarize` function
 
 ```{r}
 numericSummary <- housingNumeric %>%
@@ -140,9 +140,9 @@ numericSummary <- housingNumeric %>%
   summarise( across( where(is.numeric), ~myNumericSummary(.x) ) )
 ```
 
-
 ## `1 (h)` - Add Stats Names
-* Combine original data set and the names of each summary statistic
+
+-   Combine original data set and the names of each summary statistic
 
 ```{r}
 numericSummary <- cbind(
@@ -169,6 +169,7 @@ numericSummaryFinal <- numericSummary %>%
 ```
 
 ### Show the output
+
 ```{r}
 library(knitr)
 options(digits=3)
@@ -176,26 +177,22 @@ options(scipen=99)
 numericSummaryFinal %>% kable()
 ```
 
-
 \newpage
 
 ## `1 (j)` - Factor Data Report
-
 
 ```{r}
 # TODO
 ```
 
-
 \newpage
 
-
 # `2` - Transformation
-
 
 ## `2 (a)` - Fixing Skewed Data
 
 ### Function to Convert Skewed Data to Normally Distributed Vector
+
 ```{r}
 normalizeDist <- function(aVector) {
   
@@ -212,7 +209,6 @@ normalizeDist <- function(aVector) {
 goodCol = 'darkseagreen3'
 badCol  = 'tomato3'
 ```
-
 
 ### `i.` Fix `LotArea` in Housing Data Set
 
@@ -234,10 +230,11 @@ housingData <- housingData %>%
   mutate(normLotArea = normalizeDist(housingData$LotArea) )
 ```
 
-#### See the normalized Lot Area variable 
-* You can see that the data is definitely more normal
+#### See the normalized Lot Area variable
 
-* However, much of the data is near the median, which may or may not be fine, depending on the analysis
+-   You can see that the data is definitely more normal
+
+-   However, much of the data is near the median, which may or may not be fine, depending on the analysis
 
 ```{r, fig.width=6, fig.height=6}
 # Now see the results of the normalization
@@ -252,7 +249,6 @@ hist( housingData$normLotArea,
       col = goodCol)
 
 ```
-
 
 \newpage
 
@@ -276,8 +272,9 @@ housingData <- housingData %>%
   mutate(normYearBuilt = normalizeDist(housingData$GrLivArea) )
 ```
 
-#### See the normalized Lot Area variable 
-* You can see that the data is definitely more normal
+#### See the normalized Lot Area variable
+
+-   You can see that the data is definitely more normal
 
 ```{r, fig.width=6, fig.height=6}
 # Now see the results of the normalization
@@ -293,19 +290,19 @@ hist( housingData$normYearBuilt,
 
 ```
 
-
 \newpage
 
 ## `2 (b)` - Impute Missing Values
 
 ### Function to plot comparison of imputation methods
+
 Highlights of function include:
 
-* Histogram of actual data, with mean line on x-axis
+-   Histogram of actual data, with mean line on x-axis
 
-* Histogram of imputed data, with mean line on x-axis
+-   Histogram of imputed data, with mean line on x-axis
 
-* Regression of actual and imputed data, spread across trival x-axis. Goal is to show variation in data
+-   Regression of actual and imputed data, spread across trival x-axis. Goal is to show variation in data
 
 ```{r}
 seeImputation <- function(df, df.meanInputed, 
@@ -403,6 +400,7 @@ seeImputation <- function(df, df.meanInputed,
 ```
 
 ### Create Reusable data set `df`
+
 ```{r}
 # How much is missing?
 missing <- is.na(housingData$LotFrontage)
@@ -417,6 +415,7 @@ df <- data.frame(x = rexp(nrow(housingData)), # meaningless x to help show varat
 \newpage
 
 ### `i` Mean Value Imputation
+
 ```{r, fig.height=6.5, warning=FALSE, message=FALSE}
 # Create copy of the data with NAs
 df.meanInputed <- df  
@@ -431,9 +430,11 @@ seeImputation(df, df.meanInputed, imputationMethod = 'Mean')
 \newpage
 
 ### `ii` Regression with Error Imputation
-* Output seems to capture appropriate variance of the actual data.
 
-* It is clear that the mean does not change
+-   Output seems to capture appropriate variance of the actual data.
+
+-   It is clear that the mean does not change
+
 ```{r, fig.height=8, warning=FALSE, message=FALSE}
 fit <- lm(y ~ x, data = df)    # fit a linear model to the data
 f   <- summary(fit)
@@ -453,13 +454,13 @@ df.regErrorImputed <- dfReg.imp %>%
 seeImputation(df, df.regErrorImputed, imputationMethod = 'Regression with Error')
 ```
 
-
 \newpage
 
 ### `iii` Predictive Mean Matching Imputation
-* Output seems to capture appropriate variance of the actual data. 
 
-* It is clear that the mean does not change much, if at all.
+-   Output seems to capture appropriate variance of the actual data.
+
+-   It is clear that the mean does not change much, if at all.
 
 ```{r, fig.height=8, warning=FALSE, message=FALSE}
 df.pmmImputed <- df # copy data with missingness
@@ -477,6 +478,15 @@ seeImputation(df, df.regErrorImputed,
 \newpage
 
 ## `2 (c)` - Dummy Variable Manipulation
+
+Collapse the factor levels in the Exterior1st down to only five levels -- the first four levels should be the most frequent levels and all other levels should be collapsed into a single "Other" level.
+
+Interpretation
+
+-   Now there are only 5 levels for the `Exterior1st` variable
+
+-   4 most frequent left untouched, and the others grouped in `Other`
+
 ```{r}
 housingData <- housingData %>%
   
@@ -485,7 +495,62 @@ housingData <- housingData %>%
 
 # See that there are only 5 levels now
 unique(housingData$Exterior1st)
+length(unique(housingData$Exterior1st))
 ```
+
+\newpage
 
 ## `2 (d)` - More fun with Factors
 
+### `i` - Get average `SalePrice` for each `Neighborhood` using `tidyverse`
+
+-   Note sorted descending
+
+```{r}
+housingData %>%
+  group_by(Neighborhood) %>%
+  summarise(AvgSalePrice = mean(SalePrice)) %>%
+  arrange(desc(AvgSalePrice)) %>% # sort descending on sale price
+  kable() # output as a kable table
+```
+
+\newpage
+
+### `ii` - Boxplots of Avg. Sale Price by Neighborhood
+
+```{r, fig.height=7, fig.width=10.5}
+housingData %>%
+  ggplot(aes(x = Neighborhood,
+             y = SalePrice) ) +
+  
+  # Boxplots
+  geom_boxplot(color = 'steelblue4', fill = 'lightsteelblue1', alpha = 0.7) +
+  
+  # Theme, y scale format, and labels
+  theme_minimal() + theme(panel.grid.major.x = element_blank()) +
+  scale_y_continuous(labels = comma) + 
+  labs(title = 'Distribution of Sale Prices by Neighborhood',
+       x     = 'Neighborhood',
+       y     = 'Sale Price of Home')
+```
+
+\newpage
+
+### `iii-iv` - Boxplots Reordered by Descending Sale Price
+
+```{r, fig.height=7, fig.width=10.5}
+housingData %>%
+  ggplot(aes(x = fct_reorder(Neighborhood, desc(SalePrice) ),
+             y = SalePrice) ) +
+  
+  # Boxplots
+  geom_boxplot(color = 'steelblue4', fill = 'lightsteelblue1', alpha = 0.7) +
+  
+  # Theme, y scale format, and labels
+  theme_minimal() + theme(panel.grid.major.x = element_blank()) +
+  scale_y_continuous(labels = comma) + 
+  labs(title = 'Distribution of Sale Prices by Neighborhood',
+       subtitle = 'Ordered Descending by Sale Price of Home',
+       x     = 'Neighborhood',
+       y     = 'Sale Price of Home')
+```
