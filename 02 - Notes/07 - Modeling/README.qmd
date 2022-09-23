@@ -1,0 +1,27 @@
+---
+title: "Modeling"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+standalone: true
+    
+editor: visual
+---
+
+## Objectives
+
+-   Supervised vs. Unsupervised Learning
+
+-   Evaluate the technical performance of regression-based prediction models using tools such as Mean Absolute Error, RMSE, and Adjusted R\^2
+
+-   Use data strategies such as cross-validation and bootstrapping for model tuning and for assessing generalizable performance
+
+## Overview
+
+![](images/paste-3A0CA45F.png){width="550"}
+
+### Complementary Product Association
+![](images/paste-277BDCE1.png){width="550"}
