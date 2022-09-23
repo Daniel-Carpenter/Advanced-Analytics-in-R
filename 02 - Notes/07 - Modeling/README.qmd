@@ -24,4 +24,5 @@ editor: visual
 ![](images/paste-3A0CA45F.png){width="550"}
 
 ### Complementary Product Association
+
 ![](images/paste-277BDCE1.png){width="550"}

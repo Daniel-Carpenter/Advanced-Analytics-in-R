@@ -1,6 +1,6 @@
 library(caret)
 library(AppliedPredictiveModeling)
-
+library(tidyverse)
 data(concrete,package="AppliedPredictiveModeling")
 
 ?concrete
@@ -151,3 +151,4 @@ plot(fit)
 # "level" plot to see what are good combinations of the values
 
 plot(fit, plotType="level")
+
