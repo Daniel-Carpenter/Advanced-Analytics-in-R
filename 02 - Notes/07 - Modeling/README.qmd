@@ -23,6 +23,72 @@ editor: visual
 
 ![](images/paste-3A0CA45F.png){width="550"}
 
-### Complementary Product Association
+![](images/paste-BA04C06C.png){width="550"}
 
-![](images/paste-277BDCE1.png){width="550"}
+## Prediction
+
+> Predict continuous data
+
+## Classification
+
+> Try to predict non-continuous data
+
+![](images/paste-16625F94.png){width="550"}
+
+### Supervised Learning
+
+> Goal is either inference or prediction
+
+![](images/paste-E7E616DB.png){width="550"}
+
+![](images/paste-84D683CB.png){width="550"}
+
+![](images/paste-A50522AA.png){width="550"}
+
+![](images/paste-0267F0EA.png){width="550"}
+
+### Unsupervised Modeling
+
+![](images/paste-02779782.png){width="550"}
+
+## Overfitting
+
+![](images/paste-B76CE432.png){width="550"}
+
+![](images/paste-A64907E1.png){width="550"}
+
+![](images/paste-39537926.png){width="395" height="323"}
+
+![](images/paste-AB123C11.png){width="550"}
+
+## Testing Data
+
+![](images/paste-974E19A9.png){width="550"}
+
+### Holdout Validation
+
+> Single iteration
+
+![](images/paste-968B54EC.png){width="400"}
+
+![](images/paste-8E7B23AA.png){width="400"}
+
+![](images/paste-7A597610.png){width="550"}
+
+### K-Fold Cross Validation
+
+> Holdout validation just multiple times
+
+![](images/paste-CBB25790.png){width="550"}
+
+### Bootstrap Sampling
+
+![](images/paste-C65EC96A.png){width="550"}
+
+![](images/paste-ADB22C07.png){width="550"}
+
+## Predictions on Data
+
+![](images/paste-470D7279.png){width="550"}
+
+`caret` package streamlines the modeling process into similar function conventions
