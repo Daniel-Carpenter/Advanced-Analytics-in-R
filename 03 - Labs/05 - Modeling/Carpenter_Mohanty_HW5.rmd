@@ -35,4 +35,27 @@ library(scales)
 library(kableExtra)
 ```
 
-# `1` 
+# `(d)`
+
+## Data Prep
+
+### Read Data
+```{r}
+housingData <- read.csv('housingData.csv')
+```
+
+### Clean Data
+```{r}
+housingNumeric <- housingData %>%
+  
+  #selecting all the numeric data
+  dplyr::select_if(is.numeric) %>%
+  
+  #converting the dataframe to tibble
+  as_tibble()
+```
+
+
+\newpage
+
+## Models
