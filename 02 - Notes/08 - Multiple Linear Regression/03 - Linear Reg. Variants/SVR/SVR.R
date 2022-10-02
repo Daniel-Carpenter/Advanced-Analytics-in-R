@@ -1,0 +1,229 @@
+#support vector regression
+#Charles Nicholson
+#Date: October 25, 2017
+#Updated: October 28, 2019
+
+#Please read the following comments -----
+
+#1 -- there are several libraries for SVM; each one is a bit different (e.g., e10701 does allow formula interface, but kernlab does not)
+#2 -- the CARET package is excellent wrapper for accessing and using these different libraries
+#3 -- that said, it is often worth your time and effort to understand the base libraries used
+#4 -- in this demo, I will start using one library directly (and it's own CV)
+#5 -- but then, in the second half, I'll switch over to CARET
+#6 -- I'll try to point out what CARET is doing
+#7 -- One takeaway is this: use CARET if you are not sure how do things yourself, it will save you time!
+#8 -- but, on the other hand, using the libraries directly allows you a little more control over the procedures
+
+
+library(e1071)  #one of several libraries for Support Vector Machines 
+
+# create some simplistic fake data
+x <- seq(0.1, 5, by = 0.05)
+y <- log(x) + rnorm(x, sd = 0.2)
+
+
+#the steps below are as follows
+#1 -- pick a kernel to use (linear, radial, polynomial, sigmoid)
+#2a -- tune the SVM using the "tune.svm" method in e1071
+#2b -- but to figure out what parameters to tune, you have to look at the documentation of svm
+#3 -- look at the fit of the model on the training data visually
+#4 -- do again for the next kernel and tuning parameters
+
+
+# estimate model and predict input values
+# first kernel to test: linear  
+# linear kernel tuning parameters: cost (see documentation: ?svm)
+# but you can also train on other things (e.g., epsilon)
+
+tunedM <- tune.svm(x, y, kernel="linear", cost = seq(0.5,15,by=0.5), epsilon = 2^(seq(-5,-1)))
+tunedM
+plot(tunedM) #not much change in the error...
+
+m   <- svm(x, y, kernel="linear", cost = 7.5, epsilon=0.125)
+new <- predict(m, x)  #apply the model back to the training data
+summary(m)
+
+# visualize
+plot(x, y)                  #original data
+points(x, log(x), col = 2)  #true model
+points(x, new, col = 4)     #estimated model predictions -- linear, as expected!
+
+
+# estimate model and predict input values
+# second kernel to test: polynomial 
+# tuning parameters: cost, coef0, gamma, and degree (see documentation: ?svm)
+# but you can also train on other things (e.g., epsilon) -- but this time we wont
+tunedM <- tune.svm(x, y, kernel="polynomial", cost = seq(0.5,10,length=5), coef0= c(-1,0,1), gamma=seq(0.1,2, length=5), degree = c(1.5,2,2.5,3))
+tunedM
+
+str(tunedM$performances)  #here is where the tuned performance data is at
+plot(tunedM$performances$gamma,tunedM$performances$error)
+plot(tunedM$performances$coef0,tunedM$performances$error)
+plot(tunedM$performances$cost,tunedM$performances$error)
+
+m   <- svm(x, y, kernel="polynomial", cost=0.5, coef0=1,gamma=0.575, degree=3)
+new <- predict(m, x)
+
+# visualize
+plot(x, y)                  #original data
+points(x, log(x), col = 2)  #true model
+points(x, new, col = 4)     #estimated model predictions -- not too shabby!  
+
+
+# estimate model and predict input values
+# third kernel to test: radial basis 
+# tuning parameters: cost, gamma (see documentation: ?svm)
+# but you can also train on other things (e.g., epsilon) -- but this time we wont
+
+
+#this time I am going to try to focus in on better parameter values to test
+tunedM <- tune.svm(x, y, kernel="radial", cost = seq(0.1,12,length=10), gamma=seq(0.1, 15, length=10))
+plot(tunedM)
+
+tunedM <- tune.svm(x, y, kernel="radial", cost = seq(4,14,length=10), gamma=seq(2, 8, length=10))
+plot(tunedM)
+
+tunedM <- tune.svm(x, y, kernel="radial", cost = seq(12,15,length=20), gamma=seq(3, 5, length=20))
+plot(tunedM)
+
+tunedM <- tune.svm(x, y, kernel="radial", cost = seq(13.5,15,length=20), gamma=seq(3, 3.25, length=20))
+plot(tunedM)  #notice now that there is very little difference in error values
+tunedM
+
+m   <- svm(x, y, kernel="radial", gamma=3.026316, cost=15)
+new <- predict(m, x)
+
+# visualize
+plot(x, y)                  #original data
+points(x, log(x), col = 2)  #true model
+points(x, new, col = 4)     #estimated model predictions -- great!  
+
+
+# estimate model and predict input values
+m   <- svm(x, y, kernel="sigmoid")  #i'll let you try to tune this one on your own!
+
+
+#OKAY -- now I'll use the caret package to train (and tune and CV) SVM models
+# I will also switch to formula interface since caret always allows formula interface
+
+library(caret)
+
+library(mlbench)  #for some house pricing data
+data("BostonHousing2")
+?BostonHousing2
+
+BH2<-BostonHousing2  #just so I don't have to write out BostonHousing2 everytime!
+
+#first a simple OLS fit --
+# for ease of demonstration, I am removing the categorical data
+
+olsFit<-lm(cmedv~.-medv-town-tract-lon-lat-chas,data=BH2)  #OLS including the interaction term
+summary(olsFit)
+hist(olsFit$residuals)
+
+#while OLS does not have any hyperparameters, we can still get resampled estimates of performance
+
+ctrl <- trainControl(method="repeatedcv", number=5,   # 5 fold cross validation
+                     repeats=5)	
+
+ols.eval <- train(data=BH2, cmedv~.-medv-town-tract-lon-lat-chas,
+                  method = "lm",   #lm
+                  preProc = c("center","scale"),  # Center and scale data (note: this is done automatically in SVM methods)
+                  trControl=ctrl)
+
+ols.eval  #the CV estimates of performance
+summary(ols.eval$finalModel)
+
+
+#look at plot of predicted vs. actual   -- not bad, but we can do better
+qplot(BH2$cmedv,ols.eval$finalModel$fitted.values)+
+      geom_abline(intercept=0,slope=1)
+
+
+#go to the caret website and look at documentation
+#the method use choose will imply a library
+#method = "svmRadial" will load the kernlab library and use it
+#whereas method = "svmLinear2" will load the e1071 library
+
+
+#since SVM is more computationally expensive, I am going to 
+#change my cross-validation to 5-fold (instead of 5-fold with 5 repeats)
+#just so this doesn't take too long...
+
+ctrl <- trainControl(method="repeatedcv", number=5)  # 5 fold cross validation
+                  
+
+#Train and tune the SVM - first broad tuning on cost only
+svm.tune <- train(data=BH2, 
+                  cmedv~.-medv-town-tract-lon-lat-chas,
+                  method = "svmRadial",   # Radial kernel
+                  tuneLength = 9,					# 9 values of the cost function
+                  preProc = c("center","scale"),  # Center and scale data
+                  trControl=ctrl)
+
+svm.tune
+
+### here are the results -- they will be a little different each time it is run...
+
+#Resampling results across tuning parameters:
+  
+#   C      RMSE      Rsquared   MAE     
+# 0.25  4.546144  0.7845407  2.724332
+# 0.50  3.917098  0.8300925  2.407811
+# 1.00  3.551744  0.8537731  2.205566
+# 2.00  3.445098  0.8606667  2.158521
+# 4.00  3.305801  0.8732653  2.144413
+# 8.00  3.074737  0.8912926  2.068876
+# 16.00  2.955133  0.8988610  2.026812
+# 32.00  3.020573  0.8916185  2.070000
+# 64.00  3.278652  0.8751030  2.228849
+
+#Tuning parameter 'sigma' was held constant at a value of 0.1384756
+
+## from this, we see that for sigm close to 0.14, 
+## and C somewhere between 8 and 32, 
+## we get pretty good results...  
+
+#let's do some more refined tuning on both cost and sigma
+grid <- expand.grid(sigma = seq(0.08,0.16,length=5),
+                    C = seq(8,32,length=20))
+
+svm.tune <- train(data=BH2, 
+                  cmedv~.-medv-town-tract-lon-lat-chas,
+                  method = "svmRadial", 
+                  tuneGrid = grid,
+                  trControl=ctrl)
+
+svm.tune
+
+plot(svm.tune)
+
+#from the graph, I see the sigma should probably be around 0.08
+#and Cost should probably be between 20 and 32
+
+grid <- expand.grid(sigma = seq(0.06,0.09,length=4),
+                    C = seq(20,32,length=10))
+
+
+#note this might take a while....   
+svm.tune <- train(data=BH2, 
+                  cmedv~.-medv-town-tract-lon-lat-chas,
+                  method = "svmRadial", 
+                  tuneGrid = grid,
+                  trControl=ctrl)
+
+svm.tune
+
+plot(svm.tune)
+
+svm.tune$finalModel
+
+#now to plot predictions vs actuals
+
+new<-predict(svm.tune, BH2)
+
+#these predictions are great!
+qplot(BH2$cmedv,new)+
+  geom_abline(intercept=0,slope=1)  
+
+

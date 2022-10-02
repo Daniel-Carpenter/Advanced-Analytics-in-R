@@ -1,8 +1,8 @@
 ---
-title: "ISE 5103 Intelligent Data Analytics"
+title:    "ISE 5103 Intelligent Data Analytics"
 subtitle: "Homework 5 - Modeling"
-author: "Daniel Carpenter & Sonaxy Mohanty"
-date: "October 2022"
+author:   "Daniel Carpenter & Sonaxy Mohanty"
+date:     "October 2022"
 output: 
   pdf_document:
     toc: true
