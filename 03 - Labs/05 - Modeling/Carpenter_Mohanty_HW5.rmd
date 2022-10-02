@@ -30,6 +30,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 
 # Modeling
+library(outliers)  # grubbs.test for outlier detection
 
 # Aesthetics
 library(knitr)
@@ -227,7 +228,6 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
   # Now store the data in the original new frame
   housingDataImputed[, nameOfThisColumn] <- imputedValues
   
-  
   # Save a visualization of the imputation
   pmmVisual <- seeImputation(data.frame(y = colWithNulls),
                              data.frame(y = imputedValues),
@@ -241,11 +241,64 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
 
 \newpage
 
+### Remove outliers from data
+```{r}
+housingNumericClean <- housingDataImputed
+# 
+# for (col in 1:ncol(housingNumericClean)) {
+#   if (is.numeric(housingNumericClean[, col]) ) {
+#     print(TRUE)
+#   }
+# }
+```
+
+
+\newpage
+
 ### Factor level collapse data over 5 categories
 ```{r}
+housingDataCleaned <- housingNumericClean # For final cleaned data
 
+# Get list of factors and the number of unique values
+factorCols <- as.data.frame(t(housingFactor %>% summarise_all(n_distinct)))
 
+# We are going to factor collapse factor columns with more than 4 columns
+# So there will be 4 of the original, and 1 containing 'other'
+# This is the threshold
+factorThreshold = 4
+
+# Get a list of the factors we are going to collapse
+colsWithManyFactors <- rownames(factorCols %>% filter(V1 > factorThreshold))
+
+# Show a summary of how many factors will be collapsed
+numberOfColsWithManyFactors = length(colsWithManyFactors)
+paste('Before cleaning, there are', numberOfColsWithManyFactors, 'factor columns with more than', 
+      factorThreshold, 'unique values')
+
+# Collapse the affected factors in the original data (the one that already has imputation)
+
+## for each factor column that we are about to collapse
+for (collapsedColNum in 1:numberOfColsWithManyFactors) {
+  
+  # The name of the column with null values
+  nameOfThisColumn <- colsWithManyFactors[collapsedColNum]
+  
+  # Get the actual data of the column with nulls
+  colWithManyFactors <- housingData[, nameOfThisColumn]
+  
+  # lumps all levels except for the n most frequent 
+  housingDataCleaned[, nameOfThisColumn] <- fct_lump_n(colWithManyFactors, 
+                                                       n=factorThreshold)
+}
+
+# Check to see if the factor lumping worked
+factorColsCleaned <- t(housingDataCleaned %>% 
+                       select_if(is.character) %>%
+                       summarise_all(n_distinct))
+paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.rm = TRUE), 
+      "columns with more than", factorThreshold, "unique values (omitting NA's)")
 ```
+
 
 
 # `1 (d)`
