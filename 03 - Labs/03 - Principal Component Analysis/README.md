@@ -3,13 +3,34 @@ Homework 3 - Principal Component Analysis
 Daniel Carpenter & Zachary Knepp
 August 2022
 
+-   <a href="#packages" id="toc-packages">Packages</a>
 -   <a href="#glass-data" id="toc-glass-data">1. Glass Data</a>
+    -   <a href="#get-and-clean-data" id="toc-get-and-clean-data">Get and Clean
+        Data</a>
+    -   <a href="#a-mathematics-of-pca" id="toc-a-mathematics-of-pca">1 (a)
+        Mathematics of PCA</a>
+    -   <a href="#b-applications-of-pca" id="toc-b-applications-of-pca">1 (b)
+        Applications of PCA</a>
+    -   <a href="#c-application-of-lda" id="toc-c-application-of-lda">1 (c)
+        Application of LDA</a>
 -   <a href="#principal-components-for-dimension-reduction"
     id="toc-principal-components-for-dimension-reduction">2. Principal
     components for dimension reduction</a>
+    -   <a href="#a-remove-outlier" id="toc-a-remove-outlier">2 (a) Remove
+        outlier</a>
+    -   <a href="#b" id="toc-b">2 (b)</a>
+    -   <a href="#c" id="toc-c">2 (c)</a>
+    -   <a href="#d" id="toc-d">2 (d)</a>
+    -   <a href="#e" id="toc-e">2 (e)</a>
 -   <a href="#housing-data-dimension-reduction-and-exploration"
     id="toc-housing-data-dimension-reduction-and-exploration">3. Housing
     data dimension reduction and exploration</a>
+    -   <a href="#read-and-clean-data" id="toc-read-and-clean-data">Read and
+        Clean data</a>
+    -   <a href="#correlation-analysis"
+        id="toc-correlation-analysis">Correlation Analysis</a>
+    -   <a href="#principal-component-analysis"
+        id="toc-principal-component-analysis">Principal Component Analysis</a>
 
 
 

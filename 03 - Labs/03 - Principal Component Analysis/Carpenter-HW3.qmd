@@ -11,7 +11,7 @@ format:
     code-block-border-left: "#D6D6D6"
   gfm:
     toc: true
-    toc-depth: 1
+    toc-depth: 2
     
 execution:
   echo:    true
