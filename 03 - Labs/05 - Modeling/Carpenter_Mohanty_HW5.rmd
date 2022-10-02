@@ -244,12 +244,12 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
 ### Remove outliers from data
 ```{r}
 housingNumericClean <- housingDataImputed
-# 
-# for (col in 1:ncol(housingNumericClean)) {
-#   if (is.numeric(housingNumericClean[, col]) ) {
-#     print(TRUE)
-#   }
-# }
+
+for (col in 1:ncol(housingNumericClean)) {
+  if (is.numeric(housingNumericClean[, col]) ) {
+    print(TRUE)
+  }
+}
 ```
 
 
