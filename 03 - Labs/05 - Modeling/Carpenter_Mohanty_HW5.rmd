@@ -1,0 +1,38 @@
+---
+title: "ISE 5103 Intelligent Data Analytics"
+subtitle: "Homework 5 - Modeling"
+author: "Daniel Carpenter & Sonaxy Mohanty"
+date: "October 2022"
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    highlight: arrow
+  # github_document:
+  #   toc: yes
+  #   toc_depth: 2
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newpage
+
+## Packages
+
+```{r error=FALSE, message=FALSE, warning=FALSE}
+# Data Wrangling
+library(tidyverse)
+
+# Modeling
+
+# Aesthetics
+library(knitr)
+library(cowplot)  # multiple ggplots on one plot with plot_grid()
+library(scales)
+library(kableExtra)
+```
+
+# `1` 
