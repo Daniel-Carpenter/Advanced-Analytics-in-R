@@ -244,18 +244,44 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
 ### Remove outliers from data
 ```{r}
 housingNumericClean <- housingDataImputed
-
-for (col in 1:ncol(housingNumericClean)) {
-  if (is.numeric(housingNumericClean[, col]) ) {
-    print(TRUE)
-  }
-}
+# 
+# for (colNum in 1:ncol(housingNumericClean)) {
+#   
+#   theCol <- housingNumericClean[, colNum]
+#   
+#   # Only consider numeric
+#   if (is.numeric(theCol)) {
+#     
+#     outlierExists = TRUE # set to true to check on initial run
+#     
+#     if (outlierExists) {
+#       
+#       # Check to see if outlier
+#       outlierTestOutcome <- grubbs.test(theCol)$p.value
+#       outlierExists = outlierTestOutcome < 0.05 # assuming 95% conf inv
+#       
+#       # While an outlier exists in the column of the data
+#       if (outlierExists) {
+#         
+#         # Identify the outlier
+#         theOutlier = outlier( housingNumericClean[, colNum] )
+#         
+#         # Create a vector to filter the data
+#         doesNotContainOutlier <- theCol != theOutlier
+#         
+#         # Now filter the data
+#         housingNumericClean <- housingNumericClean[doesNotContainOutlier,]
+#       }
+#     }
+#   }
+#   else { }
+# }
 ```
 
 
 \newpage
 
-### Factor level collapse data over 5 categories
+### Factor level collapse data over 4 categories
 ```{r}
 housingDataCleaned <- housingNumericClean # For final cleaned data
 
