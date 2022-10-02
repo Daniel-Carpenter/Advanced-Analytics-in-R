@@ -6,12 +6,15 @@ date:     "October 2022"
 output: 
   pdf_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     highlight: arrow
   # github_document:
   #   toc: yes
   #   toc_depth: 2
 urlcolor: blue
+cache: true
+fig.width: 7
+fig.height: 5
 ---
 
 ```{r setup, include=FALSE}
@@ -35,16 +38,16 @@ library(scales)
 library(kableExtra)
 ```
 
-# `(d)`
-
-## Data Prep
+## General Data Prep
 
 ### Read Data
 ```{r}
 housingData <- read.csv('housingData.csv')
 ```
 
-### Clean Data
+### Clean Numeric Data
+
+Make dataset of `numeric` variables
 ```{r}
 housingNumeric <- housingData %>%
   
@@ -55,7 +58,210 @@ housingNumeric <- housingData %>%
   as_tibble()
 ```
 
+Make dataset of `character` variables
+```{r}
+housingFactor <- housingData %>%
+  
+  #selecting all the numeric data
+  dplyr::select_if(is.character) %>%
+  
+  #converting the dataframe to tibble
+  as_tibble()
+```
+
+
+For each column with missing data, impute missing values with `PMM`
+
+* Done with function `imputeWithPMM()` function  
+* Applys function via `dplyr` logic  
+* Note `seeImputation()` function to visualize the imputation from prior homework 4, not shown for simplicity in viewing
+
+
+Create function to impute via `PMM`
+
+```{r}
+imputeWithPMM <- function(colWithMissingData) {
+  
+  # Using the mice package
+  suppressMessages(library(mice))
+  
+  # Discover the missing rows
+  isMissing <- is.na(colWithMissingData) 
+  
+  # Create data frame to pass to PMM inputation function from mic package
+  df <- data.frame(x       = rexp(length(colWithMissingData)), # meaningless x to help show varation 
+                   y       = colWithMissingData, 
+                   missing = isMissing)
+  
+  # imputation by PMM
+  df[isMissing, "y"] <- mice.impute.pmm( df$y, 
+                                        !df$missing, 
+                                         df$x)
+  
+  return(df$y)
+}
+```
+
+
+```{r, include=FALSE}
+# Note `seeImputation()` function to visualize the imputation from prior homework 4
+seeImputation <- function(df, df.meanInputed, 
+                          imputationMethod) {
+  
+  # Min/Max ranges so actual and imputed histograms align
+  yMin = quantile(df.meanInputed$y, 0.05)
+  yMax = max(df.meanInputed$y)
+  
+  # Non Altered data -------------------------------------------------
+  
+  meanVal = mean(df$y, na.rm=T) # mean of the non altered data
+  
+  # Create the plot
+  p1 <- df %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanVal, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data with Missing Values',
+         y     = 'Frequency', 
+         x     = '' ) +
+    
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
+    theme_minimal() # Theme
+  
+  
+  # Imputed data -------------------------------------------------
+
+  meanValImpute = mean(df.meanInputed$y, na.rm=T)
+  
+  # Create the plot
+  p2 <- df.meanInputed %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanValImpute, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data without Missing Values',
+             subtitle = 'Using PMM',
+             y = 'Frequency', 
+             x = imputationMethod) +
+    
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
+    theme_minimal() # Theme
+  
+  # Variation scatter ----------------------------------------------------------
+  
+  p3 <- df.meanInputed %>% ggplot(aes(x=rexp(length(y)), y=y, color=is.na(df$y))) + 
+    
+    # Add points
+    geom_point(alpha = 0.5) +
+    
+    # Colors, limits, labels, and themes
+    scale_color_manual(values = c('grey80', 'tomato3'),
+                       labels = c('Actuals', 'Imputed') ) +
+    ylim(0, quantile(df.meanInputed$y, 0.99)) + # lower 99% of dist
+    labs(title   = 'Variation of Actuals vs. Imputed Data',
+         x       = 'x', 
+         y       = imputationMethod,
+         caption =paste0('\nUsing housing.csv data',
+                         '\nOnly showing lower 99% of distribution for viewing') 
+         ) +
+    theme_minimal() + theme(legend.position = 'bottom',
+                            legend.title    = element_blank())
+  
+  
+  # Combine the plots for the final returned output
+  combinedPlots <- plot_grid(p1, p2, p3, 
+                             ncol = 1, label_size = 12,
+                             rel_heights = c(1, 1.1, 1.75))
+  return(combinedPlots)
+}
+```
+
+
+Apply `PMM` function to numeric data containing null values 
+```{r, warning=FALSE, message=FALSE}
+# Data to store imputed values with PMM method
+housingDataImputed <- housingData
+
+# Which columns has NA's?
+colNamesWithNulls <- colnames(housingNumeric[ , colSums(is.na(housingNumeric)) != 0])
+colNamesWithNulls
+
+numberOfColsWithNulls = length(colNamesWithNulls)
+
+
+# For each of the numeric columns with null values
+for (colWithNullsNum in 1:numberOfColsWithNulls) {
+  
+  # The name of the column with null values
+  nameOfThisColumn <- colNamesWithNulls[colWithNullsNum]
+  
+  # Get the actual data of the column with nulls
+  colWithNulls <- housingData[, nameOfThisColumn]
+  
+  # Impute the missing values with PMM
+  imputedValues <- imputeWithPMM(colWithNulls)
+  
+  # Now store the data in the original new frame
+  housingDataImputed[, nameOfThisColumn] <- imputedValues
+  
+  
+  # Save a visualization of the imputation
+  pmmVisual <- seeImputation(data.frame(y = colWithNulls),
+                             data.frame(y = imputedValues),
+                             nameOfThisColumn )
+  
+  fileToSave = paste0('OutputPMM/Imputation_With_PMM_', nameOfThisColumn, '.pdf')
+  print(paste0('For imputation results of ', nameOfThisColumn, ', see ', fileToSave))
+  ggsave(pmmVisual, filename = fileToSave )
+}
+```
 
 \newpage
 
-## Models
+### Factor level collapse data over 5 categories
+```{r}
+
+
+```
+
+
+# `1 (d)`
+
+## `PCR` 
+
+### Perform PCA analysis to see how Principal components explain variance
+
+### Now, Apply predictions with `PCR`
+
+
+\newpage
+
+## `SVR`
+
+
+\newpage
+
+## `MARS`
