@@ -1,0 +1,44 @@
+---
+title: "OLS"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+standalone: true
+    
+editor: visual
+---
+
+## Simplifying Model
+
+### Stepwise Variable Selection
+
+> add and eliminate vars as needed
+>
+> *NOTE MAY BE MISLEADING!!!!*
+
+![](images/paste-67448ABB.png){width="550"}
+
+![](images/paste-E057ECE7.png){width="550"}
+
+```{r}
+library(MASS) # stepAIC funciton
+
+data(LifeCycleSavings)
+
+# Basic model with a TON of interaction terms
+fit4<-lm(data=LifeCycleSavings, sr ~ pop15 * pop75 * dpi * ddpi)
+summary(fit4) # see model output
+
+
+# Create a recomeded model using stepwise from the iteration
+fit5 <- stepAIC(fit4, direction="both")
+# fit5$anova  # display results
+summary(fit5) # see model output
+
+# Check the recomendeded model
+AIC(fit5)
+BIC(fit5)
+```

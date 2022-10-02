@@ -1,0 +1,194 @@
+---
+title: "OLS"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 3
+standalone: true
+    
+editor: visual
+fig-width: 7
+---
+
+## Diagnostics and Bias
+
+![](images/paste-F4B7812A.png){width="400"}
+
+![](images/paste-DEE86B3F.png){width="550"}
+
+## Methods
+
+### Plotting Actuals vs. Prediction
+
+![](images/paste-6748D7B0.png){width="550"}
+
+## Bias Patterns with Residuals
+
+### No Pattern
+
+![](images/paste-9BFF063D.png){width="550"}
+
+### Heteroskedasticity: Increasing variance
+
+![](images/paste-4259AFA8.png){width="550"}
+
+![](images/paste-2D433E37.png){width="550"}
+
+### High Unbalance on ***Residual*** axis
+
+![](images/paste-06CFE1BB.png){width="550"}
+
+### Non-Linear
+
+![](images/paste-83009E2C.png){width="550"}
+
+### Outlier
+
+![](images/paste-D88FF26D.png){width="550"}
+
+### High Unbalance on Predicted Axis
+
+![](images/paste-D9FDA746.png){width="550"}
+
+## Examples of Bias and Overcoming in `R`
+
+### Fit data
+
+```{r}
+library(car)      #for some extra diagnostic tools
+library(ggplot2)  #for plotting
+
+
+#example using the LifeCycleSavings data
+data(LifeCycleSavings)
+
+#basic linear model
+fit<-lm(data=LifeCycleSavings,sr ~ pop15 + pop75 + dpi + ddpi)
+summary(fit)
+```
+
+### Heteroskedasticity (Non-Constant Variance)
+
+```{r}
+#test for non-constant variance
+# Test for heteroskedasticity
+ncvTest(fit)
+
+#residual plot
+plot(fit$fitted.values,fit$residuals, col = "black", pch = 21, bg = "red") 
+abline(h=0)
+
+#histogram of residuals
+qplot(fit$resid) + geom_histogram(binwidth=2)
+```
+
+### Normality
+
+```{r}
+#qq plot of residuals
+qqnorm(fit$resid)
+qqline(fit$resid)
+
+# partial residual plots
+par(mfrow=c(2,2))
+plot(LifeCycleSavings$pop15,fit$residuals, col = "black", pch = 21, bg = "red") 
+abline(h=0)
+plot(LifeCycleSavings$pop75,fit$residuals, col = "black", pch = 21, bg = "red") 
+abline(h=0)
+plot(LifeCycleSavings$dpi,fit$residuals, col = "black", pch = 21, bg = "red") 
+abline(h=0)
+plot(LifeCycleSavings$ddpi,fit$residuals, col = "black", pch = 21, bg = "red") 
+abline(h=0)
+dev.off()
+
+```
+
+### Leverage
+
+![](images/paste-55D654AC.png){width="550"}
+
+![](images/paste-F9EA32CC.png){width="550"}
+
+```{r}
+#index leverage plot
+plot(hatvalues(fit),col = "black", pch = 21, bg = "red")      #index plot of leverages
+abline(h=2*5/50)
+
+hatvalues(fit)[hatvalues(fit)>0.2]
+
+#plot residuals vs. hatvalues
+plot(hatvalues(fit),fit$residuals,col = "black", pch = 21, bg = "red")    #leverages and residuals
+abline(h=0,v=2*5/50)
+
+#standardized residuals (index plot) ----- 
+plot(rstandard(fit),col = "black", pch = 21, bg = "red")      # index standardized residual plot
+abline(h=c(-2,2), lty = 2)
+
+#we can interactively identify points
+identify(1:50,rstandard(fit),labels=names(fit$fitted.values))  #interactive click and identify points
+
+
+#standardized residuals vs. fitted values ----- 
+plot(fit$fitted.values,rstandard(fit),col = "black", pch = 21, bg = "red")      #standardized residuals and fitted values
+abline(h=c(-2,2), lty = 2)
+
+identify(fit$fitted.values,rstandard(fit),labels=names(fit$fitted.values))
+```
+
+### Studentized Residuals
+
+![](images/paste-922CEC85.png){width="550"}
+
+```{r}
+
+# studentized residuals vs. fitted values ---------
+plot(fit$fitted.values,rstudent(fit),col = "black", pch = 21, bg = "red")      #standardized residuals and fitted values
+abline(h=c(-2,2), lty = 2)                                                     # FYI -- in this case it looks almost the same as the previous plot
+identify(fit$fitted.values,rstandard(fit),labels=names(fit$fitted.values))
+```
+
+### Outliers
+
+![](images/paste-8A874624.png){width="550"}
+
+![](images/paste-1EB41C65.png){width="550"}
+
+```{r}
+#outlier test from car package
+outlierTest(fit)
+#studentized residals vs. Cook's D
+plot(cooks.distance(fit),rstudent(fit),col = "black", pch = 21, bg = "red")
+
+# automatic plots from R for linear models
+plot(fit)
+```
+
+### Influencer
+
+![](images/paste-DCBAE1FD.png){width="550"}
+
+![](images/paste-6099F34C.png){width="550"}
+
+```{r}
+# several influence measures
+influence.measures(fit)
+
+# influence plot from car 
+influencePlot(fit)
+
+# residual plots from car package
+residualPlots(fit)
+```
+
+### Multi-collinearity
+
+![](images/paste-FDF2BEB1.png){width="550"}
+
+![](images/paste-9BEDDD17.png){width="550"}
+
+```{r}
+#variation inflation factor from car package
+vif(fit)
+```
