@@ -1,0 +1,67 @@
+---
+title: "Regression Variants"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 3
+standalone: true
+    
+editor: visual
+fig-width: 7
+---
+
+## OLS Issues
+
+![](images/paste-DBE464B3.png){width="550"}
+
+![](images/paste-86C25C17.png){width="550"}
+
+## `Robust Regression`
+
+![](images/paste-BDDC649C.png){width="550"}
+
+![](images/paste-0571B94D.png){width="550"}
+
+![](images/paste-ED300616.png){width="550"}
+
+![](images/paste-F3A18E70.png){width="550"}
+
+![](images/paste-A06CFAC0.png){width="550"}
+
+## `PCR`
+
+![](images/paste-92B40693.png){width="550"}
+
+![](images/paste-6E7D4015.png){width="550"}
+
+## `PLS`
+
+![](images/paste-33091202.png){width="550"}
+
+## Penalty Approaches
+
+![](images/paste-4D7D908B.png){width="550"}
+
+### Ridge Regression
+
+> Penalization approach for overcoming overfitting
+
+![](images/paste-52CE6B1C.png){width="550"}
+
+### LASSO
+
+![](images/paste-5BE820C1.png){width="550"}
+
+### Elastic Net Regression
+
+![](images/paste-8B3E16D3.png){width="550"}
+
+## `SVM`
+
+![](images/paste-D90DC77B.png){width="550"}
+
+![](images/paste-A9682101.png){width="550"}
+
+![](images/paste-F7CBAE39.png){width="550"}
