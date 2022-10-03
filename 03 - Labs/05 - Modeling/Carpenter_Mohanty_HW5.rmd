@@ -31,6 +31,7 @@ library(tidyverse)
 
 # Modeling
 library(MASS)
+library(caret) # Modeling variants like SVM
 
 # Aesthetics
 library(knitr)
@@ -444,7 +445,7 @@ df.pcr <- cbind(SalePrice = hd.numericClean$SalePrice, chosenPCs, hd.factorClean
 
 * Then use `stepAIC()` to identify which variables are actually important for model 
   
-```{r, echo=T, results='hide'}
+```{r pcr, echo=T, results='hide'}
 # Fit data using PC's, non-null factors
 fit.pcr <- lm(log(SalePrice) ~ ., data = df.pcr)
 
@@ -455,6 +456,20 @@ fit.pcrReduced <- stepAIC(fit.pcr, direction="both")
 ```{r}
 # View results
 summary(fit.pcrReduced)
+
+
+# Key diagnostics
+est.pcr <- summary(fit.pcrReduced)
+
+# Get the RMSE and R Squared of the model
+keyDiagnostics.pcr <- data.frame(Model    = 'PCR',
+                                 Notes    = 'lm',
+                                 Hyperparameters = 'N/A',
+                                 RMSE     = sqrt(mean(fit.pcrReduced$residuals^2)),
+                                 Rsquared = est.pcr$adj.r.squared)
+
+# Show output
+keyDiagnostics.pcr %>% kable()
 ```
 
 ### Interpretation of PCR Model
@@ -583,13 +598,80 @@ predictedVsObserved(observed  = log(df.pcr$SalePrice),
                     modelName = 'PCR')
 ```
 
-
-
 \newpage
 
 ## `1 (d, ii)` - SVR Model
+
+### Model Setup
+```{r}
+ctrl <- trainControl(method  = "repeatedcv", 
+                     number  = 5, # 5 fold cross validation
+                     repeats = 2  # 5 repeats
+                     )
+
+# The data (pmm imputed values, and only whole columns without NA. Does not omit outliers)
+df.svm <- cbind(SalePrice = hd.numericClean$SalePrice, 
+                hd.numericClean, hd.factorClean) 
+```
+
+
+### Tune Model
+```{r svm}
+# Train and tune the SVM - first broad tuning on cost only
+svm.tune <- train(data = df.svm, 
+                  log(SalePrice) ~ .,
+                  method     = "svmRadial",         # Radial kernel
+                  tuneLength = 9,                   # 9 values of the cost function
+                  preProc    = c("center","scale"), # Center and scale data
+                  trControl  = ctrl)
+```
+
+### Diagnostics of Model and Interpretation of Following Output
+* Note all numbers mentioned below are approximate
+* See that the R Squared of the model is around 0.86, and RMSE is 0.14
+* See that the model predicts the data well. 
+* Also, note that the model predicts the data with less error than the linear model. 
+See this from the RMSE or scatter plot of predicted values.
+
+```{r}
+# Get the RMSE and R Squared of the model
+hyperparameters.svm = list('C' = svm.tune[["finalModel"]]@param[["C"]],
+                           'Epsilon' = svm.tune[["finalModel"]]@param[["epsilon"]])
+
+
+keyDiagnostics.svm <- data.frame(Model    = 'SVM',
+                                 Notes    = 'caret and svmRadial',
+                                 Hyperparameters = paste('C =', hyperparameters.svm$C, ',',
+                                                         'Epsilon =', hyperparameters.svm$Epsilon)
+                                 )
+
+keyDiagnostics.svm <- cbind(keyDiagnostics.svm,
+                            svm.tune$results %>% 
+                              filter(C == hyperparameters.svm$C) %>%
+                              dplyr::select(RMSE, Rsquared)
+                      )
+
+# Show output
+keyDiagnostics.svm %>% kable()
+
+# Final model?
+svm.tune$finalModel
+
+# How do the two compare?
+predictedVsObserved(observed  = log(df.svm$SalePrice),
+                    predicted = predict(svm.tune, df.svm),
+                    modelName = 'SVM')
+```
 
 
 \newpage
 
 ## `1 (d, iii)` - MARS Model
+
+
+\newpage
+
+# Summary Table of Model Performance
+```{r}
+rbind(keyDiagnostics.pcr, keyDiagnostics.svm) %>% kable()
+```
