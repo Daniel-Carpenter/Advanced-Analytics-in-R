@@ -32,6 +32,7 @@ library(tidyverse)
 # Modeling
 library(MASS)
 library(caret) # Modeling variants like SVM
+library(earth) # Modeling with Mars
 
 # Aesthetics
 library(knitr)
@@ -63,25 +64,25 @@ hd[sapply(hd, is.character)] <-
 
 ### Impute Missing Values with `PMM`
 
-Make dataset of `numeric` variables
+Make data set of `numeric` variables
 ```{r}
 hd.numericRaw <- hd %>%
   
   #selecting all the numeric data
   dplyr::select_if(is.numeric) %>%
   
-  #converting the dataframe to tibble
+  #converting the data frame to tibble
   as_tibble() 
 ```
 
-Make dataset of `factor` variables
+Make data set of `factor` variables
 ```{r}
 hd.factorRaw <- hd %>%
   
   #selecting all the numeric data
   dplyr::select_if(is.factor) %>%
   
-  #converting the dataframe to tibble
+  #converting the data frame to tibble
   as_tibble()
 ```
 
@@ -89,7 +90,7 @@ hd.factorRaw <- hd %>%
 For each column with missing data, impute missing values with `PMM`
 
 * Done with function `imputeWithPMM()` function  
-* Applys function via `dplyr` logic  
+* Applies function via `dplyr` logic  
 * Note `seeImputation()` function to visualize the imputation from prior homework 4, not shown for simplicity in viewing
 
 
@@ -104,8 +105,8 @@ imputeWithPMM <- function(colWithMissingData) {
   # Discover the missing rows
   isMissing <- is.na(colWithMissingData) 
   
-  # Create data frame to pass to PMM inputation function from mic package
-  df <- data.frame(x       = rexp(length(colWithMissingData)), # meaningless x to help show varation 
+  # Create data frame to pass to PMM imputation function from mic package
+  df <- data.frame(x       = rexp(length(colWithMissingData)), # meaningless x to help show variation 
                    y       = colWithMissingData, 
                    missing = isMissing)
   
@@ -120,7 +121,7 @@ imputeWithPMM <- function(colWithMissingData) {
 
 
 ```{r, include=FALSE}
-# Note `seeImputation()` function to visualize the imputation from prior homework 4
+# Note `see Imputation()` function to visualize the imputation from prior homework 4
 seeImputation <- function(df, df.meanInputed, 
                           imputationMethod) {
   
@@ -221,7 +222,7 @@ Apply `PMM` function to numeric data containing null values
 # Data to store imputed values with PMM method
 hd.Imputed <- hd
 
-# Which columns has NA's?
+# Which columns has Na's?
 colNamesWithNulls <- colnames(hd.numericRaw[ , colSums(is.na(hd.numericRaw)) != 0])
 colNamesWithNulls
 
@@ -314,7 +315,7 @@ less than 300 observations, we are removing up to 50 per column.
 ```{r}
 hd.CleanedNoOutliers <- hd.Cleaned
 
-# Remove up to 75% of the outliers in the dataset
+# Remove up to 75% of the outliers in the data set
 # this is the 3rd quartile of number of outliers.
 k_outliers = 50 
 numOutliers = c() # to store the number of outliers per column
@@ -342,7 +343,7 @@ for (colNum in 1:ncol(hd.Cleaned)) {
       hd.CleanedNoOutliers  <- hd.CleanedNoOutliers %>%
         
         # If this syntax looks weird, it is just referencing a column in the 
-        # dataset using dplyr piping. See below for more info:
+        # data set using dplyr piping. See below for more info:
         # https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
         # https://stackoverflow.com/questions/72673381/column-names-as-variables-in-dplyr-select-v-filter
         filter( !( get({{colName}}) %in% columnOutliers ) )
@@ -376,15 +377,15 @@ paste0('See that the 75th percentile of columns with outliers contain ',
 
 ## `1 (d, i)` - PCR Model
 
-### Perform PCA analysis to see how Principal components explain variance
-* Uses `numeric` data for Principal Component Analyis  
+### Model Setup
+* Uses `numeric` data for Principal Component Analysis  
 * Then appends the `factor` data to the data *without `NULL` values*   
 * Finally, uses `stepAIC()` to best model data  
 * See interpretation at end
 
 Get cleaned `numeric` and `factor` `data frames`
 ```{r}
-# After cleaning, two datasets that contain..
+# After cleaning, two data sets that contain..
 
 ## Numeric data ---------------------------------------------------
 hd.numericClean <- hd.Cleaned %>% select_if(is.numeric)
@@ -408,7 +409,7 @@ Perform PCA
 # Principal component analysis on numeric data
 pc.house <- prcomp(hd.numericClean %>% dplyr::select(-SalePrice), # do not include response var
                    center = TRUE, # Mean centered  
-                   scale  = TRUE  # Z-SCore standardized
+                   scale  = TRUE  # Z-Score standardized
                    )
 
 # See first 10 cumulative proportions
@@ -436,8 +437,7 @@ df.pcr <- cbind(SalePrice = hd.numericClean$SalePrice, chosenPCs, hd.factorClean
 ```
 
 
-
-### Now, Apply predictions with `PCR`
+### Fit the Model
 * Linear model containing:  
   - Principal components explaining 75% of variation in `numeric` data
   - Non-null `factor` data  
@@ -453,12 +453,8 @@ fit.pcr <- lm(log(SalePrice) ~ ., data = df.pcr)
 fit.pcrReduced <- stepAIC(fit.pcr, direction="both")
 ```
 
-```{r}
-# View results
-summary(fit.pcrReduced)
-
-
-# Key diagnostics
+```{r, echo=FALSE}
+# Key diagnostics for final summary table
 est.pcr <- summary(fit.pcrReduced)
 
 # Get the RMSE and R Squared of the model
@@ -472,7 +468,13 @@ keyDiagnostics.pcr <- data.frame(Model    = 'PCR',
 keyDiagnostics.pcr %>% kable()
 ```
 
-### Interpretation of PCR Model
+
+```{r}
+# View results
+summary(fit.pcrReduced)
+```
+
+### View and Interpret Results
 
 *Please note all interpretations below are approximate, given the `stepAIC()` uses stochastic modeling.*
 
@@ -514,14 +516,14 @@ by nearly 10%, with a standard error of 3%.
 
 \newpage
 
-### Visualizatoin of PCR Model - Predicted vs. Actuals
+View Predicted vs. Actuals
 
 Function to compare predicted vs. observed values
 ```{r}
 # Function to compare predicted vs. actual (observed) regression outputs
 predictedVsObserved <- function(predicted, observed, modelName, outcomeName = 'Log(SalePrice)') {
   
-  ## Create dataset for predicted vs. actuals
+  ## Create data set for predicted vs. actuals
   comparison <- data.frame(observed  = observed,
                            predicted = predicted) %>%
     
@@ -560,7 +562,7 @@ predictedVsObserved <- function(predicted, observed, modelName, outcomeName = 'L
   # Simple comparison of data
   plot(x = observed,
        y = predicted,
-       main = 'PCR Model - Actual (Observed) vs. Predicted\n',
+       main = paste(modelName, 'Model - Actual (Observed) vs. Predicted\n'),
        xlab = paste('Observed Values -', outcomeName),
        ylab = paste('Predicted Values -', outcomeName),
        pch  = 16,
@@ -592,7 +594,7 @@ out of sample data.
 that the model is slightly skewed from predicted and actual data.
 
 ```{r}
-# How do the two compare?
+# How do the predicted vs. Actuals Compare?
 predictedVsObserved(observed  = log(df.pcr$SalePrice),
                     predicted = predict(fit.pcrReduced),
                     modelName = 'PCR')
@@ -609,34 +611,34 @@ ctrl <- trainControl(method  = "repeatedcv",
                      repeats = 2  # 5 repeats
                      )
 
-# The data (pmm imputed values, and only whole columns without NA. Does not omit outliers)
+# The data (PMM imputed values, and only whole columns without NA. Does not omit outliers)
 df.svm <- cbind(SalePrice = hd.numericClean$SalePrice, 
                 hd.numericClean, hd.factorClean) 
 ```
 
-
-### Tune Model
-```{r svm}
-# Train and tune the SVM - first broad tuning on cost only
-svm.tune <- train(data = df.svm, 
-                  log(SalePrice) ~ .,
-                  method     = "svmRadial",         # Radial kernel
-                  tuneLength = 9,                   # 9 values of the cost function
-                  preProc    = c("center","scale"), # Center and scale data
-                  trControl  = ctrl)
+### Fit the Model
+```{r svm, warning=FALSE, message=FALSE}
+# Train and tune the SVM
+fit.svm <- train(data = df.svm, 
+                 log(SalePrice) ~ .,
+                 method     = "svmRadial",         # Radial kernel
+                 tuneLength = 9,                   # 9 values of the cost function
+                 preProc    = c("center","scale"), # Center and scale data
+                 trControl  = ctrl)
 ```
 
-### Diagnostics of Model and Interpretation of Following Output
+### View and Interpret Results
 * Note all numbers mentioned below are approximate
 * See that the R Squared of the model is around 0.86, and RMSE is 0.14
 * See that the model predicts the data well. 
 * Also, note that the model predicts the data with less error than the linear model. 
 See this from the RMSE or scatter plot of predicted values.
 
-```{r}
+```{r, echo=FALSE}
+# Gather key diagnostics for summary table
 # Get the RMSE and R Squared of the model
-hyperparameters.svm = list('C' = svm.tune[["finalModel"]]@param[["C"]],
-                           'Epsilon' = svm.tune[["finalModel"]]@param[["epsilon"]])
+hyperparameters.svm = list('C' = fit.svm[["finalModel"]]@param[["C"]],
+                           'Epsilon' = fit.svm[["finalModel"]]@param[["epsilon"]])
 
 
 keyDiagnostics.svm <- data.frame(Model    = 'SVM',
@@ -646,20 +648,23 @@ keyDiagnostics.svm <- data.frame(Model    = 'SVM',
                                  )
 
 keyDiagnostics.svm <- cbind(keyDiagnostics.svm,
-                            svm.tune$results %>% 
+                            fit.svm$results %>% 
                               filter(C == hyperparameters.svm$C) %>%
                               dplyr::select(RMSE, Rsquared)
                       )
 
 # Show output
 keyDiagnostics.svm %>% kable()
+```
 
+
+```{r, fig.height=4}
 # Final model?
-svm.tune$finalModel
+fit.svm$finalModel
 
-# How do the two compare?
+# How do the predicted vs. Actuals Compare?
 predictedVsObserved(observed  = log(df.svm$SalePrice),
-                    predicted = predict(svm.tune, df.svm),
+                    predicted = predict(fit.svm, df.svm),
                     modelName = 'SVM')
 ```
 
@@ -668,10 +673,76 @@ predictedVsObserved(observed  = log(df.svm$SalePrice),
 
 ## `1 (d, iii)` - MARS Model
 
+### Fit the Model
+```{r}
+# Train and tune the MARS model
+fit.mars <- train(data = df.svm, # note this is fine since data is the same for this model
+                  log(SalePrice) ~ .,
+                  method     = "earth",             # Radial kernel
+                  tuneLength = 9,                   # 9 values of the cost function
+                  preProc    = c("center","scale"), # Center and scale data
+                  trControl  = ctrl
+                 )
+```
+
+```{r, echo=FALSE}
+# Key diagnostics for final model
+
+# Get the RMSE and R Squared of the model
+hyperparameters.mars = list('degree' = fit.mars[["bestTune"]][["degree"]],
+                            'nprune' = fit.mars[["bestTune"]][["nprune"]])
+
+keyDiagnostics.mars <- data.frame(Model   = 'MARS',
+                                  Notes    = 'caret and earth',
+                                  Hyperparameters = paste('Degree =', hyperparameters.mars$degree, ',',
+                                                          'nprune =', hyperparameters.mars$nprune)
+                                  )
+
+keyDiagnostics.mars <- cbind(keyDiagnostics.mars,
+                            fit.mars$results %>% 
+                              filter(degree == hyperparameters.mars$degree,
+                                     nprune == hyperparameters.mars$nprune) %>%
+                              dplyr::select(RMSE, Rsquared)
+                      )
+
+# Show output
+keyDiagnostics.mars %>% kable()
+```
+
+### View and Interpret Results
+* See that the model overall performs very well, and in fact performs
+similarly to the PCR model (in terms of RMSE and Adjusted R Squared).  
+* Again, unsure if the model would do well for prediction of out of sample data,
+but fits this data extremely well.  
+
+```{r, fig.height=4}
+# Final model?
+fit.mars$finalModel
+
+# How do the predicted vs. Actuals Compare?
+predicted.mars = fit.mars[["finalModel"]][["fitted.values"]]
+colnames(predicted.mars) <- 'predicted'
+
+predictedVsObserved(observed  = log(df.svm$SalePrice),
+                    predicted = predicted.mars,
+                    modelName = 'MARS')
+```
+
+
 
 \newpage
 
 # Summary Table of Model Performance
-```{r}
-rbind(keyDiagnostics.pcr, keyDiagnostics.svm) %>% kable()
+```{r, echo=FALSE}
+# Add the key diagnostics here
+rbind(keyDiagnostics.pcr, 
+      keyDiagnostics.svm, 
+      keyDiagnostics.mars
+      ) %>%
+  
+  # Round to 4 digits across numeric data
+  mutate_if(is.numeric, round, digits = 4) %>%
+  
+  # Spit out kable table
+  kable()
 ```
