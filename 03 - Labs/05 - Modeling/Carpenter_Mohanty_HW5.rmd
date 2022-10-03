@@ -497,6 +497,92 @@ by nearly 10%, with a standard error of 3%.
 
 * See other coefficients of the data for other variables.
 
+\newpage
+
+### Visualizatoin of PCR Model - Predicted vs. Actuals
+
+Function to compare predicted vs. observed values
+```{r}
+# Function to compare predicted vs. actual (observed) regression outputs
+predictedVsObserved <- function(predicted, observed, modelName, outcomeName = 'Log(SalePrice)') {
+  
+  ## Create dataset for predicted vs. actuals
+  comparison <- data.frame(observed  = observed,
+                           predicted = predicted) %>%
+    
+    # Row index
+    mutate(ID = row_number()) %>%
+  
+    # Put in single column
+    pivot_longer(cols      = c('observed', 'predicted'),
+                 names_to  = 'metric',
+                 values_to = 'value') 
+  
+  
+  # Plot --- Observed vs. Actuals across all variables in data
+  variationScatter <- comparison %>%
+    ggplot(aes(x     = ID,
+               y     = value,
+               color = metric
+               )
+           ) +
+    geom_point(alpha = 0.5, size = 1) + 
+    
+    labs(title = 'Variation in Predicted vs. Observed Data',
+         subtitle = paste('Model:', modelName),
+         x = 'X', y = outcomeName) + 
+    theme_minimal() + theme(legend.title = element_blank(),
+                            legend.position = 'top') +
+    scale_color_manual(values = c('grey60', 'palegreen3'))
+  
+  
+  print(variationScatter)
+  
+  # Limit for x and y axis for scatter of predicted vs. observed
+  axisLim = c( min(c(predicted, observed)), max(c(predicted, observed)) )
+  
+  
+  # Simple comparison of data
+  plot(x = observed,
+       y = predicted,
+       main = 'PCR Model - Actual (Observed) vs. Predicted\n',
+       xlab = paste('Observed Values -', outcomeName),
+       ylab = paste('Predicted Values -', outcomeName),
+       pch  = 16,
+       cex  = 0.75,
+       col  = alpha('steelblue3', 1/4),
+       xlim = axisLim,
+       ylim = axisLim
+  )
+  
+  # Add the Predicted vs. actual line
+  abline(lm(predicted ~ observed), col = 'steelblue3', lwd = 2)
+  mtext('Predicted ~ Actual', side = 3, adj = 1, col = 'steelblue3')
+  
+  # Add line for perfectly fit model
+  abline(0,1, col = alpha('tomato3', 0.8), lwd = 2)
+  mtext('Perfectly Fit Model', side = 1, adj = 0, col = 'tomato3')
+}
+```
+
+
+View results of the PCR Model  
+
+* See that the variation in the data is very closely resembled actual by changes in independent variables
+
+* Implication? This model fits its own data well, but what is not know if it can predict
+out of sample data.  
+
+* Note that it the data (blue) deviates slightly from perfect line model (red), indicating
+that the model is slightly skewed from predicted and actual data.
+
+```{r}
+# How do the two compare?
+predictedVsObserved(observed  = log(df.pcr$SalePrice),
+                    predicted = predict(fit.pcrReduced),
+                    modelName = 'PCR')
+```
+
 
 
 \newpage
