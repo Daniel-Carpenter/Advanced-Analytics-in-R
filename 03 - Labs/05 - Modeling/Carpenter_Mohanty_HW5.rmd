@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 
 # Modeling
-library(outliers)  # grubbs.test for outlier detection
+library(MASS)
 
 # Aesthetics
 library(knitr)
@@ -43,28 +43,42 @@ library(kableExtra)
 
 ### Read Data
 ```{r}
-housingData <- read.csv('housingData.csv')
+hd <- read.csv('housingData.csv') %>%
+  
+  # creates new variables age, ageSinceRemodel, and ageofGarage, and
+  dplyr::mutate(age = YrSold - YearBuilt,
+                ageSinceRemodel = YrSold - YearRemodAdd,
+                ageofGarage = ifelse(is.na(GarageYrBlt), age, YrSold - GarageYrBlt)) %>%
+  
+  # removes the columns used in above the calculations
+  dplyr::select(!c(Id,MSSubClass, MiscVal, YrSold , 
+                   MoSold, YearBuilt, YearRemodAdd))
+
+
+# Convert all character data to factor
+hd[sapply(hd, is.character)] <- 
+  lapply(hd[sapply(hd, is.character)], as.factor)
 ```
 
 ### Impute Missing Values with `PMM`
 
 Make dataset of `numeric` variables
 ```{r}
-housingNumeric <- housingData %>%
+hd.numericRaw <- hd %>%
   
   #selecting all the numeric data
   dplyr::select_if(is.numeric) %>%
   
   #converting the dataframe to tibble
-  as_tibble()
+  as_tibble() 
 ```
 
-Make dataset of `character` variables
+Make dataset of `factor` variables
 ```{r}
-housingFactor <- housingData %>%
+hd.factorRaw <- hd %>%
   
   #selecting all the numeric data
-  dplyr::select_if(is.character) %>%
+  dplyr::select_if(is.factor) %>%
   
   #converting the dataframe to tibble
   as_tibble()
@@ -204,10 +218,10 @@ seeImputation <- function(df, df.meanInputed,
 Apply `PMM` function to numeric data containing null values 
 ```{r, warning=FALSE, message=FALSE}
 # Data to store imputed values with PMM method
-housingDataImputed <- housingData
+hd.Imputed <- hd
 
 # Which columns has NA's?
-colNamesWithNulls <- colnames(housingNumeric[ , colSums(is.na(housingNumeric)) != 0])
+colNamesWithNulls <- colnames(hd.numericRaw[ , colSums(is.na(hd.numericRaw)) != 0])
 colNamesWithNulls
 
 numberOfColsWithNulls = length(colNamesWithNulls)
@@ -220,13 +234,13 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
   nameOfThisColumn <- colNamesWithNulls[colWithNullsNum]
   
   # Get the actual data of the column with nulls
-  colWithNulls <- housingData[, nameOfThisColumn]
+  colWithNulls <- hd[, nameOfThisColumn]
   
   # Impute the missing values with PMM
   imputedValues <- imputeWithPMM(colWithNulls)
   
   # Now store the data in the original new frame
-  housingDataImputed[, nameOfThisColumn] <- imputedValues
+  hd.Imputed[, nameOfThisColumn] <- imputedValues
   
   # Save a visualization of the imputation
   pmmVisual <- seeImputation(data.frame(y = colWithNulls),
@@ -244,10 +258,10 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
 
 ### Factor Level Collapse - Create `Other` Bin for Columns over `4` Unique Values 
 ```{r}
-housingDataCleaned <- housingDataImputed # For final cleaned data
+hd.Cleaned <- hd.Imputed # For final cleaned data
 
 # Get list of factors and the number of unique values
-factorCols <- as.data.frame(t(housingFactor %>% summarise_all(n_distinct)))
+factorCols <- as.data.frame(t(hd.factorRaw %>% summarise_all(n_distinct)))
 
 # We are going to factor collapse factor columns with more than 4 columns
 # So there will be 4 of the original, and 1 containing 'other'
@@ -271,16 +285,16 @@ for (collapsedColNum in 1:numberOfColsWithManyFactors) {
   nameOfThisColumn <- colsWithManyFactors[collapsedColNum]
   
   # Get the actual data of the column with nulls
-  colWithManyFactors <- housingData[, nameOfThisColumn]
+  colWithManyFactors <- hd[, nameOfThisColumn]
   
   # lumps all levels except for the n most frequent 
-  housingDataCleaned[, nameOfThisColumn] <- fct_lump_n(colWithManyFactors, 
+  hd.Cleaned[, nameOfThisColumn] <- fct_lump_n(colWithManyFactors, 
                                                        n=factorThreshold)
 }
 
 # Check to see if the factor lumping worked
-factorColsCleaned <- t(housingDataCleaned %>% 
-                       select_if(is.character) %>%
+factorColsCleaned <- t(hd.Cleaned %>% 
+                       select_if(is.factor) %>%
                        summarise_all(n_distinct))
 paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.rm = TRUE), 
       "columns with more than", factorThreshold, "unique values (omitting NA's)")
@@ -297,18 +311,18 @@ less than 300 observations, we are removing up to 50 per column.
 
 
 ```{r}
-housingDataCleanedNoOutliers <- housingDataCleaned
+hd.CleanedNoOutliers <- hd.Cleaned
 
 # Remove up to 75% of the outliers in the dataset
 # this is the 3rd quartile of number of outliers.
 k_outliers = 50 
-numOutliers = data.frame() # to store the number of outliers per column
+numOutliers = c() # to store the number of outliers per column
 
-theColNames <- colnames(housingDataCleaned)
+theColNames <- colnames(hd.Cleaned)
 
-for (colNum in 1:ncol(housingDataCleaned)) {
+for (colNum in 1:ncol(hd.Cleaned)) {
 
-  theCol <- housingDataCleaned[, colNum]
+  theCol <- hd.Cleaned[, colNum]
   nrowBefore = length(theCol)
   colName <- theColNames[colNum]
   
@@ -316,27 +330,27 @@ for (colNum in 1:ncol(housingDataCleaned)) {
   # Only consider numeric
   if (is.numeric(theCol)) {
         
-        # Identify the outliers in the column
-        # Source: https://www.geeksforgeeks.org/remove-outliers-from-data-set-in-r/
-        columnOutliers <- boxplot.stats(housingDataCleaned[, colNum])$out
-        numOutliers <- rbind(numOutliers, length(columnOutliers))
+    # Identify the outliers in the column
+    # Source: https://www.geeksforgeeks.org/remove-outliers-from-data-set-in-r/
+    columnOutliers <- boxplot.stats(hd.CleanedNoOutliers[, colNum])$out
+    numOutliers <- c(numOutliers, length(columnOutliers))
+    
+    # Now remove k outliers from the column
+    if (length(columnOutliers) < k_outliers) {
+      
+      hd.CleanedNoOutliers  <- hd.CleanedNoOutliers %>%
         
-        # Now remove k outliers from the column
-        if (length(columnOutliers) < k_outliers) {
-          
-          housingDataCleaned  <- housingDataCleaned %>%
-            
-            # If this syntax looks weird, it is just referencing a column in the 
-            # dataset using dplyr piping. See below for more info:
-            # https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
-            # https://stackoverflow.com/questions/72673381/column-names-as-variables-in-dplyr-select-v-filter
-            filter( !( get({{colName}}) %in% columnOutliers ) )
-        }
+        # If this syntax looks weird, it is just referencing a column in the 
+        # dataset using dplyr piping. See below for more info:
+        # https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
+        # https://stackoverflow.com/questions/72673381/column-names-as-variables-in-dplyr-select-v-filter
+        filter( !( get({{colName}}) %in% columnOutliers ) )
+    }
   }
 }
 paste0('Of the columns with outliers, removed up to 75th percentile of num. outliers.')
-paste0('See that the 75th percentile of columns with outliers contain ', 
-       paste0(summary(numOutliers$X0L)[5]), ' outliers')
+paste0('See that the 75th percentile of columns with outliers contain ',
+       paste0(summary(numOutliers)[5]), ' outliers')
 ```
 
 
@@ -362,8 +376,127 @@ paste0('See that the 75th percentile of columns with outliers contain ',
 ## `1 (d, i)` - PCR Model
 
 ### Perform PCA analysis to see how Principal components explain variance
+* Uses `numeric` data for Principal Component Analyis  
+* Then appends the `factor` data to the data *without `NULL` values*   
+* Finally, uses `stepAIC()` to best model data  
+* See interpretation at end
+
+Get cleaned `numeric` and `factor` `data frames`
+```{r}
+# After cleaning, two datasets that contain..
+
+## Numeric data ---------------------------------------------------
+hd.numericClean <- hd.Cleaned %>% select_if(is.numeric)
+
+## Factors -------------------------------------------------------
+hd.factorClean  <- hd.Cleaned %>% dplyr::select(where(is.factor))
+
+# Removing any columns with NA
+removeColsWithNA <- function(df) {
+  return( df[ , colSums(is.na(df)) == 0] )
+}
+hd.factorClean <- removeColsWithNA(hd.factorClean)
+
+paste('Num. factor cols. removed due to null values:', 
+      ncol(hd.Cleaned %>% dplyr::select(where(is.factor)) ) - ncol(hd.factorClean) )
+paste(ncol(hd.factorClean), 'factor cols. remain') 
+```
+
+Perform PCA
+```{r}
+# Principal component analysis on numeric data
+pc.house <- prcomp(hd.numericClean %>% dplyr::select(-SalePrice), # do not include response var
+                   center = TRUE, # Mean centered  
+                   scale  = TRUE  # Z-SCore standardized
+                   )
+
+# See first 10 cumulative proportions
+pc.house.summary <- summary(pc.house)
+pc.house.summary$importance[, 1:10]
+```
+
+Now we choose number of PC's that explain 75% of the variation
+
+* Note this threshold is just a judgement call. No significance behind 75%
+
+```{r}
+cumPropThreshold = 0.75 # The threshold
+
+numPCs <- sum(pc.house.summary$importance['Cumulative Proportion', ] < cumPropThreshold)
+paste0('There are ', numPCs, ' principal components that explain up to ', cumPropThreshold*100, 
+       '% of the variation in the data')
+
+chosenPCs <- as.data.frame(pc.house$x[, 1:numPCs])
+```
+
+Join on the factor data
+```{r}
+df.pcr <- cbind(SalePrice = hd.numericClean$SalePrice, chosenPCs, hd.factorClean) 
+```
+
+
 
 ### Now, Apply predictions with `PCR`
+* Linear model containing:  
+  - Principal components explaining 75% of variation in `numeric` data
+  - Non-null `factor` data  
+  - *Predicted variable:* `log(SalePrice)`
+
+* Then use `stepAIC()` to identify which variables are actually important for model 
+  
+```{r, echo=T, results='hide'}
+# Fit data using PC's, non-null factors
+fit.pcr <- lm(log(SalePrice) ~ ., data = df.pcr)
+
+# Reduce to only important variables
+fit.pcrReduced <- stepAIC(fit.pcr, direction="both")
+```
+
+```{r}
+# View results
+summary(fit.pcrReduced)
+```
+
+### Interpretation of PCR Model
+
+*Please note all interpretations below are approximate, given the `stepAIC()` uses stochastic modeling.*
+
+**Model performance evaluation:**  
+
+* See that around 28 of the variables cannot be explained by random chance, 
+with a probability of 90% or more (see significance codes above)   
+
+* Standard errors range from $\pm$ 1-5%, with average around 2%. Larger values may indicate higher 
+uncertainty of the estimated coefficients.  
+
+* This model explains around 92% of the variation in the `log(SalePrice)`. See Adjusted R-Squared for reference.  
+
+* Note this model may exhibit selection bias, since the data excludes factor data 
+with null values in the variable.  
+
+* This model would likely doe well for prediction of `log(SalePrice)`, given the small 
+range of standard errors, high adjusted R squared, and number of significant variables.
+This model would obviously not do well for inference, given we are using principal
+components that mask the numeric data.  
+
+
+**Practical significance evaluation:**  
+
+* The principal components contribute positively about 20% of the sale price of the home  
+
+* Residential Medium Density (`MSZoningRM`) reduces the home price by around 12%,
+with a standard error of around 2%.
+
+* If the exterior quality is below average (`ExterQualBelowAvg`), it reduces the home price by around 12%,
+with a standard error of around 5%.
+
+* If the functionality of the home has 2 major deductions (`FunctionalMaj2`), 
+it reduces the home price by around 20%, with a standard error of around 6%. 
+While having typical functionality (`FunctionalTyp`) increases the home sale price 
+by nearly 10%, with a standard error of 3%.  
+
+* See other coefficients of the data for other variables.
+
 
 
 \newpage
