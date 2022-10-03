@@ -46,7 +46,7 @@ library(kableExtra)
 housingData <- read.csv('housingData.csv')
 ```
 
-### Clean Numeric Data
+### Impute Missing Values with `PMM`
 
 Make dataset of `numeric` variables
 ```{r}
@@ -235,55 +235,16 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
   
   fileToSave = paste0('OutputPMM/Imputation_With_PMM_', nameOfThisColumn, '.pdf')
   print(paste0('For imputation results of ', nameOfThisColumn, ', see ', fileToSave))
-  ggsave(pmmVisual, filename = fileToSave )
+  ggsave(pmmVisual, filename = fileToSave,
+         height = 11, width = 8.5)
 }
 ```
 
 \newpage
 
-### Remove outliers from data
+### Factor Level Collapse - Create `Other` Bin for Columns over `4` Unique Values 
 ```{r}
-housingNumericClean <- housingDataImputed
-# 
-# for (colNum in 1:ncol(housingNumericClean)) {
-#   
-#   theCol <- housingNumericClean[, colNum]
-#   
-#   # Only consider numeric
-#   if (is.numeric(theCol)) {
-#     
-#     outlierExists = TRUE # set to true to check on initial run
-#     
-#     if (outlierExists) {
-#       
-#       # Check to see if outlier
-#       outlierTestOutcome <- grubbs.test(theCol)$p.value
-#       outlierExists = outlierTestOutcome < 0.05 # assuming 95% conf inv
-#       
-#       # While an outlier exists in the column of the data
-#       if (outlierExists) {
-#         
-#         # Identify the outlier
-#         theOutlier = outlier( housingNumericClean[, colNum] )
-#         
-#         # Create a vector to filter the data
-#         doesNotContainOutlier <- theCol != theOutlier
-#         
-#         # Now filter the data
-#         housingNumericClean <- housingNumericClean[doesNotContainOutlier,]
-#       }
-#     }
-#   }
-#   else { }
-# }
-```
-
-
-\newpage
-
-### Factor level collapse data over 4 categories
-```{r}
-housingDataCleaned <- housingNumericClean # For final cleaned data
+housingDataCleaned <- housingDataImputed # For final cleaned data
 
 # Get list of factors and the number of unique values
 factorCols <- as.data.frame(t(housingFactor %>% summarise_all(n_distinct)))
@@ -325,11 +286,80 @@ paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.r
       "columns with more than", factorThreshold, "unique values (omitting NA's)")
 ```
 
+\newpage
+
+### Remove Outliers from Numeric Data
+* Since there are so many outliers, we are only going to remove some outliers  
+* If you count the number of outliers by column, the 75% of columns contain less
+than 50 outliers.  
+* However, some contain up to 200. Since remove ALL outliers would reduce the size of the data to 
+less than 300 observations, we are removing up to 50 per column.
 
 
-# `1 (d)`
+```{r}
+housingDataCleanedNoOutliers <- housingDataCleaned
 
-## `PCR` 
+# Remove up to 75% of the outliers in the dataset
+# this is the 3rd quartile of number of outliers.
+k_outliers = 50 
+numOutliers = data.frame() # to store the number of outliers per column
+
+theColNames <- colnames(housingDataCleaned)
+
+for (colNum in 1:ncol(housingDataCleaned)) {
+
+  theCol <- housingDataCleaned[, colNum]
+  nrowBefore = length(theCol)
+  colName <- theColNames[colNum]
+  
+
+  # Only consider numeric
+  if (is.numeric(theCol)) {
+        
+        # Identify the outliers in the column
+        # Source: https://www.geeksforgeeks.org/remove-outliers-from-data-set-in-r/
+        columnOutliers <- boxplot.stats(housingDataCleaned[, colNum])$out
+        numOutliers <- rbind(numOutliers, length(columnOutliers))
+        
+        # Now remove k outliers from the column
+        if (length(columnOutliers) < k_outliers) {
+          
+          housingDataCleaned  <- housingDataCleaned %>%
+            
+            # If this syntax looks weird, it is just referencing a column in the 
+            # dataset using dplyr piping. See below for more info:
+            # https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
+            # https://stackoverflow.com/questions/72673381/column-names-as-variables-in-dplyr-select-v-filter
+            filter( !( get({{colName}}) %in% columnOutliers ) )
+        }
+  }
+}
+paste0('Of the columns with outliers, removed up to 75th percentile of num. outliers.')
+paste0('See that the 75th percentile of columns with outliers contain ', 
+       paste0(summary(numOutliers$X0L)[5]), ' outliers')
+```
+
+
+\newpage
+
+# `1 (a)` - OLS Model
+
+
+\newpage
+
+# `1 (b)` - PLS Model
+
+
+\newpage
+
+# `1 (c)` - LASSO Model
+
+
+\newpage
+
+# `1 (d)` - Model Variants
+
+## `1 (d, i)` - PCR Model
 
 ### Perform PCA analysis to see how Principal components explain variance
 
@@ -338,9 +368,9 @@ paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.r
 
 \newpage
 
-## `SVR`
+## `1 (d, ii)` - SVR Model
 
 
 \newpage
 
-## `MARS`
+## `1 (d, iii)` - MARS Model
