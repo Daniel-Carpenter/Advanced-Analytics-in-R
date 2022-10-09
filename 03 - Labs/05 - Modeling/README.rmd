@@ -1,0 +1,1239 @@
+---
+title:    "ISE 5103 Intelligent Data Analytics"
+subtitle: "Homework 5 - Modeling"
+author:   "Daniel Carpenter & Sonaxy Mohanty"
+date:     "October 2022"
+output: 
+  # pdf_document:
+  #   toc: true
+  #   toc_depth: 3
+  #   highlight: arrow
+  github_document:
+    toc: yes
+    toc_depth: 2
+urlcolor: blue
+cache: true
+fig.width: 7
+fig.height: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newpage
+
+## Packages
+
+```{r error=FALSE, message=FALSE, warning=FALSE}
+# Data Wrangling
+library(tidyverse)
+
+# Modeling
+library(MASS)
+library(caret) # Modeling variants like SVM
+library(earth) # Modeling with Mars
+library(pls)  #Modeling with PLS
+library(glmnet) #Modeling with LASSO
+
+# Aesthetics
+library(knitr)
+library(cowplot)  # multiple ggplots on one plot with plot_grid()
+library(scales)
+library(kableExtra)
+library(ggplot2)
+
+#Hold-out Validation
+library(caTools)
+
+#Data Correlation
+library(GGally)
+library(regclass)
+
+#RMSE Calculation
+library(Metrics)
+
+#p-value for OLS model
+library(broom)
+
+#ncvTest
+library(car)
+```
+
+## General Data Prep
+> For general data preparation, please see conceptual steps below. See `.rmd` file for detailed code.
+
+### `(i)` Read Data
+
+```{r}
+# Convert all character data to factor 
+hd <- read.csv('housingData.csv', stringsAsFactors = TRUE) %>%
+
+# creates new variables age, ageSinceRemodel, and ageofGarage and
+  dplyr::mutate(age = YrSold - YearBuilt,
+                ageSinceRemodel = YrSold - YearRemodAdd,
+                ageofGarage = ifelse(is.na(GarageYrBlt), age, YrSold - GarageYrBlt)) %>%
+
+# remove some columns used in the above calculations
+  dplyr::select(!c(Id,YrSold , 
+                   MoSold, YearBuilt, YearRemodAdd))
+```
+
+### `(ii)` Impute Missing Values with `PMM`
+
+Make data set of `numeric` variables `hd.numericRaw`
+```{r}
+hd.numericRaw <- hd %>%
+  
+  #selecting all the numeric data
+  dplyr::select_if(is.numeric) %>%
+  
+  #converting the data frame to tibble
+  as_tibble() 
+```
+
+Make data set of `factor` variables `hd.factorRaw`    
+```{r}
+hd.factorRaw <- hd %>%
+  
+  #selecting all the numeric data
+  dplyr::select_if(is.factor) %>%
+  
+  #converting the data frame to tibble
+  as_tibble()
+```
+
+
+For each column with missing data, impute missing values with `PMM`
+
+1. Imputation completed with our created function called `imputeWithPMM()`  
+2. Applies function to columns with missing data via dynamic `dplyr` logic  
+3. Note `seeImputation()` function to visualize the imputation from prior homework 4, not shown for simplicity in viewing
+
+
+```{r}
+# Create function to impute via `PMM`
+imputeWithPMM <- function(colWithMissingData) {
+  
+  # Using the mice package
+  suppressMessages(library(mice))
+  
+  # Discover the missing rows
+  isMissing <- is.na(colWithMissingData) 
+  
+  # Create data frame to pass to PMM imputation function from mic package
+  df <- data.frame(x       = rexp(length(colWithMissingData)), # meaningless x to help show variation 
+                   y       = colWithMissingData, 
+                   missing = isMissing)
+  
+  # imputation by PMM
+  df[isMissing, "y"] <- mice.impute.pmm( df$y, 
+                                        !df$missing, 
+                                         df$x)
+  
+  return(df$y)
+}
+```
+
+
+```{r, include=FALSE}
+# Note `see Imputation()` function to visualize the imputation from prior homework 4
+seeImputation <- function(df, df.meanInputed, 
+                          imputationMethod) {
+  
+  # Min/Max ranges so actual and imputed histograms align
+  yMin = quantile(df.meanInputed$y, 0.05)
+  yMax = max(df.meanInputed$y)
+  
+  # Non Altered data -------------------------------------------------
+  
+  meanVal = mean(df$y, na.rm=T) # mean of the non altered data
+  
+  # Create the plot
+  p1 <- df %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanVal, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data with Missing Values',
+         y     = 'Frequency', 
+         x     = '' ) +
+    
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
+    theme_minimal() # Theme
+  
+  
+  # Imputed data -------------------------------------------------
+
+  meanValImpute = mean(df.meanInputed$y, na.rm=T)
+  
+  # Create the plot
+  p2 <- df.meanInputed %>%
+    ggplot(aes(x = y)) +
+    
+    # Histogram
+    geom_histogram(color = 'grey65', fill = 'grey95') +
+    
+    # The mean value line
+    geom_vline(xintercept = meanVal, color = 'tomato3') +
+    
+    # Text associated with mean value
+    annotate("text", 
+             label = "Mean Value", 
+             x = meanValImpute, y = 100, 
+             size = 5, colour = "tomato3" ) +
+    
+    # Labels
+    labs(title = 'Data without Missing Values',
+             subtitle = 'Using PMM',
+             y = 'Frequency', 
+             x = imputationMethod) +
+    
+    xlim(yMin, yMax) + # min and max range of x axis (for equal comparison)
+    theme_minimal() # Theme
+  
+  # Variation scatter ----------------------------------------------------------
+  
+  p3 <- df.meanInputed %>% ggplot(aes(x=rexp(length(y)), y=y, color=is.na(df$y))) + 
+    
+    # Add points
+    geom_point(alpha = 0.5) +
+    
+    # Colors, limits, labels, and themes
+    scale_color_manual(values = c('grey80', 'tomato3'),
+                       labels = c('Actuals', 'Imputed') ) +
+    ylim(0, quantile(df.meanInputed$y, 0.99)) + # lower 99% of dist
+    labs(title   = 'Variation of Actuals vs. Imputed Data',
+         x       = 'x', 
+         y       = imputationMethod,
+         caption =paste0('\nUsing housing.csv data',
+                         '\nOnly showing lower 99% of distribution for viewing') 
+         ) +
+    theme_minimal() + theme(legend.position = 'bottom',
+                            legend.title    = element_blank())
+  
+  
+  # Combine the plots for the final returned output
+  combinedPlots <- plot_grid(p1, p2, p3, 
+                             ncol = 1, label_size = 12,
+                             rel_heights = c(1, 1.1, 1.75))
+  return(combinedPlots)
+}
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+# Apply `PMM` function to numeric data containing null values 
+
+# Data to store imputed values with PMM method
+hd.Imputed <- hd
+
+# Which columns has Na's?
+colNamesWithNulls <- colnames(hd.numericRaw[ , colSums(is.na(hd.numericRaw)) != 0])
+colNamesWithNulls
+
+numberOfColsWithNulls = length(colNamesWithNulls)
+
+
+# For each of the numeric columns with null values
+for (colWithNullsNum in 1:numberOfColsWithNulls) {
+  
+  # The name of the column with null values
+  nameOfThisColumn <- colNamesWithNulls[colWithNullsNum]
+  
+  # Get the actual data of the column with nulls
+  colWithNulls <- hd[, nameOfThisColumn]
+  
+  # Impute the missing values with PMM
+  imputedValues <- imputeWithPMM(colWithNulls)
+  
+  # Now store the data in the original new frame
+  hd.Imputed[, nameOfThisColumn] <- imputedValues
+  
+  # Save a visualization of the imputation
+  pmmVisual <- seeImputation(data.frame(y = colWithNulls),
+                             data.frame(y = imputedValues),
+                             nameOfThisColumn )
+  
+  fileToSave = paste0('OutputPMM/Imputation_With_PMM_', nameOfThisColumn, '.pdf')
+  print(paste0('For imputation results of ', nameOfThisColumn, ', see ', fileToSave))
+  dir.create("OutputPMM/")
+  ggsave(pmmVisual, filename = fileToSave,
+         height = 11, width = 8.5)
+}
+```
+
+<!-- \newpage -->
+
+### `(iii)` Factor Level Collapsing 
+> Overview: Create `Other` Bin for Columns over `4` Unique Values 
+
+* Applied to any `factor` column (previously `character`) with over 4 unique values
+* Applies `fct_lump()` function to columns via dynamic `dplyr` logic  
+
+```{r}
+hd.Cleaned <- hd.Imputed # For final cleaned data
+
+# Get list of factors and the number of unique values
+factorCols <- as.data.frame(t(hd.factorRaw %>% summarise_all(n_distinct)))
+
+# We are going to factor collapse factor columns with more than 4 columns
+# So there will be 4 of the original, and 1 containing 'other'
+# This is the threshold
+factorThreshold = 4
+
+# Get a list of the factors we are going to collapse
+colsWithManyFactors <- rownames(factorCols %>% filter(V1 > factorThreshold))
+
+# Show a summary of how many factors will be collapsed
+numberOfColsWithManyFactors = length(colsWithManyFactors)
+paste('Before cleaning, there are', numberOfColsWithManyFactors, 'factor columns with more than', 
+      factorThreshold, 'unique values')
+
+# Collapse the affected factors in the original data (the one that already has imputation)
+
+## for each factor column that we are about to collapse
+for (collapsedColNum in 1:numberOfColsWithManyFactors) {
+  
+  # The name of the column with null values
+  nameOfThisColumn <- colsWithManyFactors[collapsedColNum]
+  
+  # Get the actual data of the column with nulls
+  colWithManyFactors <- hd[, nameOfThisColumn]
+  
+  # lumps all levels except for the n most frequent 
+  hd.Cleaned[, nameOfThisColumn] <- fct_lump_n(colWithManyFactors, 
+                                                       n=factorThreshold)
+}
+
+# Check to see if the factor lumping worked
+factorColsCleaned <- t(hd.Cleaned %>% 
+                       select_if(is.factor) %>%
+                       summarise_all(n_distinct))
+paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.rm = TRUE), 
+      "columns with more than", factorThreshold, "unique values (omitting NA's)")
+```
+
+
+### `(iv)` Remove Outliers from Numeric Data 
+> Overview: Using numeric data frame, remove *some* outliers from each column without
+dwindling the entire data set. See steps below to create data frame `hd.CleanedNoOutliers`.
+
+* **Please note that NOT all models use this data set with removed outliers**.  
+  - Only models which are sensitive to outliers use this data frame without outliers.  
+  - For example, the linear model using this data frame.  
+  
+Outlier removal steps below:  
+
+* Since there are so many outliers in each column, we are only going to remove some outliers  
+* If you count the number of outliers by column, the 75% of columns contain less
+than 50 outliers.  
+* However, some contain up to 200. Since remove ALL outliers would reduce the size of the data to 
+less than 300 observations, we are removing up to 50 per numeric column.
+
+
+```{r}
+hd.CleanedNoOutliers <- hd.Cleaned
+
+# Remove up to 75% of the outliers in the data set
+# this is the 3rd quartile of number of outliers.
+k_outliers = 50 
+numOutliers = c() # to store the number of outliers per column
+
+theColNames <- colnames(hd.Cleaned)
+
+for (colNum in 1:ncol(hd.Cleaned)) {
+
+  theCol <- hd.Cleaned[, colNum]
+  nrowBefore = length(theCol)
+  colName <- theColNames[colNum]
+  
+
+  # Only consider numeric
+  if (is.numeric(theCol)) {
+        
+    # Identify the outliers in the column
+    # Source: https://www.geeksforgeeks.org/remove-outliers-from-data-set-in-r/
+    columnOutliers <- boxplot.stats(hd.CleanedNoOutliers[, colNum])$out
+    numOutliers <- c(numOutliers, length(columnOutliers))
+    
+    # Now remove k outliers from the column
+    if (length(columnOutliers) < k_outliers) {
+      
+      hd.CleanedNoOutliers  <- hd.CleanedNoOutliers %>%
+        
+        # If this syntax looks weird, it is just referencing a column in the 
+        # data set using dplyr piping. See below for more info:
+        # https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
+        # https://stackoverflow.com/questions/72673381/column-names-as-variables-in-dplyr-select-v-filter
+        filter( !( get({{colName}}) %in% columnOutliers ) )
+    }
+  }
+}
+paste0('Of the columns with outliers, removed up to 75th percentile of num. outliers.')
+paste0('See that the 75th percentile of columns with outliers contain ',
+       paste0(summary(numOutliers)[5]), ' outliers')
+```
+  
+\newpage  
+  
+## Exploratory Data Analysis
+
+### Checking the distribution of Sale Price of houses
+  
+```{r}
+hist(hd.CleanedNoOutliers$SalePrice, 
+     col = 'skyblue4',
+     main = 'Distribution of Sale Price of houses',
+     xlab = 'House Price')
+```  
+
+* After removing the desired outliers, we can see that the distribution of `log(Sale Price)` looks like a normal distribution with few outliers on the left tail.  
+  
+### Correlation between features in the dataset  
+  
+```{r, warning=FALSE, fig.height=6}
+ggcorr(hd.CleanedNoOutliers, geom='blank', label=T, label_size=3, hjust=1,
+       size=3, layout.exp=2) +
+  geom_point(size = 4, aes(color = coefficient > 0, alpha = abs(coefficient) >= 0.5)) +
+  scale_alpha_manual(values = c("TRUE" = 0.25, "FALSE" = 0)) +
+  guides(color = F, alpha = F)
+
+```  
+
+* We can see that `SalePrice` has strong correlations with `GarageArea`, `GarageCars`, `TotRmsAbvGrd`, `FullBath`, `GrLivArea`, `X1stFlrSF`, `TotalBsmtSF`, `OverallQual`.
+
+\newpage
+
+# `1 (a)` - OLS Model  
+  
+## `i`.  
+
+### Hold-out validation set  
+  
+* Since, we have deleted some of the outlier values during data pre-processing, using 10% of the data as test and remaining 90% as train
+  
+```{r}
+idx <- sample(nrow(hd.CleanedNoOutliers), nrow(hd.CleanedNoOutliers)*0.1)
+test <- hd.CleanedNoOutliers[idx,]
+train <- hd.CleanedNoOutliers[-idx,]
+```
+ 
+### Fit the OLS Model  
+  
+#### `Model 1`:  
+* Linear model containing:  
+  - *Independent variables:* `GarageArea + GarageCars + TotRmsAbvGrd + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual`
+  - *Predicted variable:* `SalePrice`
+
+```{r}
+ols.mdl1 <- lm(log(SalePrice) ~ GarageArea + GarageCars + TotRmsAbvGrd 
+              + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual, data=train)
+```  
+
+```{r}
+summary(ols.mdl1)
+```  
+
+```{r}
+AIC(ols.mdl1)
+BIC(ols.mdl1)
+
+ols.mdl1.RMSE <- rmse(actual=log(train$SalePrice), predicted=ols.mdl1$fitted.values)
+``` 
+
+```{r}
+VIF(ols.mdl1)
+```  
+  
+* **For Model 1**: Adjusted R-squared is `0.8138`, AIC is `-847.5004` and BIC is `-801.5289` and RMSE is `171456.2`.  
+* Still trying to improve the existing model.  
+* No multicollinearity detected.  
+  
+#### `Model 2`:  
+* This model created is based on `Principal Component Analysis`.  
+    - Uses `numeric` data for Principal Component Analysis  
+    - Then appends the `factor` data to the data *without `NULL` values*   
+    - Finally, uses `stepAIC()` to best model data
+  
+```{r}
+#Get cleaned `numeric` and `factor` `data frames` for OLS Model
+# After cleaning, two data sets that contain..
+
+## Numeric data ---------------------------------------------------
+hd.numericClean.OLS <- train %>% select_if(is.numeric)
+
+## Factors -------------------------------------------------------
+hd.factorClean.OLS  <- train %>% dplyr::select(where(is.factor))
+
+# Removing any columns with NA
+removeColsWithNA <- function(df) {
+  return( df[ , colSums(is.na(df)) == 0] )
+}
+hd.factorClean.OLS <- removeColsWithNA(hd.factorClean.OLS)
+
+paste('Num. factor cols. removed due to null values:', 
+      ncol(train %>% dplyr::select(where(is.factor)) ) - ncol(hd.factorClean.OLS) )
+paste(ncol(hd.factorClean.OLS), 'factor cols. remain') 
+```  
+  
+```{r}
+# Principal component analysis on numeric data
+#to remove zero variance columns from the dataset, using the apply expression, 
+#setting variance not equal to zero
+pc.house <- prcomp(hd.numericClean.OLS[ , which(apply(hd.numericClean.OLS, 2, var) != 0)] %>%
+                     dplyr::select(-SalePrice), # do not include response var
+                   center = TRUE, # Mean centered  
+                   scale  = TRUE  # Z-Score standardized
+                   )
+
+# See first 10 cumulative proportions
+pc.house.summary <- summary(pc.house)
+pc.house.summary$importance[, 1:10]
+```  
+  
+Now we choose number of PC's that explain 75% of the variation
+
+* Note this threshold is just a judgement call. No significance behind 75%
+
+```{r}
+cumPropThreshold = 0.75 # The threshold
+
+numPCs <- sum(pc.house.summary$importance['Cumulative Proportion', ] < cumPropThreshold)
+paste0('There are ', numPCs, ' principal components that explain up to ', cumPropThreshold*100, 
+       '% of the variation in the data')
+
+chosenPCs <- as.data.frame(pc.house$x[, 1:numPCs])
+```  
+  
+```{r}
+#Join on the factor data
+df.ols <- cbind(SalePrice = hd.numericClean.OLS$SalePrice, chosenPCs, hd.factorClean.OLS) 
+```  
+  
+### Fit the Model
+* Linear model containing:  
+  - Principal components explaining 75% of variation in `numeric` data
+  - Non-null `factor` data  
+  - *Predicted variable:* `SalePrice`
+
+* Then use `stepAIC()` to identify which variables are actually important for model 
+  
+```{r, results='hide'}
+# Fit data using PC's, non-null factors
+fit.ols <- lm(log(SalePrice) ~ ., data = df.ols)
+
+# Reduce to only important variables
+ols.mdl2 <- stepAIC(fit.ols, direction="both")
+```  
+  
+* Reporting `all the variables` of the best model (`Model 2`):  
+  
+**Coefficient estimates**:  
+  
+```{r}
+# Reporting the variables for best model
+ols.mdl2.sum <- summary(ols.mdl2)
+
+# Coefficient estimates of the model
+ols.mdl2.sum$coefficients
+```  
+  
+**p-values**:  
+
+```{r}
+# p-values of the model
+glance(ols.mdl2)$p.value
+```  
+  
+**Adjusted R-squared**:  
+```{r}
+ols.mdl2.sum$adj.r.squared
+```  
+  
+**AIC**:  
+```{r}
+AIC(ols.mdl2)
+```  
+  
+**BIC**:  
+```{r}
+BIC(ols.mdl2)
+``` 
+  
+**VIF**:  
+```{r}
+VIF(ols.mdl2)
+``` 
+  
+**RMSE**:  
+
+```{r}
+ols.mdl2.RMSE <- rmse(actual=log(df.ols$SalePrice), predicted=ols.mdl2$fitted.values)
+ols.mdl2.RMSE
+```  
+  
+* So, we can say that using PCA followed by stepAIC the OLS regression model is better as compared to the other OLS model built based on their `adjusted R-squared` value.  
+* There is also no multicollinearity found in the model as the VIF values are less than 10. 
+  
+```{r}
+# Key diagnostics for OLS: lm final summary table
+ols.mdl1.sum <- summary(ols.mdl1)
+
+# Get the RMSE and R Squared of the model
+keyDiagnostics.ols.mdl1 <- data.frame(Model    = 'OLS',
+                                 Notes    = 'lm',
+                                 Hyperparameters = 'N/A',
+                                 RMSE     = ols.mdl1.RMSE,
+                                 Rsquared = ols.mdl1.sum$adj.r.squared)
+
+# Show output
+keyDiagnostics.ols.mdl1 %>% 
+  knitr::kable()
+```  
+  
+```{r}
+# Key diagnostics for OLS: lm + 2-way interactions final summary table
+
+# Get the RMSE and R Squared of the model
+keyDiagnostics.ols.mdl2 <- data.frame(Model    = 'OLS',
+                                 Notes    = 'lm + 2-way interactions',
+                                 Hyperparameters = 'N/A',
+                                 RMSE     = ols.mdl2.RMSE,
+                                 Rsquared = ols.mdl2.sum$adj.r.squared)
+
+# Show output
+keyDiagnostics.ols.mdl2 %>% 
+  knitr::kable()
+``` 
+  
+## `ii`. Complete analysis of the residuals  
+  
+A linear regression model is considered fit if the below assumptions are met:  
+  
+* **Residuals should follow normal distribution**  
+* **There should be no heteroscedasticity**  
+* **There should be no multicollinearity**  
+
+```{r}
+hist(ols.mdl2$residuals,
+     col = 'skyblue4',
+     main = 'Histogram of Residuals',
+     xlab = 'Residuals')
+```
+  
+We can see that the residuals are `normally distributed` with a little longer left tail, maybe due to presence of outliers.  
+  
+```{r, warning=FALSE}
+par(mfrow=c(2,2)) #combining multiple plots together
+plot(ols.mdl2)
+```  
+  
+* From the *Residuals vs Fitted* plot, we can see there are points above and below the 0 line.  
+* There is also a pattern seen like a ` very slight curvature pattern` towards the end which indicates that there maybe a systematic lack of fit.  
+* The mean of residuals is almost zero which implies there is no biasing involved.  
+* From the *Normal Q-Q* plot, we can see that most of the points are `very close to the dotted line`, indicating that the residuals follow a normal distribution, except some points which might be outliers which maybe affecting the regression line fit of data.  
+* Here the *Scale-Location* plot suggests that the red line is roughly horizontal across the plot and the spread of magnitude looks unequal, at some fitted values there are more residuals as compared to other like the ones in between 11.5 and and 12.5, indicating some heteroskedasticity.  
+* From the *Residuals vs Leverage* plot, we can see that there are no influential points close to the Cook's distance line in our regression model. We need to check `influencePlot` to see if we are missing any leverage. 
+  
+```{r}
+influencePlot(ols.mdl2)
+```
+  
+* We can now see some high influential points for the fitted values.  
+  
+```{r}
+#ncv Test
+ncvTest(ols.mdl2)
+```
+  
+Since `p-value` is less than significance level ($\alpha$) of `0.05`, that means we `reject the null hypothesis` of constant error variance which indicates heteroscedasticity.  
+  
+```{r}
+VIF(ols.mdl2)
+```
+  
+Generally, VIF values which are greater than 5 or 7 are the cause of multicollinearity which we do not see in our model.  
+  
+**Improving the current model**:  
+
+* To improve our model, we need to remove some influential observations from our model and then fit the regression model to the data.  
+*  We can re-build the model with new predictors.  
+* We can also perform variable transformation such as Box-Cox or use better evolved models like SVR, PCR etc., and see how it works.    
+  
+\newpage
+
+# `1 (b)` - PLS Model
+  
+### Model Setup
+ 
+* Using the whole data set after PMM imputation and factor level collapsing without omitting any outliers
+* Using the predictors - `GarageArea`, `GarageCars`, `TotRmsAbvGrd`, `FullBath`, `GrLivArea`, `X1stFlrSF`, `TotalBsmtSF`, `OverallQual` which has strong correlations with response variable -  `SalePrice`  
+  
+```{r}
+#creating a PLS model to predict the log of the sale price
+#using 5-fold CV
+
+pls.model <- plsr(log(SalePrice) ~ GarageArea + GarageCars + TotRmsAbvGrd
+              + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual,
+              data=hd.Cleaned, scale=TRUE, validation='CV', k=5)
+```  
+  
+* Hyperparameter tuning to determine the number of PLS components with RMSE as the error metric  
+  
+```{r}
+#report chart
+summary(pls.model)
+
+plot(RMSEP(pls.model),legendpos="topright")
+```  
+  
+* From the table, we can see that if we use `6` PLS components only in our model, the RMSE drops to `0.1486` and after that even if we keep adding components the RMSE still is the same.  
+* Though we are eyeballing the CV component, but from the plot we can see that fitting `4` PLS components is enough because even if we are adding 2 more components there is not much difference in the CV component.  
+* Using the final model with `four PLS components` to make predictions  
+  
+### Fit the Model
+```{r}
+final.pls <- plsr(log(SalePrice) ~ GarageArea + GarageCars + TotRmsAbvGrd 
+              + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual,4,
+              data=hd.Cleaned, scale=TRUE, validation='CV', k=5)
+
+plot(final.pls, plottype = "scores", comps = 1:4)
+```  
+  
+* From the above plot, we can see that by using only four PLS components we can describe about 80% of the  variation in the response variable.  
+
+* Metric Calculations:  
+```{r}
+beta.pls <- drop(coef(final.pls))
+resid.pls <- drop(final.pls$resid)[,4]
+rss.pls <- sum(resid.pls^2)/(1000-4)
+rmse.pls <- sqrt(mean(resid.pls^2))
+ncomps.pls <- final.pls$ncomp
+```    
+
+```{r}
+# Key diagnostics for PLS final summary table
+
+# Get the RMSE and R Squared of the model
+keyDiagnostics.pls <- data.frame(Model    = 'PLS',
+                                 Notes    = 'pls',
+                                 Hyperparameters = paste('ncomp = ', ncomps.pls),
+                                 RMSE     = rmse.pls,
+                                 Rsquared = rss.pls)
+
+# Show output
+keyDiagnostics.pls %>% 
+  knitr::kable()
+```   
+  
+* If we now compare between our preferred OLS model and PLS model on basis of RMSE values, we can see that PLS model's efficiency is much higher.  
+* RMSE for chosen OLS model was `ols.mdl2.rsme` whereas for PLS model is  `0.1475`.  
+* But we see that the adjusted R-squared value for PLS model has significantly reduced to about `2%`.  
+* We know that adjusted R-squared identifies the percentage of variance in the response that is explained by the predictors which PCA handles in a better way as PCA finds the composite variables of predictors that maximally explain the variability of the data, whereas PLS finds the composite variables of predictors that are most predictive of the response variable. So maybe that's why we have a less adjusted R-squared whereas a better RMSE value.  
+
+\newpage
+
+# `1 (c)` - LASSO Model  
+  
+### Model Setup  
+  
+  * We first setup our cross-validation strategy  
+  * Then create a dataframe with PMM imputed values, and only whole columns without NA. Does not omit outliers  
+  * Then we train the model using `glmnet` which actually fits the elastic net  
+    
+```{r}
+# After cleaning, two data sets that contain..
+
+## Numeric data ---------------------------------------------------
+hd.numericClean <- hd.Cleaned %>% select_if(is.numeric)
+
+## Factors -------------------------------------------------------
+hd.factorClean  <- hd.Cleaned %>% dplyr::select(where(is.factor))
+
+# Removing any columns with NA
+removeColsWithNA <- function(df) {
+  return( df[ , colSums(is.na(df)) == 0] )
+}
+hd.factorClean <- removeColsWithNA(hd.factorClean)
+
+paste('Num. factor cols. removed due to null values:', 
+      ncol(hd.Cleaned %>% dplyr::select(where(is.factor)) ) - ncol(hd.factorClean) )
+paste(ncol(hd.factorClean), 'factor cols. remain') 
+```  
+  
+```{r}
+ctrl <- trainControl(method  = "repeatedcv", 
+                     number  = 5, # 5 fold cross validation
+                     repeats = 2  # 2 repeats
+                     )
+
+# The data (PMM imputed values, and only whole columns without NA. Does not omit outliers)
+df.lasso <- cbind(SalePrice = hd.numericClean$SalePrice, 
+                hd.numericClean, hd.factorClean) 
+```  
+  
+### Fit the Model
+```{r, warning=FALSE, message=FALSE}
+# Train and tune the SVM
+fit.lasso <- train(data = df.lasso, 
+                 log(SalePrice) ~ .,
+                 method     = "glmnet",         # Elastic net
+                 preProc    = c("center","scale"), # Center and scale data
+                 tuneLength = 10,  #10 values of alpha and 10 lamda values for each
+                 trControl  = ctrl)
+```  
+  
+```{r}
+# Function to get the best hypertuned parameters
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+```  
+  
+```{r}
+result.lasso <- get_best_result(fit.lasso)
+```
+  
+* The variables with non-zero coefficients of the final model:  
+
+```{r}
+lasso.coeff <- drop(coef(fit.lasso$finalModel, fit.lasso$bestTune$lambda))
+
+lasso.coeff[lasso.coeff != 0]
+```  
+
+```{r}
+
+# Gather key diagnostics for summary table
+# Get the RMSE and R Squared of the model
+hyperparameters.lasso = list('Alpha' = result.lasso$alpha,
+                             'Lambda' = result.lasso$lambda)
+
+
+keyDiagnostics.lasso <- data.frame(Model    = 'Lasso',
+                                 Notes    = 'caret and elasticnet',
+                                 Hyperparameters = paste('Alpha =', hyperparameters.lasso$Alpha, ',',
+                                                         'Lambda =', hyperparameters.lasso$Lambda))
+
+keyDiagnostics.lasso <- cbind(keyDiagnostics.lasso,
+                            RMSE = result.lasso$RMSE,
+                             Rsquared =result.lasso$Rsquared
+                      )
+
+# Show output
+keyDiagnostics.lasso %>% knitr::kable()
+``` 
+
+
+\newpage
+
+# `1 (d)` - Model Variants
+
+## `1 (d, i)` - PCR Model
+
+### Model Setup
+* Uses `numeric` data for Principal Component Analysis
+  - Data includes outliers  
+  - Chose number of PC's that explain 75% of the variation. This is just a general judgement call to keep the number of principal components low.
+
+* Then appends the `factor` columns *without `NULL` values* and `SalePrice` to the data  
+* Finally, uses `stepAIC()` to best model data  
+* See interpretation at end
+
+```{r}
+# Get cleaned `numeric` and `factor` `data frames`
+# After cleaning, two data sets that contain..
+
+## Numeric data ---------------------------------------------------
+hd.numericClean <- hd.Cleaned %>% select_if(is.numeric)
+
+## Factors -------------------------------------------------------
+hd.factorClean  <- hd.Cleaned %>% dplyr::select(where(is.factor))
+
+# Removing any columns with NA
+removeColsWithNA <- function(df) {
+  return( df[ , colSums(is.na(df)) == 0] )
+}
+hd.factorClean <- removeColsWithNA(hd.factorClean)
+
+paste('Num. factor cols. removed due to null values:', 
+      ncol(hd.Cleaned %>% dplyr::select(where(is.factor)) ) - ncol(hd.factorClean) )
+paste(ncol(hd.factorClean), 'factor cols. remain') 
+```
+
+```{r}
+# Perform PCA
+# Principal component analysis on numeric data
+pc.house <- prcomp(hd.numericClean %>% dplyr::select(-SalePrice), # do not include response var
+                   center = TRUE, # Mean centered  
+                   scale  = TRUE  # Z-Score standardized
+                   )
+
+# See first 10 cumulative proportions
+pc.house.summary <- summary(pc.house)
+pc.house.summary$importance[, 1:10]
+```
+
+
+```{r}
+# Now we choose number of PC's that explain 75% of the variation
+# Note this threshold is just a judgement call. No significance behind 75%
+
+cumPropThreshold = 0.75 # The threshold
+
+numPCs <- sum(pc.house.summary$importance['Cumulative Proportion', ] < cumPropThreshold)
+paste0('There are ', numPCs, ' principal components that explain up to ', cumPropThreshold*100, 
+       '% of the variation in the data')
+
+chosenPCs <- as.data.frame(pc.house$x[, 1:numPCs])
+```
+
+Join on the `factor` data and `SalePrice`
+```{r}
+df.pcr <- cbind(SalePrice = hd.numericClean$SalePrice, chosenPCs, hd.factorClean) 
+```
+
+
+### Fit the Model
+* Linear model containing:  
+  - Principal components explaining 75% of variation in `numeric` data
+  - Non-null `factor` data  
+  - *Predicted variable:* `log(SalePrice)`
+
+* Then use `stepAIC()` to identify which variables are actually important for model 
+  
+```{r pcr, echo=T, results='hide'}
+# Fit data using PC's, non-null factors
+fit.pcr <- lm(log(SalePrice) ~ ., data = df.pcr)
+
+# Reduce to only important variables
+fit.pcrReduced <- stepAIC(fit.pcr, direction="both")
+```
+
+```{r}
+# Key diagnostics for final summary table
+est.pcr <- summary(fit.pcrReduced)
+
+# Get the RMSE and R Squared of the model
+keyDiagnostics.pcr <- data.frame(Model    = 'PCR',
+                                 Notes    = 'lm, prcomp, and stepAIC',
+                                 Hyperparameters = 'N/A',
+                                 RMSE     = sqrt(mean(fit.pcrReduced$residuals^2)),
+                                 Rsquared = est.pcr$adj.r.squared)
+
+# Show output
+keyDiagnostics.pcr %>% kable()
+```
+
+
+View results of step `AIC` model
+```{r}
+summary(fit.pcrReduced)
+```
+
+### View and Interpret Results
+
+*Please note all interpretations below are approximate, given the `stepAIC()` uses stochastic modeling.*
+
+**Model performance evaluation:**  
+
+* See that around 28 of the variables cannot be explained by random chance, 
+with a probability of 90% or more (see significance codes above)   
+
+* Standard errors range from $\pm$ 1-5%, with average around 2%. Larger values may indicate higher 
+uncertainty of the estimated coefficients.  
+
+* This model explains around 92% of the variation in the `log(SalePrice)`. See Adjusted R-Squared for reference.  
+
+* Note this model may exhibit selection bias, since the data excludes factor data 
+with null values in the variable.  
+
+* This model would likely doe well for prediction of `log(SalePrice)`, given the small 
+range of standard errors, high adjusted R squared, and number of significant variables.
+This model would obviously not do well for inference, given we are using principal
+components that mask the numeric data.  
+
+
+**Practical significance evaluation:**  
+
+* The principal components contribute positively about 20% of the sale price of the home  
+
+* Residential Medium Density (`MSZoningRM`) reduces the home price by around 12%,
+with a standard error of around 2%.
+
+* If the exterior quality is below average (`ExterQualBelowAvg`), it reduces the home price by around 12%,
+with a standard error of around 5%.
+
+* If the functionality of the home has 2 major deductions (`FunctionalMaj2`), 
+it reduces the home price by around 20%, with a standard error of around 6%. 
+While having typical functionality (`FunctionalTyp`) increases the home sale price 
+by nearly 10%, with a standard error of 3%.  
+
+* See other coefficients of the data for other variables.
+
+\newpage
+
+### View Predicted vs. Actuals
+
+Note that the Function `predictedVsObserved()` created to compare predicted vs. observed values 
+from the model. Uses `ggplot2` and model output to display the following. *See interpretation below*.
+```{r}
+# Function to compare predicted vs. actual (observed) regression outputs
+predictedVsObserved <- function(predicted, observed, modelName, outcomeName = 'Log(SalePrice)') {
+  
+  ## Create data set for predicted vs. actuals
+  comparison <- data.frame(observed  = observed,
+                           predicted = predicted) %>%
+    
+    # Row index
+    mutate(ID = row_number()) %>%
+  
+    # Put in single column
+    pivot_longer(cols      = c('observed', 'predicted'),
+                 names_to  = 'metric',
+                 values_to = 'value') 
+  
+  
+  # Plot --- Observed vs. Actuals across all variables in data
+  variationScatter <- comparison %>%
+    ggplot(aes(x     = ID,
+               y     = value,
+               color = metric
+               )
+           ) +
+    geom_point(alpha = 0.5, size = 1) + 
+    
+    labs(title = 'Variation in Predicted vs. Observed Data',
+         subtitle = paste('Model:', modelName),
+         x = 'X', y = outcomeName) + 
+    theme_minimal() + theme(legend.title = element_blank(),
+                            legend.position = 'top') +
+    scale_color_manual(values = c('grey60', 'palegreen3'))
+  
+  
+  print(variationScatter)
+  
+  # Limit for x and y axis for scatter of predicted vs. observed
+  axisLim = c( min(c(predicted, observed)), max(c(predicted, observed)) )
+  
+  
+  # Simple comparison of data
+  plot(x = observed,
+       y = predicted,
+       main = paste(modelName, 'Model - Actual (Observed) vs. Predicted\n'),
+       xlab = paste('Observed Values -', outcomeName),
+       ylab = paste('Predicted Values -', outcomeName),
+       pch  = 16,
+       cex  = 0.75,
+       col  = alpha('steelblue3', 1/4),
+       xlim = axisLim,
+       ylim = axisLim
+  )
+  
+  # Add the Predicted vs. actual line
+  abline(lm(predicted ~ observed), col = 'steelblue3', lwd = 2)
+  mtext('Predicted ~ Actual', side = 3, adj = 1, col = 'steelblue3')
+  
+  # Add line for perfectly fit model
+  abline(0,1, col = alpha('tomato3', 0.8), lwd = 2)
+  mtext('Perfectly Fit Model', side = 1, adj = 0, col = 'tomato3')
+}
+```
+
+
+View results of the PCR Model  
+
+* See that the variation in the data is very closely resembled actual by changes in independent variables
+
+* Implication? This model fits its own data well, but what is not know if it can predict
+out of sample data.  
+
+* Note that it the data (blue) deviates slightly from perfect line model (red), indicating
+that the model is slightly skewed from predicted and actual data.
+
+```{r}
+# How do the predicted vs. Actuals Compare?
+predictedVsObserved(observed  = log(df.pcr$SalePrice),
+                    predicted = predict(fit.pcrReduced),
+                    modelName = 'PCR')
+```
+
+\newpage
+
+## `1 (d, ii)` - SVR Model
+
+### Model Setup
+```{r}
+ctrl <- trainControl(method  = "repeatedcv", 
+                     number  = 5, # 5 fold cross validation
+                     repeats = 2  # 2 repeats
+                     )
+
+# The data (PMM imputed values, and only whole columns without NA. Does not omit outliers)
+df.svm <- cbind(SalePrice = hd.numericClean$SalePrice, 
+                hd.numericClean, hd.factorClean) 
+```
+
+### Fit the Model
+* *Predicted variable:* `log(SalePrice)`  
+* *Dependent variables*: non-null factor data (collapsed if over 4 unique values), and all numeric data (`pmm` imputed if needed). Includes outliers
+
+```{r svm, warning=FALSE, message=FALSE}
+# Train and tune the SVM
+fit.svm <- train(data = df.svm, 
+                 log(SalePrice) ~ .,
+                 method     = "svmRadial",         # Radial kernel
+                 tuneLength = 9,                   # 9 values of the cost function
+                 preProc    = c("center","scale"), # Center and scale data
+                 trControl  = ctrl)
+```
+
+### View and Interpret Results
+* Note all numbers mentioned below are approximate
+* See that the R Squared of the model is around 0.86, and RMSE is 0.14
+* See that the model predicts the data well. 
+* Also, note that the model predicts the data with less error than the linear model. 
+See this from the RMSE or scatter plot of predicted values.
+
+```{r}
+# Gather key diagnostics for summary table
+# Get the RMSE and R Squared of the model
+hyperparameters.svm = list('C' = fit.svm[["finalModel"]]@param[["C"]],
+                           'Epsilon' = fit.svm[["finalModel"]]@param[["epsilon"]])
+
+
+
+keyDiagnostics.svm <- data.frame(Model    = 'SVM',
+                                 Notes    = 'caret and svmRadial',
+                                 Hyperparameters = paste('C =', hyperparameters.svm$C, ',',
+                                                         'Epsilon =', hyperparameters.svm$Epsilon)
+                                 )
+
+keyDiagnostics.svm <- cbind(keyDiagnostics.svm,
+                            fit.svm$results %>% 
+                              filter(C == hyperparameters.svm$C) %>%
+                              dplyr::select(RMSE, Rsquared)
+                      )
+
+# Show output
+keyDiagnostics.svm %>% knitr::kable()
+```
+
+
+```{r, fig.height=4}
+# Final model?
+fit.svm$finalModel
+
+# How do the predicted vs. Actuals Compare?
+predictedVsObserved(observed  = log(df.svm$SalePrice),
+                    predicted = predict(fit.svm, df.svm),
+                    modelName = 'SVM')
+```
+
+
+\newpage
+
+## `1 (d, iii)` - MARS Model
+
+### Fit the Model
+* *Predicted variable:* `log(SalePrice)`  
+* *Dependent variables*: non-null factor data (collapsed if over 4 unique values), and all numeric data (`pmm` imputed if needed). Includes outliers
+
+```{r}
+# Train and tune the MARS model
+fit.mars <- train(data = df.svm, # note this is fine since data is the same for this model
+                  log(SalePrice) ~ .,
+                  method     = "earth",             # Radial kernel
+                  tuneLength = 9,                   # 9 values of the cost function
+                  preProc    = c("center","scale"), # Center and scale data
+                  trControl  = ctrl
+                 )
+```
+
+```{r}
+# Key diagnostics for final model
+
+# Get the RMSE and R Squared of the model
+hyperparameters.mars = list('degree' = fit.mars[["bestTune"]][["degree"]],
+                            'nprune' = fit.mars[["bestTune"]][["nprune"]])
+
+keyDiagnostics.mars <- data.frame(Model   = 'MARS',
+                                  Notes    = 'caret and earth',
+                                  Hyperparameters = paste('Degree =', hyperparameters.mars$degree, ',',
+                                                          'nprune =', hyperparameters.mars$nprune)
+                                  )
+
+keyDiagnostics.mars <- cbind(keyDiagnostics.mars,
+                            fit.mars$results %>% 
+                              filter(degree == hyperparameters.mars$degree,
+                                     nprune == hyperparameters.mars$nprune) %>%
+                              dplyr::select(RMSE, Rsquared)
+                      )
+
+# Show output
+keyDiagnostics.mars %>% kable()
+```
+
+### View and Interpret Results
+* See that the model overall performs very well, and in fact performs
+similarly to the PCR model (in terms of RMSE and Adjusted R Squared).  
+* Again, unsure if the model would do well for prediction of out of sample data,
+but fits this data extremely well.  
+
+```{r, fig.height=4}
+# Final model?
+fit.mars$finalModel
+
+# How do the predicted vs. Actuals Compare?
+predicted.mars = fit.mars[["finalModel"]][["fitted.values"]]
+colnames(predicted.mars) <- 'predicted'
+
+predictedVsObserved(observed  = log(df.svm$SalePrice),
+                    predicted = predicted.mars,
+                    modelName = 'MARS')
+```
+
+
+
+\newpage
+
+# Summary Table of Model Performance
+```{r}
+# Add the key diagnostics here
+rbind(keyDiagnostics.ols.mdl1,
+      keyDiagnostics.ols.mdl2,
+      keyDiagnostics.pls,
+      keyDiagnostics.lasso,
+      keyDiagnostics.pcr, 
+      keyDiagnostics.svm, 
+      keyDiagnostics.mars
+      ) %>%
+  
+  # Round to 4 digits across numeric data
+  mutate_if(is.numeric, round, digits = 4) %>%
+  
+  # Spit out kable table
+  kable()
+```
+  
+\newpage  
+
+# References  
+1. https://rpubs.com/staneaurelius/house_price_prediction  
+2. https://www.statology.org/partial-least-squares-in-r/  
+3. https://daviddalpiaz.github.io/r4sl/elastic-net.html
