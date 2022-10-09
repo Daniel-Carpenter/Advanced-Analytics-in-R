@@ -22,8 +22,8 @@ October 2022
     id="toc-1-d---model-variants"><code>1 (d)</code> - Model Variants</a>
     -   <a href="#1-d-i---pcr-model"
         id="toc-1-d-i---pcr-model"><code>1 (d, i)</code> - PCR Model</a>
-    -   <a href="#1-d-ii---svr-model"
-        id="toc-1-d-ii---svr-model"><code>1 (d, ii)</code> - SVM Model</a>
+    -   <a href="#1-d-ii---svm-model"
+        id="toc-1-d-ii---svm-model"><code>1 (d, ii)</code> - SVM Model</a>
     -   <a href="#1-d-iii---mars-model"
         id="toc-1-d-iii---mars-model"><code>1 (d, iii)</code> - MARS Model</a>
 -   <a href="#summary-table-of-model-performance"
