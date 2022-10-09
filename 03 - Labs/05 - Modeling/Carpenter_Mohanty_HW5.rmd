@@ -61,8 +61,10 @@ library(car)
 ```
 
 ## General Data Prep
+> For general data preparation, please see conceptual steps below. See `.rmd` file for detailed code.
 
-### Read Data
+### `(i)` Read Data
+
 ```{r}
 # Convert all character data to factor 
 hd <- read.csv('housingData.csv', stringsAsFactors = TRUE) %>%
@@ -77,9 +79,9 @@ hd <- read.csv('housingData.csv', stringsAsFactors = TRUE) %>%
                    MoSold, YearBuilt, YearRemodAdd))
 ```
 
-### Impute Missing Values with `PMM`
+### `(ii)` Impute Missing Values with `PMM`
 
-Make data set of `numeric` variables
+Make data set of `numeric` variables `hd.numericRaw`
 ```{r, echo=FALSE}
 hd.numericRaw <- hd %>%
   
@@ -90,7 +92,7 @@ hd.numericRaw <- hd %>%
   as_tibble() 
 ```
 
-Make data set of `factor` variables
+Make data set of `factor` variables `hd.factorRaw`    
 ```{r, echo=FALSE}
 hd.factorRaw <- hd %>%
   
@@ -104,14 +106,13 @@ hd.factorRaw <- hd %>%
 
 For each column with missing data, impute missing values with `PMM`
 
-* Done with function `imputeWithPMM()` function  
-* Applies function via `dplyr` logic  
-* Note `seeImputation()` function to visualize the imputation from prior homework 4, not shown for simplicity in viewing
+1. Imputation completed with our created function called `imputeWithPMM()`  
+2. Applies function to columns with missing data via dynamic `dplyr` logic  
+3. Note `seeImputation()` function to visualize the imputation from prior homework 4, not shown for simplicity in viewing
 
-
-Create function to impute via `PMM`
 
 ```{r, echo=FALSE}
+# Create function to impute via `PMM`
 imputeWithPMM <- function(colWithMissingData) {
   
   # Using the mice package
@@ -232,8 +233,9 @@ seeImputation <- function(df, df.meanInputed,
 ```
 
 
-Apply `PMM` function to numeric data containing null values 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
+# Apply `PMM` function to numeric data containing null values 
+
 # Data to store imputed values with PMM method
 hd.Imputed <- hd
 
@@ -272,9 +274,14 @@ for (colWithNullsNum in 1:numberOfColsWithNulls) {
 }
 ```
 
-\newpage
+<!-- \newpage -->
 
-### Factor Level Collapse - Create `Other` Bin for Columns over `4` Unique Values 
+### `(iii)` Factor Level Collapsing 
+> Overview: Create `Other` Bin for Columns over `4` Unique Values 
+
+* Applied to any `factor` column (previously `character`) with over 4 unique values
+* Applies `fct_lump()` function to columns via dynamic `dplyr` logic  
+
 ```{r, echo=FALSE}
 hd.Cleaned <- hd.Imputed # For final cleaned data
 
@@ -318,14 +325,22 @@ paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold, na.r
       "columns with more than", factorThreshold, "unique values (omitting NA's)")
 ```
 
-\newpage
 
-### Remove Outliers from Numeric Data
-* Since there are so many outliers, we are only going to remove some outliers  
+### `(iv)` Remove Outliers from Numeric Data 
+> Overview: Using numeric data frame, remove *some* outliers from each column without
+dwindling the entire data set. See steps below to create data frame `hd.CleanedNoOutliers`.
+
+* **Please note that NOT all models use this data set with removed outliers**.  
+  - Only models which are sensitive to outliers use this data frame without outliers.  
+  - For example, the linear model using this data frame.  
+  
+Outlier removal steps below:  
+
+* Since there are so many outliers in each column, we are only going to remove some outliers  
 * If you count the number of outliers by column, the 75% of columns contain less
 than 50 outliers.  
 * However, some contain up to 200. Since remove ALL outliers would reduce the size of the data to 
-less than 300 observations, we are removing up to 50 per column.
+less than 300 observations, we are removing up to 50 per numeric column.
 
 
 ```{r, echo=FALSE}
@@ -651,6 +666,7 @@ VIF(ols.mdl2)
 Generally, VIF values which are greater than 5 or 7 are the cause of multicollinearity which we do not see in our model.  
   
 **Improving the current model**:  
+
 * To improve our model, we need to remove some influential observations from our model and then fit the regression model to the data.  
 *  We can re-build the model with new predictors.  
 * We can also perform variable transformation such as Box-Cox or use better evolved models like SVR, PCR etc., and see how it works.    
@@ -686,7 +702,7 @@ plot(RMSEP(pls.model),legendpos="topright")
 * Though we are eyeballing the CV component, but from the plot we can see that fitting `4` PLS components is enough because even if we are adding 2 more components there is not much difference in the CV component.  
 * Using the final model with `four PLS components` to make predictions  
   
-### Fit the model
+### Fit the Model
 ```{r}
 final.pls <- plsr(log(SalePrice) ~ GarageArea + GarageCars + TotRmsAbvGrd 
               + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual,4,
@@ -828,13 +844,16 @@ keyDiagnostics.lasso %>% knitr::kable()
 ## `1 (d, i)` - PCR Model
 
 ### Model Setup
-* Uses `numeric` data for Principal Component Analysis  
-* Then appends the `factor` data to the data *without `NULL` values*   
+* Uses `numeric` data for Principal Component Analysis
+  - Data includes outliers  
+  - Chose number of PC's that explain 75% of the variation. This is just a general judgement call to keep the number of principal components low.
+
+* Then appends the `factor` columns *without `NULL` values* and `SalePrice` to the data  
 * Finally, uses `stepAIC()` to best model data  
 * See interpretation at end
 
-Get cleaned `numeric` and `factor` `data frames`
 ```{r, echo=FALSE, results='hide'}
+# Get cleaned `numeric` and `factor` `data frames`
 # After cleaning, two data sets that contain..
 
 ## Numeric data ---------------------------------------------------
@@ -854,8 +873,8 @@ paste('Num. factor cols. removed due to null values:',
 paste(ncol(hd.factorClean), 'factor cols. remain') 
 ```
 
-Perform PCA
 ```{r, echo=FALSE, results='hide'}
+# Perform PCA
 # Principal component analysis on numeric data
 pc.house <- prcomp(hd.numericClean %>% dplyr::select(-SalePrice), # do not include response var
                    center = TRUE, # Mean centered  
@@ -867,11 +886,11 @@ pc.house.summary <- summary(pc.house)
 pc.house.summary$importance[, 1:10]
 ```
 
-Now we choose number of PC's that explain 75% of the variation
-
-* Note this threshold is just a judgement call. No significance behind 75%
 
 ```{r, echo=FALSE}
+# Now we choose number of PC's that explain 75% of the variation
+# Note this threshold is just a judgement call. No significance behind 75%
+
 cumPropThreshold = 0.75 # The threshold
 
 numPCs <- sum(pc.house.summary$importance['Cumulative Proportion', ] < cumPropThreshold)
@@ -881,7 +900,7 @@ paste0('There are ', numPCs, ' principal components that explain up to ', cumPro
 chosenPCs <- as.data.frame(pc.house$x[, 1:numPCs])
 ```
 
-Join on the factor data
+Join on the `factor` data and `SalePrice`
 ```{r}
 df.pcr <- cbind(SalePrice = hd.numericClean$SalePrice, chosenPCs, hd.factorClean) 
 ```
@@ -909,7 +928,7 @@ est.pcr <- summary(fit.pcrReduced)
 
 # Get the RMSE and R Squared of the model
 keyDiagnostics.pcr <- data.frame(Model    = 'PCR',
-                                 Notes    = 'lm',
+                                 Notes    = 'lm, prcomp, and stepAIC',
                                  Hyperparameters = 'N/A',
                                  RMSE     = sqrt(mean(fit.pcrReduced$residuals^2)),
                                  Rsquared = est.pcr$adj.r.squared)
@@ -919,8 +938,8 @@ keyDiagnostics.pcr %>% kable()
 ```
 
 
+View results of step `AIC` model
 ```{r}
-# View results
 summary(fit.pcrReduced)
 ```
 
@@ -966,10 +985,11 @@ by nearly 10%, with a standard error of 3%.
 
 \newpage
 
-View Predicted vs. Actuals
+### View Predicted vs. Actuals
 
-Function to compare predicted vs. observed values
-```{r}
+Note that the Function `predictedVsObserved()` created to compare predicted vs. observed values 
+from the model. Uses `ggplot2` and model output to display the following. *See interpretation below*.
+```{r, echo=FALSE}
 # Function to compare predicted vs. actual (observed) regression outputs
 predictedVsObserved <- function(predicted, observed, modelName, outcomeName = 'Log(SalePrice)') {
   
@@ -1067,6 +1087,9 @@ df.svm <- cbind(SalePrice = hd.numericClean$SalePrice,
 ```
 
 ### Fit the Model
+* *Predicted variable:* `log(SalePrice)`  
+* *Dependent variables*: non-null factor data (collapsed if over 4 unique values), and all numeric data (`pmm` imputed if needed). Includes outliers
+
 ```{r svm, warning=FALSE, message=FALSE}
 # Train and tune the SVM
 fit.svm <- train(data = df.svm, 
@@ -1125,6 +1148,9 @@ predictedVsObserved(observed  = log(df.svm$SalePrice),
 ## `1 (d, iii)` - MARS Model
 
 ### Fit the Model
+* *Predicted variable:* `log(SalePrice)`  
+* *Dependent variables*: non-null factor data (collapsed if over 4 unique values), and all numeric data (`pmm` imputed if needed). Includes outliers
+
 ```{r}
 # Train and tune the MARS model
 fit.mars <- train(data = df.svm, # note this is fine since data is the same for this model
