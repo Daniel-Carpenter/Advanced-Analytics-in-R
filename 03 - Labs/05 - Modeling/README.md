@@ -23,7 +23,7 @@ October 2022
     -   <a href="#1-d-i---pcr-model"
         id="toc-1-d-i---pcr-model"><code>1 (d, i)</code> - PCR Model</a>
     -   <a href="#1-d-ii---svr-model"
-        id="toc-1-d-ii---svr-model"><code>1 (d, ii)</code> - SVR Model</a>
+        id="toc-1-d-ii---svr-model"><code>1 (d, ii)</code> - SVM Model</a>
     -   <a href="#1-d-iii---mars-model"
         id="toc-1-d-iii---mars-model"><code>1 (d, iii)</code> - MARS Model</a>
 -   <a href="#summary-table-of-model-performance"
@@ -945,7 +945,7 @@ multicollinearity which we do not see in our model.
     data.  
 -   We can re-build the model with new predictors.  
 -   We can also perform variable transformation such as Box-Cox or use
-    better evolved models like SVR, PCR etc., and see how it works.
+    better evolved models like SVM, PCR etc., and see how it works.
 
 # `1 (b)` - PLS Model
 
@@ -1662,7 +1662,7 @@ predictedVsObserved(observed  = log(df.pcr$SalePrice),
 
 ![](README_files/figure-gfm/unnamed-chunk-55-1.png)<!-- -->![](README_files/figure-gfm/unnamed-chunk-55-2.png)<!-- -->
 
-## `1 (d, ii)` - SVR Model
+## `1 (d, ii)` - SVM Model
 
 ### Model Setup
 

@@ -670,7 +670,7 @@ Generally, VIF values which are greater than 5 or 7 are the cause of multicollin
 
 * To improve our model, we need to remove some influential observations from our model and then fit the regression model to the data.  
 *  We can re-build the model with new predictors.  
-* We can also perform variable transformation such as Box-Cox or use better evolved models like SVR, PCR etc., and see how it works.    
+* We can also perform variable transformation such as Box-Cox or use better evolved models like SVM, PCR etc., and see how it works.    
   
 \newpage
 
@@ -1075,7 +1075,7 @@ predictedVsObserved(observed  = log(df.pcr$SalePrice),
 
 \newpage
 
-## `1 (d, ii)` - SVR Model
+## `1 (d, ii)` - SVM Model
 
 ### Model Setup
 ```{r}
