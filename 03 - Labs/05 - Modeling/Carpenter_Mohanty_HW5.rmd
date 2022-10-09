@@ -399,7 +399,7 @@ hist(hd.CleanedNoOutliers$SalePrice,
      xlab = 'House Price')
 ```  
 
-* After removing the desired outliers, we can see that the distribution of Sale Price looks like a normal distribution with few outliers on the right tail.  
+* After removing the desired outliers, we can see that the distribution of `log(Sale Price)` looks like a normal distribution with few outliers on the left tail.  
   
 ### Correlation between features in the dataset  
   
@@ -438,7 +438,7 @@ train <- hd.CleanedNoOutliers[-idx,]
   - *Predicted variable:* `SalePrice`
 
 ```{r, results='hide'}
-ols.mdl1 <- lm(SalePrice ~ GarageArea + GarageCars + TotRmsAbvGrd 
+ols.mdl1 <- lm(log(SalePrice) ~ GarageArea + GarageCars + TotRmsAbvGrd 
               + FullBath + GrLivArea + X1stFlrSF + TotalBsmtSF + OverallQual, data=train)
 ```  
 
@@ -450,14 +450,14 @@ summary(ols.mdl1)
 AIC(ols.mdl1)
 BIC(ols.mdl1)
 
-ols.mdl1.RMSE <- rmse(actual=train$SalePrice, predicted=ols.mdl1$fitted.values)
+ols.mdl1.RMSE <- rmse(actual=log(train$SalePrice), predicted=ols.mdl1$fitted.values)
 ``` 
 
 ```{r, results='hide', echo=FALSE}
 VIF(ols.mdl1)
 ```  
   
-* **For Model 1**: Adjusted R-squared is `0.821`, AIC is `16695.31` and BIC is `16741.28` and RMSE is `20541.22`.  
+* **For Model 1**: Adjusted R-squared is `0.8138`, AIC is `-847.5004` and BIC is `-801.5289` and RMSE is `171456.2`.  
 * Still trying to improve the existing model.  
 * No multicollinearity detected.  
   
@@ -532,7 +532,7 @@ df.ols <- cbind(SalePrice = hd.numericClean.OLS$SalePrice, chosenPCs, hd.factorC
   
 ```{r, results='hide'}
 # Fit data using PC's, non-null factors
-fit.ols <- lm(SalePrice ~ ., data = df.ols)
+fit.ols <- lm(log(SalePrice) ~ ., data = df.ols)
 
 # Reduce to only important variables
 ols.mdl2 <- stepAIC(fit.ols, direction="both")
@@ -580,11 +580,11 @@ VIF(ols.mdl2)
 **RMSE**:  
 
 ```{r, echo=FALSE}
-ols.mdl2.RMSE <- rmse(actual=df.ols$SalePrice, predicted=ols.mdl2$fitted.values)
+ols.mdl2.RMSE <- rmse(actual=log(df.ols$SalePrice), predicted=ols.mdl2$fitted.values)
 ols.mdl2.RMSE
 ```  
   
-* So, we can say that using PCA followed by stepAIC the OLS regression model is better as compared to the other OLS model built.  
+* So, we can say that using PCA followed by stepAIC the OLS regression model is better as compared to the other OLS model built based on their `adjusted R-squared` value.  
 * There is also no multicollinearity found in the model as the VIF values are less than 10. 
   
 ```{r, echo=FALSE, results='hide'}
@@ -633,7 +633,7 @@ hist(ols.mdl2$residuals,
      xlab = 'Residuals')
 ```
   
-We can see that the residuals are `normally distributed`.  
+We can see that the residuals are `normally distributed` with a little longer left tail, maybe due to presence of outliers.  
   
 ```{r, warning=FALSE}
 par(mfrow=c(2,2)) #combining multiple plots together
@@ -641,10 +641,11 @@ plot(ols.mdl2)
 ```  
   
 * From the *Residuals vs Fitted* plot, we can see there are points above and below the 0 line.  
-* There is also a pattern seen like a `slight curvature pattern` which indicates that there maybe a systematic lack of fit.  
+* There is also a pattern seen like a ` very slight curvature pattern` towards the end which indicates that there maybe a systematic lack of fit.  
+* The mean of residuals is almost zero which implies there is no biasing involved.  
 * From the *Normal Q-Q* plot, we can see that most of the points are `very close to the dotted line`, indicating that the residuals follow a normal distribution, except some points which might be outliers which maybe affecting the regression line fit of data.  
-* Here the *Scale-Location* plot suggests that the red line is roughly horizontal across the plot and the spread of magnitude looks unequal, at some fitted values there are more residuals as compared to other like the ones in between 120000 and 210000, indicating some heteroskedasticity.  
-* From the *Residuals vs Leverage* plot, we can see that there are no influential points in our regression model. We need to check `influencePlot` to see if we are missing any leverage. 
+* Here the *Scale-Location* plot suggests that the red line is roughly horizontal across the plot and the spread of magnitude looks unequal, at some fitted values there are more residuals as compared to other like the ones in between 11.5 and and 12.5, indicating some heteroskedasticity.  
+* From the *Residuals vs Leverage* plot, we can see that there are no influential points close to the Cook's distance line in our regression model. We need to check `influencePlot` to see if we are missing any leverage. 
   
 ```{r}
 influencePlot(ols.mdl2)
@@ -738,7 +739,9 @@ keyDiagnostics.pls %>%
 ```   
   
 * If we now compare between our preferred OLS model and PLS model on basis of RMSE values, we can see that PLS model's efficiency is much higher.  
-* RMSE for chosen OLS model was `ols.mdl2.rsme` whereas for PLS model is  `0.1475`.
+* RMSE for chosen OLS model was `ols.mdl2.rsme` whereas for PLS model is  `0.1475`.  
+* But we see that the adjusted R-squared value for PLS model has significantly reduced to about `2%`.  
+* We know that adjusted R-squared identifies the percentage of variance in the response that is explained by the predictors which PCA handles in a better way as PCA finds the composite variables of predictors that maximally explain the variability of the data, whereas PLS finds the composite variables of predictors that are most predictive of the response variable. So maybe that's why we have a less adjusted R-squared whereas a better RMSE value.  
 
 \newpage
 
