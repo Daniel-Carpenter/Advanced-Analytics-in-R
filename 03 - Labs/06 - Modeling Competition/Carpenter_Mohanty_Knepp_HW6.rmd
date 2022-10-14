@@ -98,7 +98,7 @@ df.train.base <- df.train.base %>%
          )
 ```
 
-### Create `numeric` and `factor` `data frames`
+### Create `numeric` and `factor` *base* `data frames`
 
 Make data set of `numeric` variables called `df.train.base.numeric`
 ```{r, echo=FALSE}
@@ -123,8 +123,9 @@ df.train.base.factor <- df.train.base %>%
 ```
 
 
-## `2 (i)` - Data Understanding
-> Create a data quality report of `numeric` and `factor` data
+## `(a, i)` - Data Understanding
+> Create a data quality report of `numeric` and `factor` data  
+> Created function called `dataQualityReport()` to create factor and numeric QA report
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Function for data report
@@ -227,7 +228,17 @@ initialReport$dfColStats.factor %>%
   kable() %>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
 ```
 
+\newpage
 
+### Exploratory Analysis
+
+
+\newpage
+
+## `(a, ii)` - Data Preparation
+> For general data preparation, please see conceptual steps below. See `.rmd` file for detailed code.
+
+### Clean up Null Data
 See that when `campaign` is `null`, then other `ad` related fields are (mostly) null  
 
 * Implication: these other fields depend on the `campaign` variable
@@ -235,7 +246,7 @@ See that when `campaign` is `null`, then other `ad` related fields are (mostly) 
 * So, set `adwordsClickInfo.page` null fields to `No Campaign` description, since a null value indicates
 the user did not come using an advertisement  
 
-```{r}
+```{r, echo=FALSE, results='hide'}
 # look at non complete rows for ads 
 adTest <- df.train.base.factor[!complete.cases(df.train.base.factor$campaign), ]
 
@@ -244,31 +255,160 @@ adTest <- adTest %>% dplyr::select(campaign, starts_with('ad'))
 
 # See the percentage of missingness for each column where
 # adwordsClickInfo.page has null values. Note nearly all null.
-colSums(!is.na(adTest)) / nrow(adTest)
+print('Percentage of missingness below')
+print(colSums(!is.na(adTest)) / nrow(adTest))
 
 sum(!is.na(adTest)) / nrow(df.train.base)
 rm(adTest)
 ```
 
-```{r}
+```{r, echo=FALSE}
 NO_CAMPAIGN_TEXT = 'No Campaign'
 
 # Now clean up the data in the main data frame `df.train`
 # by setting null values to "No Campaign" if there is no campaign.
-# Applies to "ad*" and campaign variables
+# Applies to "ad*", keyword, and campaign variables
 df.train <- df.train.base %>%
   mutate_at(
     # Only mutate the variables starting with ad, THEN the campaign variable
-    vars(starts_with('ad'), campaign), 
+    vars(starts_with('ad'), keyword, campaign), 
     
     # Apply function rename set the campaign text if campaign is null
     list(~ as.factor(ifelse(is.na(campaign), NO_CAMPAIGN_TEXT, .) ) ) 
   ) 
+```
 
+```{r, eval=FALSE, echo=FALSE}
 # Check the data set - see that most of the ad data is now cleaned.
 # report2 <- dataQualityReport(df.train)
 # report2$dfColStats.factor %>% kable()
 ```
 
+Now, we are going to do a similar tactic for the location data.
+
+* There is a substantial amount of unique location data, which will not work well within a model.  
+
+* So, then location data is null, then we flag as `Other`  
+
+```{r, echo=FALSE}
+UNKNOWN_TEXT = 'Other'
+
+# If null in location data, then 'Unknown' location
+df.train <- df.train %>%
+  mutate_at(
+    # Only mutate these location variables
+    vars(continent:topLevelDomain), 
+    
+    # Apply function rename null values to Unknown
+    list(~ as.factor(ifelse(is.na(.), UNKNOWN_TEXT, .) ) ) 
+  )
+```
+
+```{r, eval=FALSE, echo=FALSE}
+# Check the data set - see that most of the ad data is now cleaned.
+report3 <- dataQualityReport(df.train)
+report3$dfColStats.factor %>% kable()
+```
 
 
+Similar to the location data, if the `referralPath` or `medium` is null, label as `Other`. 
+We would likely factor lump this data anyways.
+
+```{r, echo=FALSE}
+NONE_TEXT = 'Other'
+
+# If the `referralPath` is null, label as `Other`
+df.train <- df.train %>%
+  mutate_at(
+    # Only mutate the referral path
+    vars(referralPath, medium), 
+    
+    # Apply function rename set the referral to none
+    list(~ as.factor(ifelse(is.na(.), NONE_TEXT, .) ) ) 
+  )
+```
+
+```{r, eval=FALSE, echo=FALSE}
+# Check the data set - see that most of the ad data is now cleaned.
+report4 <- dataQualityReport(df.train)
+report4$dfColStats.factor %>% kable()
+```
+
+Now we have very few null values rows. Let's simply remove them. See below for how many.
+```{r, echo=FALSE}
+# Number of rows with any nulls
+numRowsWithNulls <- nrow(df.train[!complete.cases(df.train), ])
+
+# Output text
+paste('There are', numRowsWithNulls, 'rows with nulls')
+paste0('That equates to ', round(numRowsWithNulls / nrow(df.train)* 100, 1), '% rows with nulls')
+
+# Drop the rows
+df.train <- df.train %>% drop_na()
+paste('Total Rows Remaining:', nrow(df.train))
+```
+
+```{r, eval=FALSE, echo=FALSE}
+# Check the data set - see that most of the ad data is now cleaned.
+report5 <- dataQualityReport(df.train)
+report5$dfColStats.factor %>% kable()
+```
+
+### Factor Lump the Factor Data
+
+Overview: Create `Other` Bin for Columns over `5` Unique Values 
+
+* Applied to any `factor` column with over 5 unique values  
+* Applies `fct_lump()` function to columns via dynamic `dplyr` logic  
+
+```{r, echo=FALSE}
+df.train.clean <- df.train
+
+# Make data set of `factor` variables called `df.train.base.factor`
+df.train.factor <- df.train %>%
+
+  # selecting all the numeric data
+  dplyr::select_if(is.factor) %>%
+
+  # converting the data frame to tibble
+  as_tibble()
+
+# Get list of factors and the number of unique values
+factorCols <- as.data.frame(t(df.train.factor %>% summarise_all(n_distinct)))
+
+# We are going to factor collapse factor columns with more than 4 columns
+# So there will be 5 of the original, and 1 containing 'other'
+# This is the threshold
+factorThreshold = 5
+
+# Get a list of the factors we are going to collapse
+colsWithManyFactors <- rownames(factorCols %>% filter(V1 > factorThreshold))
+
+# Show a summary of how many factors will be collapsed
+numberOfColsWithManyFactors = length(colsWithManyFactors)
+paste('Before cleaning, there are', numberOfColsWithManyFactors, 'factor columns with more than', 
+      factorThreshold, 'unique values')
+
+# Collapse the affected factors in the original data (the one that already has imputation)
+## for each factor column that we are about to collapse
+# The third column is omits the cutstomer ID and session ID
+FIRST_NON_CUST_SESSION_IDX = 3
+for (collapsedColNum in FIRST_NON_CUST_SESSION_IDX:numberOfColsWithManyFactors) {
+  
+  # The name of the column with null values
+  nameOfThisColumn <- colsWithManyFactors[collapsedColNum]
+  
+  # Get the actual data of the column with nulls
+  colWithManyFactors <- df.train[, nameOfThisColumn]
+  
+  # lumps all levels except for the n most frequent 
+  df.train.clean[, nameOfThisColumn] <- fct_lump_n(colWithManyFactors, 
+                                                   n=factorThreshold)
+}
+# Check to see if the factor lumping worked
+factorColsCleaned <- t(df.train.clean %>% 
+                       select_if(is.factor) %>%
+                       summarise_all(n_distinct))
+# paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold + 1, na.rm = TRUE), 
+#       "columns with more than", factorThreshold + 1, "unique values (omitting NA's)") 
+```
