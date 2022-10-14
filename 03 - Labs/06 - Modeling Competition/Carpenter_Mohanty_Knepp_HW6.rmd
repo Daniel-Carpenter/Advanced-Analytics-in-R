@@ -70,13 +70,13 @@ library(car)
 Clean data to ensure each read variable has the correct data type (factor, numeric, Date, etc.)
 ```{r, echo=FALSE}
 # Convert all character data to factor
-df.train <- read.csv('Train.csv', stringsAsFactors = TRUE)
+df.train.base <- read.csv('Train.csv', stringsAsFactors = TRUE)
 
 # convert the ""'s to NA
-df.train[df.train == ""] <- NA
+df.train.base[df.train.base == ""] <- NA
 
 # Clean data
-df.train <- df.train %>% 
+df.train.base <- df.train.base %>% 
   
   # Ensure boolean variables are numeric
   mutate(adwordsClickInfo.isVideoAd = as.numeric(adwordsClickInfo.isVideoAd) ) %>%
@@ -100,9 +100,9 @@ df.train <- df.train %>%
 
 ### Create `numeric` and `factor` `data frames`
 
-Make data set of `numeric` variables called `df.train.numeric`
+Make data set of `numeric` variables called `df.train.base.numeric`
 ```{r, echo=FALSE}
-df.train.numeric <- df.train %>%
+df.train.base.numeric <- df.train.base %>%
 
   # selecting all the numeric data
   dplyr::select_if(is.numeric) %>%
@@ -111,9 +111,9 @@ df.train.numeric <- df.train %>%
   as_tibble()
 ```
 
-Make data set of `factor` variables called `df.train.factor`
+Make data set of `factor` variables called `df.train.base.factor`
 ```{r, echo=FALSE}
-df.train.factor <- df.train %>%
+df.train.base.factor <- df.train.base %>%
 
   #selecting all the numeric data
   dplyr::select_if(is.factor) %>%
@@ -136,7 +136,7 @@ removeColsWithNA <- function(df) {
 # This is done a bit piece-wise because PDF latex does not like the skimr package
 # Very much. So Instead of printing `skim(df)`, I have to pull the contents manually
 # Unfortunately. This is not an issue with html typically.
-dataReport <- skim(df.train) %>%
+dataReport <- skim(df.train.base) %>%
   rename_all(~str_replace(.,"skim_","")) %>%
   arrange(type, desc(complete_rate) ) # sort data 
 
@@ -163,8 +163,8 @@ dataReport.factor  <- removeColsWithNA(dataReport.factor ) %>%
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Get summary of data frame
-data.frame(Num_Numeric_Variables = ncol(df.train.numeric),
-           Total_Observations    = nrow(df.train.numeric) ) %>%
+data.frame(Num_Numeric_Variables = ncol(df.train.base.numeric),
+           Total_Observations    = nrow(df.train.base.numeric) ) %>%
   kable()
 ```
 
@@ -190,8 +190,8 @@ dataReport.numeric %>%
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Get summary of data frame
-data.frame(Num_Factor_Variables = ncol(df.train),
-           Total_Observations   = nrow(df.train) ) %>%
+data.frame(Num_Factor_Variables = ncol(df.train.base),
+           Total_Observations   = nrow(df.train.base) ) %>%
   kable()
 ```
 
