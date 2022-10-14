@@ -89,13 +89,17 @@ df.train.base <- df.train.base %>%
   # Ensure factor are factors
   mutate(custId       = as.factor(custId),
          sessionId    = as.factor(sessionId),
-         isMobile     = as.factor(isMobile),
          isTrueDirect = as.factor(isTrueDirect),
          newVisits    = as.factor(if_else(is.na(newVisits), 0, 1) ),
          bounces      = as.factor(if_else(is.na(bounces),   0, 1)   ),
          adwordsClickInfo.page      = as.factor(adwordsClickInfo.page),
          adwordsClickInfo.isVideoAd = as.factor(adwordsClickInfo.isVideoAd)
-         )
+         ) %>%
+  
+  dplyr::select(-c(
+    isMobile # This is contained in deviceCategory
+    
+  ))
 ```
 
 ### Create `numeric` and `factor` *base* `data frames`
@@ -232,6 +236,11 @@ initialReport$dfColStats.factor %>%
 
 ### Exploratory Analysis
 
+#### Analysis 1: 
+TODO
+
+#### Analysis 2: 
+TODO
 
 \newpage
 
@@ -243,7 +252,7 @@ See that when `campaign` is `null`, then other `ad` related fields are (mostly) 
 
 * Implication: these other fields depend on the `campaign` variable
 
-* So, set `adwordsClickInfo.page` null fields to `No Campaign` description, since a null value indicates
+* So, set `adwordsClickInfo.page` null fields to `None` description, since a null value indicates
 the user did not come using an advertisement  
 
 ```{r, echo=FALSE, results='hide'}
@@ -263,10 +272,10 @@ rm(adTest)
 ```
 
 ```{r, echo=FALSE}
-NO_CAMPAIGN_TEXT = 'No Campaign'
+NO_CAMPAIGN_TEXT = 'None'
 
 # Now clean up the data in the main data frame `df.train`
-# by setting null values to "No Campaign" if there is no campaign.
+# by setting null values to "None" if there is no campaign.
 # Applies to "ad*", keyword, and campaign variables
 df.train <- df.train.base %>%
   mutate_at(
@@ -288,10 +297,10 @@ Now, we are going to do a similar tactic for the location data.
 
 * There is a substantial amount of unique location data, which will not work well within a model.  
 
-* So, then location data is null, then we flag as `Other`  
+* So, then location data is null, then we flag as `Unknown`  
 
 ```{r, echo=FALSE}
-UNKNOWN_TEXT = 'Other'
+UNKNOWN_TEXT = 'Unknown'
 
 # If null in location data, then 'Unknown' location
 df.train <- df.train %>%
@@ -311,13 +320,13 @@ report3$dfColStats.factor %>% kable()
 ```
 
 
-Similar to the location data, if the `referralPath` or `medium` is null, label as `Other`. 
+Similar to the location data, if the `referralPath` or `medium` is null, label as `None`. 
 We would likely factor lump this data anyways.
 
 ```{r, echo=FALSE}
-NONE_TEXT = 'Other'
+NONE_TEXT = 'None'
 
-# If the `referralPath` is null, label as `Other`
+# If the `referralPath` is null, label as `None`
 df.train <- df.train %>%
   mutate_at(
     # Only mutate the referral path
@@ -412,3 +421,166 @@ factorColsCleaned <- t(df.train.clean %>%
 # paste('After cleaning, there are', sum(factorColsCleaned > factorThreshold + 1, na.rm = TRUE), 
 #       "columns with more than", factorThreshold + 1, "unique values (omitting NA's)") 
 ```
+
+\newpage
+
+## `(a, iii)` - Modeling
+
+### OLS Model
+#### Model Setup
+#### Fit the Model
+#### View and Interpret Results
+
+\newpage
+
+### Model 2: PCR Mixed with SVM
+
+#### Model Setup
+* Uses `numeric` data for Principal Component Analysis
+  - Data includes outliers
+  - Chose number of PC's that explain 70% of the variation. This is just a general judgement call to keep the number of principal components low.
+
+* Then appends the `factor` columns *without `NULL` values* and `Revenue` to the data
+* Finally, uses `stepAIC()` to best model data
+* See interpretation at end
+
+```{r}
+# Get cleaned `numeric` and `factor` `data frames`
+# After cleaning, two data sets that contain..
+
+## Numeric data 
+df.train.clean.numeric <- df.train.clean %>% select_if(is.numeric)
+
+## Factors 
+df.train.clean.factor  <- df.train.clean %>% dplyr::select(where(is.factor))
+```
+
+```{r}
+# Perform PCA
+# Principal component analysis on numeric data
+pc.train <- prcomp(df.train.clean.numeric %>% dplyr::select(-revenue), # do not include response var
+                   center = TRUE, # Mean centered
+                   scale  = TRUE  # Z-Score standardized
+                   )
+# See first 10 cumulative proportions
+pc.train.summary <- summary(pc.train)
+pc.train.summary
+```
+
+
+```{r}
+# Now we choose number of PC's that explain 75% of the variation
+# Note this threshold is just a judgement call. No significance behind 75%
+cumPropThreshold = 0.70 # The threshold
+numPCs <- sum(pc.train.summary$importance['Cumulative Proportion', ] < cumPropThreshold)
+paste0('There are ', numPCs, ' principal components that explain up to ', cumPropThreshold*100,
+       '% of the variation in the data')
+chosenPCs <- as.data.frame(pc.train$x[, 1:numPCs])
+```
+
+Join on the `factor` data and `revenue`
+```{r}
+df.svm <- cbind(revenue = df.train.clean.numeric$revenue, 
+                chosenPCs, 
+                df.train.clean.factor) %>%
+  
+  dplyr::select(-c(
+    # Remove ID cols since will overfit model
+    sessionId, custId, 
+    
+    # Remove ad content for the time being
+    starts_with('ad')    
+    ) )
+```
+
+Model controls
+```{r}
+ctrl <- trainControl(method  = "repeatedcv", 
+                     number  = 5, # 5 fold cross validation
+                     repeats = 1  # 2 repeats
+                     )
+```
+
+#### Fit the Model
+* SVM model containing:
+  - Principal components explaining 70% of variation in `numeric` data
+  - Non-null `factor` data
+  - *Predicted variable:* `revenue`
+
+
+```{r svm, warning=FALSE, message=FALSE}
+# Train and tune the SVM
+
+fit.svm <- train(data = df.svm[1:100, ], # TODO - Only showing 1000 records 
+                 revenue ~ .,
+                 method     = "svmRadial",         # Radial kernel
+                 tuneLength = 9,                   # 9 values of the cost function
+                 preProc    = c("center","scale"), # Center and scale data
+                 trControl  = ctrl)
+```
+
+#### View and Interpret Results
+
+```{r, fig.height=4, echo=FALSE}
+# Final model?
+fit.svm$finalModel
+
+# How do the predicted vs. Actuals Compare?
+# predictedVsObserved(observed  = log(df.svm$SalePrice),
+#                     predicted = predict(fit.svm, df.svm),
+#                     modelName = 'SVM')
+
+# Gather key diagnostics for summary table
+# Get the RMSE and R Squared of the model
+hyperparameters.svm = list('C' = fit.svm[["finalModel"]]@param[["C"]],
+                           'Epsilon' = fit.svm[["finalModel"]]@param[["epsilon"]])
+
+keyDiagnostics.svm <- data.frame(Model    = 'SVM',
+                                 Notes    = 'caret and svmRadial',
+                                 Hyperparameters = paste('C =', hyperparameters.svm$C, ',',
+                                                         'Epsilon =', hyperparameters.svm$Epsilon)
+                                 )
+keyDiagnostics.svm <- cbind(keyDiagnostics.svm,
+                            fit.svm$results %>% 
+                              filter(C == hyperparameters.svm$C) %>%
+                              dplyr::select(RMSE, Rsquared)
+                      )
+# Show output
+keyDiagnostics.svm %>% knitr::kable()
+```
+
+\newpage
+
+### Model 3: 
+#### Model Setup
+#### Fit the Model
+#### View and Interpret Results
+
+\newpage
+
+### Model 4: 
+#### Model Setup
+#### Fit the Model
+#### View and Interpret Results
+
+\newpage
+
+## `(a, iv)` - Debrief
+
+\newpage
+
+## Summary Table
+```{r, echo=FALSE}
+# Add the key diagnostics here
+rbind(
+  keyDiagnostics.svm
+  ) %>%
+  
+  # Round to 4 digits across numeric data
+  mutate_if(is.numeric, round, digits = 4) %>%
+  
+  # Spit out kable table
+  kable()
+```
+
+
