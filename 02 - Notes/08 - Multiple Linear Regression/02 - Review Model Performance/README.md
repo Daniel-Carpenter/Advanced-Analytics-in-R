@@ -53,6 +53,8 @@ Daniel Carpenter
         class="toc-section-number">4.7</span> Influencer</a>
     -   <a href="#multi-collinearity" id="toc-multi-collinearity"><span
         class="toc-section-number">4.8</span> Multi-collinearity</a>
+-   <a href="#classification" id="toc-classification"><span
+    class="toc-section-number">5</span> Classification</a>
 
 ## Diagnostics and Bias
 
@@ -462,3 +464,45 @@ vif(fit)
 
        pop15    pop75      dpi     ddpi 
     5.937661 6.629105 2.884369 1.074309 
+
+## Classification
+
+<img src="images/paste-2E6CFC8C.png" width="550" />
+
+<img src="images/paste-EF9F9274.png" width="550" />
+
+Misclassification Rate
+
+<img src="images/paste-44BC9035.png" width="550" />
+
+Misclassifcation Rate
+
+Not very informative
+
+<img src="images/paste-958F48CD.png" width="550" />
+
+Kappa Statistic
+
+<img src="images/paste-681723CE.png" width="550" />
+
+Confusion Matrix
+
+<img src="images/paste-B81AA718.png" width="550" />
+
+Predicting Classes
+
+<img src="images/paste-37E42778.png" width="550" />
+
+<img src="images/paste-38A12FE5.png" width="550" />
+
+<img src="images/paste-59ABF4C9.png" width="550" />
+
+ROC Curve
+
+<img src="images/paste-6E89FA4E.png" width="550" />
+
+<img src="images/paste-993CC011.png" width="550" />
+
+<img src="images/paste-EA0CFE68.png" width="550" />
+
+<img src="images/paste-49A2B4C2.png" width="550" />

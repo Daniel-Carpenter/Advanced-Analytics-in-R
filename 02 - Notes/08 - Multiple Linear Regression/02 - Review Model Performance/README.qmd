@@ -192,3 +192,45 @@ residualPlots(fit)
 #variation inflation factor from car package
 vif(fit)
 ```
+
+## Classification
+
+![](images/paste-2E6CFC8C.png){width="550"}
+
+![](images/paste-EF9F9274.png){width="550"}
+
+Misclassification Rate
+
+![](images/paste-44BC9035.png){width="550"}
+
+Misclassifcation Rate
+
+Not very informative
+
+![](images/paste-958F48CD.png){width="550"}
+
+Kappa Statistic
+
+![](images/paste-681723CE.png){width="550"}
+
+Confusion Matrix
+
+![](images/paste-B81AA718.png){width="550"}
+
+Predicting Classes
+
+![](images/paste-37E42778.png){width="550"}
+
+![](images/paste-38A12FE5.png){width="550"}
+
+![](images/paste-59ABF4C9.png){width="550"}
+
+ROC Curve
+
+![](images/paste-6E89FA4E.png){width="550"}
+
+![](images/paste-993CC011.png){width="550"}
+
+![](images/paste-EA0CFE68.png){width="550"}
+
+![](images/paste-49A2B4C2.png){width="550"}
