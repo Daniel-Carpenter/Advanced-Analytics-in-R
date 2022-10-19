@@ -13,6 +13,8 @@ Daniel Carpenter
 
 ## Overview
 
+> Great for dichotomous outcomes (choose one of 2 decisions)
+
 -   Compare and contrast Multiple Linear Regression and Logistic
     Regression
 
