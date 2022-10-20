@@ -7,7 +7,7 @@ format:
     number-sections: true
     toc-depth: 3
 standalone: true
-
+    
 editor: visual
 ---
 
@@ -111,7 +111,7 @@ Algorithm idea:
 
 ### Concepts
 
-### ![](images/paste-E2B31A82.png){width="550"}
+![](images/paste-E2B31A82.png){width="550"}
 
 ### R Packages
 

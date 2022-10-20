@@ -45,15 +45,12 @@ Daniel Carpenter
     class="toc-section-number">4</span> Tree Algorithms</a>
     -   <a href="#concepts" id="toc-concepts"><span
         class="toc-section-number">4.1</span> Concepts</a>
-    -   <a href="#section" id="toc-section"><span
-        class="toc-section-number">4.2</span> <img
-        src="images/paste-E2B31A82.png" width="550" /></a>
     -   <a href="#r-packages" id="toc-r-packages"><span
-        class="toc-section-number">4.3</span> R Packages</a>
+        class="toc-section-number">4.2</span> R Packages</a>
     -   <a href="#notes-on-trees" id="toc-notes-on-trees"><span
-        class="toc-section-number">4.4</span> Notes on Trees</a>
+        class="toc-section-number">4.3</span> Notes on Trees</a>
     -   <a href="#complexity" id="toc-complexity"><span
-        class="toc-section-number">4.5</span> Complexity</a>
+        class="toc-section-number">4.4</span> Complexity</a>
 -   <a href="#r-example" id="toc-r-example"><span
     class="toc-section-number">5</span> R Example</a>
 -   <a href="#tree-ensembles" id="toc-tree-ensembles"><span
@@ -171,7 +168,7 @@ Algorithm idea:
 
 ### Concepts
 
-### <img src="images/paste-E2B31A82.png" width="550" />
+<img src="images/paste-E2B31A82.png" width="550" />
 
 ### R Packages
 
