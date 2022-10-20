@@ -4,17 +4,68 @@ Daniel Carpenter
 
 -   <a href="#overview" id="toc-overview"><span
     class="toc-section-number">1</span> Overview</a>
+    -   <a href="#pros-of-decision-trees" id="toc-pros-of-decision-trees"><span
+        class="toc-section-number">1.1</span> Pros of Decision Trees</a>
+    -   <a href="#cons-of-decision-trees" id="toc-cons-of-decision-trees"><span
+        class="toc-section-number">1.2</span> Cons of Decision Trees</a>
+    -   <a href="#process-overview" id="toc-process-overview"><span
+        class="toc-section-number">1.3</span> Process Overview</a>
 -   <a href="#general-ideas" id="toc-general-ideas"><span
     class="toc-section-number">2</span> General Ideas</a>
+    -   <a href="#interpretation-of-decision-trees"
+        id="toc-interpretation-of-decision-trees"><span
+        class="toc-section-number">2.1</span> Interpretation of Decision
+        Trees</a>
+    -   <a href="#constructing-trees-induction"
+        id="toc-constructing-trees-induction"><span
+        class="toc-section-number">2.2</span> Constructing Trees (Induction)</a>
 -   <a href="#methods-to-assess-impurity"
     id="toc-methods-to-assess-impurity"><span
     class="toc-section-number">3</span> Methods to Assess Impurity</a>
+    -   <a href="#summary-of-methods" id="toc-summary-of-methods"><span
+        class="toc-section-number">3.1</span> Summary of Methods</a>
+    -   <a href="#method-1---using-misclassificatin-rate"
+        id="toc-method-1---using-misclassificatin-rate"><span
+        class="toc-section-number">3.2</span> Method 1 - Using Misclassificatin
+        Rate</a>
+    -   <a href="#method-2---entropy-improvement-to-misclassification"
+        id="toc-method-2---entropy-improvement-to-misclassification"><span
+        class="toc-section-number">3.3</span> Method 2 - Entropy (Improvement to
+        Misclassification)</a>
+    -   <a href="#method-3---information-gain"
+        id="toc-method-3---information-gain"><span
+        class="toc-section-number">3.4</span> Method 3 - Information Gain</a>
+    -   <a href="#method-4---information-gain-ratio"
+        id="toc-method-4---information-gain-ratio"><span
+        class="toc-section-number">3.5</span> Method 4 - Information Gain
+        <em>Ratio</em></a>
+    -   <a href="#method-5---gini-index" id="toc-method-5---gini-index"><span
+        class="toc-section-number">3.6</span> Method 5 - Gini Index</a>
 -   <a href="#tree-algorithms" id="toc-tree-algorithms"><span
     class="toc-section-number">4</span> Tree Algorithms</a>
+    -   <a href="#concepts" id="toc-concepts"><span
+        class="toc-section-number">4.1</span> Concepts</a>
+    -   <a href="#section" id="toc-section"><span
+        class="toc-section-number">4.2</span> <img
+        src="images/paste-E2B31A82.png" width="550" /></a>
+    -   <a href="#r-packages" id="toc-r-packages"><span
+        class="toc-section-number">4.3</span> R Packages</a>
+    -   <a href="#notes-on-trees" id="toc-notes-on-trees"><span
+        class="toc-section-number">4.4</span> Notes on Trees</a>
+    -   <a href="#complexity" id="toc-complexity"><span
+        class="toc-section-number">4.5</span> Complexity</a>
 -   <a href="#r-example" id="toc-r-example"><span
     class="toc-section-number">5</span> R Example</a>
 -   <a href="#tree-ensembles" id="toc-tree-ensembles"><span
     class="toc-section-number">6</span> Tree Ensembles</a>
+    -   <a href="#overview-1" id="toc-overview-1"><span
+        class="toc-section-number">6.1</span> Overview</a>
+    -   <a href="#bagging" id="toc-bagging"><span
+        class="toc-section-number">6.2</span> Bagging</a>
+    -   <a href="#random-forests" id="toc-random-forests"><span
+        class="toc-section-number">6.3</span> Random Forests</a>
+    -   <a href="#boosted-trees" id="toc-boosted-trees"><span
+        class="toc-section-number">6.4</span> Boosted Trees</a>
 
 ## Overview
 

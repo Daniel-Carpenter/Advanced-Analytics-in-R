@@ -5,9 +5,9 @@ format:
   gfm:
     toc: true
     number-sections: true
-    toc-depth: 2
+    toc-depth: 3
 standalone: true
-    
+
 editor: visual
 ---
 
