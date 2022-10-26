@@ -625,6 +625,10 @@ rm(CustRev,
 ### OLS Model
 
 #### Fit the Model
+* Initially created a model with all variables, then used `stepAIC()` to identify important variables  
+* Implemented in the OLS model to realize a better fit model.
+
+
 ```{r, cache=TRUE}
 # Tee OLS model
 # See RMD for stepAIC function that generated these relevant variables for the model
@@ -682,8 +686,9 @@ keyDiagnostics.ols %>%
 #### Fit the Model
 * Based on model testing, highest $R^2$ is around 110 number of components.  
 * To ensure that the model finds the best fit, set the `ncomp` variable to 110  
+* Fits data similarly to the former model.  
 
-```{r, echo=TRUE, results='hide', cache=TRUE}
+```{r, echo=FALSE, results='hide', cache=TRUE}
 # copy data
 pcr.df <- df.train.clean
 
@@ -737,16 +742,27 @@ keyDiagnostics.pcr %>%
 ### Model 3: MARS
 
 #### Fit the Model
+* Use MARS model from earth package.  
+* Fits data similarly to the former models.  
+
 ```{r, echo=FALSE, results='hide', cache=TRUE}
+
+# Model tuning controls
+ctrl <- trainControl(method  = "repeatedcv", 
+                     number  = 5, # 5 fold cross validation
+                     repeats = 1  # 1 repeats
+                     )
+
+# Fit the model
 marsFit <- train(data = df.train.clean, 
                  totalRevenue ~ pageviews + visitNumber + timeSinceLastVisit + 
                    bounces + newVisits + source + referralPath + browser + deviceCategory + 
                    campaign + adContent + adwordsClickInfo.slot + adwordsClickInfo.gclId + 
                    keyword + continent + subContinent + country + region + metro + city,
-                  method     = "earth",             # Radial kernel
+                  method     = "earth",             # Earth is for MARS models
                   tuneLength = 9,                   # 9 values of the cost function
                   preProc    = c("center","scale"), # Center and scale data
-                  trControl  = ctrl
+                  trControl  = ctrl 
                  )
 summary(marsFit)
 #plot(marsFit)
