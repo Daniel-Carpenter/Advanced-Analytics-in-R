@@ -72,7 +72,6 @@ Clean data to ensure each read variable has the correct data type (factor, numer
 ```{r, echo=FALSE}
 # Convert all character data to factor
 df.train.base <- read.csv('Train.csv', stringsAsFactors = TRUE)
-df.test <- read.csv('Test.csv', stringsAsFactors = TRUE)
 
 
 # convert the ""'s to NA
@@ -648,7 +647,8 @@ Group by customer & Sum up all numeric data
 * Filter to only the customers who visited twice  
 * Get the unique visits and choose the first visit  
 * THis is just an assumption! Not the best, but we have to make a choice.  
-* Append unique customers to non-unique customers (that are now unique)
+* Append unique customers to non-unique customers (that are now unique)  
+* Note not using all columns, only columns NOT specific to the model
 
 ```{r, echo=FALSE}
 df.train.clean.custMultiToSingle <- df.train.clean %>%
@@ -692,9 +692,21 @@ df.train.clean.custMultiToSingle <- df.train.clean %>%
   )
 
 
+df.train.clean.custSingle <- df.train.clean.custSingle %>% 
+  dplyr::select(
+          custId, browser, operatingSystem, deviceCategory, continent, subContinent, country, 
+          region, metro, city, networkDomain, topLevelDomain, campaign, source, medium, 
+          keyword, isTrueDirect, referralPath, adContent, adwordsClickInfo.page, 
+          adwordsClickInfo.slot, adwordsClickInfo.gclId, adwordsClickInfo.adNetworkType, 
+          adwordsClickInfo.isVideoAd, bounces, newVisits, pageviews, revenue
+          )
+
 # Make sure we captured all customers
 nrow(df.train.clean.custSingle) + nrow(df.train.clean.custMultiToSingle)
 nrow(df.train.clean.uniqueCust)
+
+ncol(df.train.clean.custSingle)
+ncol(df.train.clean.custMultiToSingle)
 
 # Append unique customers to non-unique customers (that are now unique)
 df.train.clean.cust <- rbind(df.train.clean.custMultiToSingle, 
