@@ -625,12 +625,14 @@ rm(CustRev,
 ### OLS Model
 
 #### Fit the Model
-```{r}
+```{r, cache=TRUE}
 # Tee OLS model
-ols <- lm(totalRevenue ~ pageviews+visitNumber+
-            referralPath+deviceCategory+region+metro+city
-          +channelGrouping+campaign+keyword+medium, 
-          data =df.train.clean) 
+# See RMD for stepAIC function that generated these relevant variables for the model
+ols <- lm(totalRevenue ~ pageviews + visitNumber + timeSinceLastVisit + 
+            bounces + newVisits + source + referralPath + browser + deviceCategory + 
+            campaign + adContent + adwordsClickInfo.slot + adwordsClickInfo.gclId + 
+            keyword + continent + subContinent + country + region + metro + city,
+          data = df.train.clean)
 ```
 
 #### View and Interpret Results
@@ -638,14 +640,29 @@ ols <- lm(totalRevenue ~ pageviews+visitNumber+
 # Key diagnostics for OLS: lm final summary table
 summary(ols)
 #plot(ols)
+```
 
-# Key diagnostics
-ols.rmse    <- rmse(actual=df.train.clean$totalRevenue, predicted=ols$fitted.values)
-ols.summary <- summary(ols)
+
+```{r, echo=FALSE, results='hide'}
+# Note that used Step AIC to build out the abovve model.
+# Commented out to minimize computation exertion in file
+
+# ols.stepAIC <- stepAIC(ols, direction = "both")
+# summary(ols.stepAIC)
+
+# Best Model Output:
+# totalRevenue ~ pageviews + visitNumber + timeSinceLastVisit + 
+#             bounces + newVisits + source + referralPath + browser + deviceCategory + 
+#             campaign + adContent + adwordsClickInfo.slot + adwordsClickInfo.gclId + 
+#             keyword + continent + subContinent + country + region + metro + city,
 ```
 
 ```{r, echo=FALSE}
 # Get the RMSE and R Squared of the model
+ols.rmse    <- rmse(actual=df.train.clean$totalRevenue, predicted=ols$fitted.values)
+ols.summary <- summary(ols)
+
+# Key diagnostics
 keyDiagnostics.ols <- data.frame(Model    = 'OLS',
                                  Notes    = 'lm',
                                  Hyperparameters = 'N/A',
@@ -663,15 +680,27 @@ keyDiagnostics.ols %>%
 ### Model 2: PCR Model
 
 #### Fit the Model
-```{r, echo=FALSE, results='hide'}
+* Based on model testing, highest $R^2$ is around 110 number of components.  
+* To ensure that the model finds the best fit, set the `ncomp` variable to 110  
+
+```{r, echo=TRUE, results='hide', cache=TRUE}
 # copy data
 pcr.df <- df.train.clean
-  
 
-pcr <- pcr(totalRevenue ~ pageviews+visitNumber+
-            referralPath+deviceCategory+region+metro+city,
-
-          data=pcr.df, scale=TRUE, validation="CV")
+# Fit the model
+pcr <- mvr(totalRevenue ~ pageviews + visitNumber + timeSinceLastVisit + 
+            bounces + newVisits + source + referralPath + browser + deviceCategory + 
+            campaign + adContent + adwordsClickInfo.slot + adwordsClickInfo.gclId + 
+            keyword + continent + subContinent + country + region + metro + city,
+          data  = df.train.clean, 
+          
+          # Modeling params
+          center = TRUE,
+          scale  = TRUE, 
+          validation = "CV",
+          
+          # Based on model testing, highest $R^2$ is around 110 number of components.  
+          ncomp = 110)
 ```
 
 
@@ -708,10 +737,12 @@ keyDiagnostics.pcr %>%
 ### Model 3: MARS
 
 #### Fit the Model
-```{r, echo=FALSE, results='hide'}
+```{r, echo=FALSE, results='hide', cache=TRUE}
 marsFit <- train(data = df.train.clean, 
-                 totalRevenue ~ pageviews+visitNumber+
-                   referralPath+deviceCategory+region+metro+city,
+                 totalRevenue ~ pageviews + visitNumber + timeSinceLastVisit + 
+                   bounces + newVisits + source + referralPath + browser + deviceCategory + 
+                   campaign + adContent + adwordsClickInfo.slot + adwordsClickInfo.gclId + 
+                   keyword + continent + subContinent + country + region + metro + city,
                   method     = "earth",             # Radial kernel
                   tuneLength = 9,                   # 9 values of the cost function
                   preProc    = c("center","scale"), # Center and scale data
@@ -809,7 +840,7 @@ rbind(
   keyDiagnostics.pcr,
   keyDiagnostics.mars,
   keyDiagnostics.elasticnet
-  ) %>%
+) %>%
   
   # Round to 4 digits across numeric data
   mutate_if(is.numeric, round, digits = 4) %>%
