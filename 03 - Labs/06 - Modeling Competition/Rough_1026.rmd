@@ -1328,13 +1328,28 @@ for (factorColName in names(uniqueTrainFactors) ) {
   )
 }
 
+# If any remaining nulls then bin as other or  0 
+# checkNAs <- function(x) { sum(is.na(x))}
+# lapply(df.test.clean, checkNAs)
+# lapply(df.test.clean, class)
+# See that pageviews, operatingSystem, and source are NA
+
+df.test.clean$pageviews[is.na(df.test.clean$pageviews)] <- 0
+df.test.clean$operatingSystem[is.na(df.test.clean$operatingSystem)] <- "Other"
+df.test.clean$source[is.na(df.test.clean$source)] <- "Other"
+
+# Check to see if it worked
+# check <- df.test.clean[!complete.cases(df.test.clean), ]
+# View(check)
+
+# Validation
 uniqueTestFactors <- lapply(df.test.clean %>% select_if(is.factor), unique)
-sum(!is.element(uniqueTrainFactors$browser, 
-                 uniqueTestFactors$browser)
+sum(!is.element(uniqueTrainFactors$operatingSystem, 
+                 uniqueTestFactors$operatingSystem)
 )
 
-uniqueTrainFactors$browser
-uniqueTestFactors$browser
+# uniqueTrainFactors$operatingSystem
+# uniqueTestFactors$operatingSystem
 # uniqueTestFactors
 ```
 
@@ -1440,15 +1455,25 @@ df.test.clean.cust <- rbind(df.test.clean.custMultiToSingle,
 <!-- ``` -->
 
 ### Create dataset without the `custID` field called `df.test.clean.noCust`
-```{r}
+```{r, echo=FALSE}
 df.test.clean.noCust <- df.test.clean.cust[, 2:ncol(df.test.clean.cust)] 
 ```
 
 \newpage
 
-
 ## Predict the customer data using the MARS model
 ```{r}
-predictions <- predict(marsFit,                        # MARS Model from training data
-                       newdata = df.test.clean.noCust) # Test data 
+predictions <- as.vector(
+                    predict(marsFit,                # MARS Model from training data
+                    newdata = df.test.clean.noCust) # Test data 
+                    )
+
+
+outputData <- data.frame(custId      = df.test.clean.cust$custId,
+                         predRevenue = predictions)
+
+# write the file
+write.csv(file      = 'Kaggle Submission Data (Test).csv',
+          x         = outputData,
+          row.names = FALSE)
 ```
