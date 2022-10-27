@@ -9,9 +9,9 @@ output:
     toc_depth: 3
     highlight: arrow
     latex_engine: xelatex
-  github_document:
-    toc: yes
-    toc_depth: 3
+  # github_document:
+  #   toc: yes
+  #   toc_depth: 2
 urlcolor: blue
 cache: true
 fig.width: 7
@@ -239,8 +239,10 @@ initialReport$dfColStats.factor %>%
 \newpage
 
 ### Exploratory Analysis
+*    Need to predict a transformation of the `aggregate customer-level sales` value
+based on the natural log  
 
-```{r}
+```{r, echo=FALSE}
 #aggregate revenue
 CustRev <- stats::aggregate(df.train.base$revenue, 
                      by=list(df.train.base$custId),
@@ -264,7 +266,7 @@ df.train.merge$totalRevenue <- log(df.train.merge$totalRevenue)
 *   Checking the distribution of the transformation of the aggregrate customer-level sales value
 based on the natural log:  
 
-```{r}
+```{r, echo=FALSE}
 
 hist(df.train.merge$totalRevenue,
      col = 'skyblue4',
@@ -272,13 +274,14 @@ hist(df.train.merge$totalRevenue,
      xlab = 'Target Revenue')
 ```
   
-*   We can see that the transformed revenue doesn't look like a normal distribution with a spike at 0 revenue which means it can be an outlier.  
+*   We can see that the transformed revenue doesn't look like a normal distribution with a spike at 0 revenue which means it can be an outlier.   
+*   From the dataset, we can also see two sets of cutomers - one set who visited the site once and another who visited multiple times.  
+*   The histogram here doesn't take into account the above fact and therefore the frequency of the target revenue is compromised.  
+ 
 
 #### Analysis 2: 
-  
-*   Correlation between features in the dataset  
 
-```{r}
+```{r, echo=FALSE, fig.width=8}
 df.train.merge %>%
   ggplot(aes(x = fct_reorder(channelGrouping, desc(totalRevenue) ),
              y = totalRevenue) ) +
@@ -296,7 +299,9 @@ df.train.merge %>%
        x = 'Channels Used by Customers for Online Store',
        y = 'Transformed Revenue Generated')
 ```
-
+  
+*    The relevance behind this plot is to analyze whether the revenue generated is dependent on the channels via which the user came to the online store.  
+*   Social media definitely plays an important role to attract customers to ttry online shopping.  
 
 \newpage
 
@@ -361,7 +366,7 @@ See that when `continent` is `null`, then other `location` related fields are al
 
 * So, set `location related` null fields to `Unknow` description 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 # If null in location data, then 'Unknown' location
 df.train <- df.train %>%
   mutate_at(
@@ -381,7 +386,7 @@ See that when `medium` is `null`, then other `ad`, `keyword` and `campaign` rela
 * So, set these null fields to `None` description, since a null value indicates
 the user did not has `no traffic source`  
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 # Now clean up the data in the main data frame `df.train`
 # by setting null values to "No taffic source" if there is no medium
 # Applies to "ad*", keyword, and campaign, referralPath, medium variables
@@ -402,9 +407,9 @@ See that when `campaign` is `null`, then some `ad` related fields are (mostly) n
 * So, set `adwordsClickInfo.page` null fields to `None` description, since a null value indicates
 the user did not come using an advertisement  
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 # Now clean up the data in the main data frame `df.train`
-# by setting null values to "None" if there is no campaign.
+# by setting null values to "No Campaign" if there is no campaign.
 # Applies to "ad*", keyword, and campaign variables
 df.train <- df.train %>%
   mutate_at(
@@ -417,9 +422,9 @@ df.train <- df.train %>%
 
 ```
 
-Similar to campaign, whenever `keyword` is NA, some `ads` is null  
-```{r, echo=FALSE}
-#NO_KEYWORD_TEXT = 'No Keyword'
+Similar approach is done to impute the rest `NAs` in the categorical variables of the data set  
+```{r, echo=FALSE, results='hide'}
+
 
 # Now clean up the data in the main data frame `df.train`
 # by setting null values to "No Keyword" if there is no keyword
@@ -434,12 +439,9 @@ df.train <- df.train %>%
   ) 
 ```
 
-Similar to the campaign data, if the `adContent` is null, label as `No Ad`. 
-  
-*   Implications: If there is no ad Content of the traffic source then there is no no referral path  
 
-```{r, echo=FALSE}
-# If the `adContent` is null, label as `None`
+```{r, echo=FALSE, results='hide'}
+# If the `adContent` is null, label as `No Ad`
 df.train <- df.train %>%
   mutate_at(
     # Only mutate the referral path
@@ -450,11 +452,8 @@ df.train <- df.train %>%
   )
 ```
 
-Similar to the campaign data, if the `adwordsClickInfo.adNetworkType` is null, then all `ad` related variables are also `NULL`. 
-  
-*   Implications: If there is no ad search then customer didn't see any ad.  
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 # If the `adwordsClickInfo.adNetworkType` is null, label as `No Ad Network`
 df.train <- df.train %>%
   mutate_at(
@@ -467,11 +466,7 @@ df.train <- df.train %>%
   )
 ```
 
-Similar to the adwordsClickInfo.adNetworkType data, if the `adwordsClickInfo.page` is null, then some `ad` related variables are also `NULL` and there is no referral source. 
-  
-*   Implications: If there is no ad published on a page then customer didn't see any ad.  
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 # If the `adwordsClickInfo.page` is null, label as `No Ad Page`
 df.train <- df.train %>%
   mutate_at(
@@ -483,8 +478,8 @@ df.train <- df.train %>%
   )
 ```
 
-If `network domain` is `NULL` then all the related domains are also NULL. 
-```{r, echo=FALSE}
+
+```{r, echo=FALSE, results='hide'}
 # If the `network domain` is null, label as `No Domain`
 df.train <- df.train %>%
   mutate_at(
@@ -497,9 +492,8 @@ df.train <- df.train %>%
 ```
 
 
-Setting `referralPath` for NAs. 
-```{r, echo=FALSE}
-# If the `network domain` is null, label as `No Domain`
+```{r, echo=FALSE, results='hide'}
+# If the `network domain` is null, label as `No Referrer`
 df.train <- df.train %>%
   mutate_at(
     # Only mutate the referral path
@@ -510,9 +504,9 @@ df.train <- df.train %>%
   )
 ```
 
-Setting `adwordsClickInfo.gclId` for NAs. 
-```{r, echo=FALSE}
-# If the `network domain` is null, label as `No Domain`
+
+```{r, echo=FALSE, results='hide'}
+# If the `adwordsClickInfo.gclId` is null, label as `No Google Click ID`
 df.train <- df.train %>%
   mutate_at(
     # Only mutate the referral path
@@ -543,12 +537,14 @@ paste('Total Rows Remaining:', nrow(df.train))
 # report12$dfColStats.factor %>% kable()
 ```
 
+* We are going to factor collapse factor columns with more than 4 columns  
+* So there will be 5 of the original, and 1 containing 'other'  
 
 ```{r, echo=FALSE}
 # We are going to factor collapse factor columns with more than 4 columns
 # So there will be 5 of the original, and 1 containing 'other'
 # This is the threshold
-FACTOR_THRESHOLD = 3
+FACTOR_THRESHOLD = 4
 
 df.train.clean <- df.train
 
@@ -723,7 +719,7 @@ df.train.clean.cust <- df.train.clean.cust %>%
   dplyr::select(-revenue)
 ```
 
-### Create dataset without the `custID` field called `df.train.clean.noCust`
+### Then create dataset without the `custID` field called `df.train.clean.noCust`
 ```{r, echo=FALSE}
 df.train.clean.noCust <- df.train.clean.cust[, 2:ncol(df.train.clean.cust)] 
 ```
@@ -734,7 +730,8 @@ df.train.clean.noCust <- df.train.clean.cust[, 2:ncol(df.train.clean.cust)]
 
 ### OLS Model
 
-#### Fit the Model
+#### Fit the Model  
+
 * Initially created a model with all variables, then used `stepAIC()` to identify important variables  
 * Implemented in the OLS model to realize a better fit model.
 
@@ -746,17 +743,14 @@ ols <- lm(targetVariable ~ operatingSystem + country + metro + city + networkDom
             source + keyword + isTrueDirect + referralPath + bounces + 
             newVisits + pageviews,
           data = df.train.clean.noCust)
-```
-
-#### View and Interpret Results
-
+```  
+  
 ```{r, echo=FALSE, results='hide'}
 # Key diagnostics for OLS: lm final summary table
 summary(ols)
 #plot(ols)
-```
-
-
+```  
+  
 ```{r, echo=FALSE, results='hide'}
 # Note that used Step AIC to build out the abovve model.
 # Commented out to minimize computation exertion in file
@@ -768,7 +762,10 @@ summary(ols)
 # targtargetVariable ~ operatingSystem + country + metro + city + networkDomain + 
 #     source + keyword + isTrueDirect + referralPath + bounces + 
 #     newVisits + pageviewsnewVisits + pageviews
-```
+```  
+
+#### View and Interpret Results  
+  
 
 ```{r, echo=FALSE}
 # Get the RMSE and R Squared of the model
@@ -786,12 +783,14 @@ keyDiagnostics.ols <- data.frame(Model    = 'OLS',
 keyDiagnostics.ols %>% 
   knitr::kable()
 ``` 
-
+  
+* Comparing the OLS model with various other robust models to see how better these robust models perform as compared to the OLS model based on the RMSE and $R^2$.
 
 
 ### Model 2: PCR Model
 
-#### Fit the Model
+#### Fit the Model  
+
 * Based on model testing, highest $R^2$ is around 68 number of components.  
 * Fits data much better than the former model.  
 
@@ -806,10 +805,8 @@ pcr <- mvr(targetVariable ~ operatingSystem + country + metro + city + networkDo
           center = TRUE,
           scale  = TRUE, 
           validation = "CV")
-```
-
-
-#### View and Interpret Results
+```  
+  
 
 ```{r, echo=FALSE, results='hide'}
 # See the summary output
@@ -818,7 +815,10 @@ summary(pcr)
 # validationplot(pcr)
 # validationplot(pcr, val.type = 'R2')
 ```
+
+#### View and Interpret Results  
   
+
 ```{r, echo=FALSE}
 # Key diagnostics for PCR final summary table
 RMSE.pcr <- RMSEP(pcr, ncomp=15)
@@ -835,11 +835,14 @@ keyDiagnostics.pcr <- data.frame(Model    = 'PCR',
 keyDiagnostics.pcr %>% 
   knitr::kable()
 ```  
-
+  
+* 28 components explain 100% variance in the data set, but 15 components are enough to justify more than 75% of data variance.  
+*   We will see if MARS and ELasticNet models outperform the PCR model.  
 
 ### Model 3: MARS
 
-#### Fit the Model
+#### Fit the Model  
+
 * Use MARS model from earth package.  
 * Fits data similarly to the former models.  
 
@@ -848,7 +851,7 @@ keyDiagnostics.pcr %>%
 # Model tuning controls
 ctrl <- trainControl(method  = "repeatedcv", 
                      number  = 5, # 5 fold cross validation
-                     repeats = 2  # 1 repeats
+                     repeats = 1  # 1 repeats
                      )
 
 # Fit the model
@@ -857,7 +860,7 @@ marsFit <- train(data = df.train.clean.noCust,
                    source + keyword + isTrueDirect + referralPath + bounces + 
                    newVisits + pageviews,
                   method     = "earth",             # Earth is for MARS models
-                  tuneLength = 10,                   # 9 values of the cost function
+                  tuneLength = 9,                   # 9 values of the cost function
                   preProc    = c("center","scale"), # Center and scale data
                   trControl  = ctrl 
                  )
@@ -865,7 +868,8 @@ summary(marsFit)
 #plot(marsFit)
 ```
 
-#### View and Interpret Results
+#### View and Interpret Results  
+  
 ```{r, echo=FALSE}
 # Key diagnostics for final model
 
@@ -889,11 +893,13 @@ keyDiagnostics.mars <- cbind(keyDiagnostics.mars,
 # Show output
 keyDiagnostics.mars %>% kable()
 ```
-
+  
+*    See that the model overall performs well, and in fact performs better as compared to the PCR model (in terms of RMSE and $R^2$).
 
 ### Model 4: Elastic Net Model
 
-#### Fit the Model
+#### Fit the Model  
+
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 rm(df.train.clean.factor)
 rm(df.train.clean.numeric)
@@ -909,10 +915,8 @@ fit.elasticnet <- train(data = df.train.clean.noCust,
                         tuneLength = 10,                  # 10 values of alpha and lambdas
                         trControl  = ctrl)
 ```  
-
-#### View and Interpret Results
-
-```{r, echo=FALSE}
+  
+```{r, echo=FALSE, results='hide'}
 # Function to get the best hypertuned parameters
 get_best_result = function(caret_fit) {
   best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
@@ -921,7 +925,12 @@ get_best_result = function(caret_fit) {
   best_result
 }
 result.elasticnet <- get_best_result(fit.elasticnet)
+``` 
+  
+#### View and Interpret Results  
+  
 
+```{r, echo=FALSE}
 # Gather key diagnostics for summary table
 # Get the RMSE and R Squared of the model
 hyperparameters.elasticnet = list('Alpha'  = result.elasticnet$alpha,
@@ -941,12 +950,20 @@ keyDiagnostics.elasticnet <- data.frame(Model    = 'Elastic Net',
 # Show output
 keyDiagnostics.elasticnet %>% knitr::kable()
 ```
+  
+* The Elastic Net Model performs similar to PCR model.  
+
+* Thus, MARS model outperformed all the rest models based on the `RMSE` and $R^2$ measures.  
+  
+*   We will now predict the test set with the MARS model that we created.  
+
 
 \newpage
 
 ## `(a, iv)` - Debrief
 
-### Summary Table
+### Summary Table  
+
 ```{r, echo=FALSE}
 # Add the key diagnostics here
 rbind(
@@ -963,8 +980,18 @@ rbind(
   kable()
 ```
 
-### Interpretations of Debrief
+### Interpretations of Debrief  
 
+*   For MARS model, we used `caret` and `earth` method  
+*   The hyperparameters that worked best for the model is` Degree = 1` , `nprune = 8`  
+*   We first imputed all the `NAs` we had in the data set and got the final dataset of `69753` rows, i.e., we only dropped about 0.5% rows with nulls in order to capture the sanctity of the dataset and performed transformation of revenue on this dataset  
+*   Since after imputation, there were a large number of dummy categorical values, so initially when the model were tested it took a lot of time and for some cases the model didn't even fit  
+*   So, factor collapsing was performed on these factor columns which gave us 5 of the `original` values and 1 `other`  
+*   Same steps were performed on the test data set  
+*   After that even, the `RMSE` and $R^2$ values were not upto the mark for the models 
+*   So, came up with the idea of grouping of customers, i.e., grouping based on which customers visited once or twice  
+*   Then the transformation of revenue, `targetRevenue` was done on this grouped data set, and then  `custId` column was removed from the dataset to avoid overfitting of the model  
+*   Then the performance of the models boosted up 
 
 \newpage
 
@@ -1332,7 +1359,7 @@ df.test.clean.custMultiToSingle <- df.test.clean %>%
   group_by(custId) %>%
   
   # Get the unique visits and choose the first visit
-  # THis is just an assumption! Not the best, but we have to make a choice.
+  # This is just an assumption! Not the best, but we have to make a choice.
   summarise(
     browser                        = unique(browser)[1], 
     operatingSystem                = unique(operatingSystem)[1], 
