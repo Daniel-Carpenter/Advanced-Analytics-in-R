@@ -11,6 +11,61 @@ standalone: true
 editor: visual
 ---
 
+# Concepts
+
 ## Overview
 
--   
+![](images/paste-B0947BF5.png)
+
+## Linear Separation
+
+> Maximize the distance between classes
+
+![](images/paste-6EFCA49F.png){width="550"}
+
+![](images/paste-37487831.png){width="550"}
+
+![](images/paste-F5E38B6F.png){width="550"}
+
+## Example
+
+![](images/paste-0721CCF7.png){width="550"}
+
+![](images/paste-058C7ACF.png){width="550"}
+
+## Summary
+
+![](images/paste-140EEA5D.png){width="550"}
+
+![](images/paste-D6ED134B.png){width="550"}
+
+## The Kernel Trick
+
+![](images/paste-37D947EA.png){width="550"}
+
+![](images/paste-D2D69416.png){width="550"}
+
+![](images/paste-AAB5AE27.png){width="550"}
+
+![](images/paste-2FB87495.png){width="550"}
+
+# R Example
+
+```{r}
+library(mlbench) # Glass data
+library(kernlab) # ksvm function
+
+data(Glass)
+names(Glass)
+
+## train a support vector machine
+fit.svm <- ksvm(
+  Type ~ .,
+  data   = Glass,
+  kernel = "rbfdot"           # Radial basis function kernal
+  # C      = 5, # cost 
+  # cross  = 3  # cross validatoin
+)
+
+fit.svm # view results
+```
