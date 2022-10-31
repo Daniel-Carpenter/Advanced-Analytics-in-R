@@ -1,0 +1,16 @@
+---
+title: "SVM for Classification"
+author: "Daniel Carpenter"
+format: 
+  gfm:
+    toc: true
+    number-sections: true
+    toc-depth: 3
+standalone: true
+    
+editor: visual
+---
+
+## Overview
+
+-   
