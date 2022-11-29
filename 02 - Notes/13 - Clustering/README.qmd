@@ -108,7 +108,8 @@ Overcoming Weaknesses
 
 ## R Example
 
-```{r}
+```{r, cache=TRUE}
+
 #Example of clustering for ISE 5103 Intelligent Data Analytics
 #Charles Nicholson
 #November 2015
