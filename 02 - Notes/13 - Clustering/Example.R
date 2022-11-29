@@ -145,7 +145,7 @@ dev.off()
 
 di <- dist(iris[,1:4], method="euclidean")   # with hiearchical clustering, only need distance matrix
 
-hc <- hclust(di, method="ward")
+hc <- hclust(di, method="ward.D")
 plot(hc, labels=FALSE)
 
 rect.hclust(hc, k=3, border="red")     #if we were to "cut" at k=3, what are the groups?
@@ -194,7 +194,7 @@ plot(hclus)
 hclus<-hclust(d,method="average")
 plot(hclus)
 
-hclus<-hclust(d,method="ward")  # notice how balanced the clusters are
+hclus<-hclust(d,method="ward.D")  # notice how balanced the clusters are
 plot(hclus)
 
 
@@ -204,6 +204,8 @@ plot(hclus)
 
 #################### movies data ##################
 #we will use "movie rating data" for the example from the "ggplot2" library
+# install.packages('ggplot2movies')
+library('ggplot2movies')
 ?movies
 data(movies)
 View(movies)
