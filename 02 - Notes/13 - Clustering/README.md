@@ -13,30 +13,15 @@ Daniel Carpenter
         class="toc-section-number">1.2</span> Different Types of Clustering</a>
         -   <a href="#partitional-clustering" id="toc-partitional-clustering"><span
             class="toc-section-number">1.2.1</span> 1 - Partitional Clustering</a>
-        -   <a href="#section" id="toc-section"><span
-            class="toc-section-number">1.2.2</span> <img
-            src="images/paste-98381DA0.png" width="550" /></a>
-        -   <a href="#section-1" id="toc-section-1"><span
-            class="toc-section-number">1.2.3</span> <img
-            src="images/paste-F881F599.png" width="550" /></a>
         -   <a href="#hierarchical-clustering"
             id="toc-hierarchical-clustering"><span
-            class="toc-section-number">1.2.4</span> 2 - Hierarchical Clustering</a>
+            class="toc-section-number">1.2.2</span> 2 - Hierarchical Clustering</a>
         -   <a href="#density-clustering" id="toc-density-clustering"><span
-            class="toc-section-number">1.2.5</span> 3 - Density Clustering</a>
-    -   <a href="#section-2" id="toc-section-2"><span
-        class="toc-section-number">1.3</span> <img
-        src="images/paste-7A92038D.png" width="550" /></a>
-    -   <a href="#section-3" id="toc-section-3"><span
-        class="toc-section-number">1.4</span> <img
-        src="images/paste-6291A30E.png" width="550" /></a>
-    -   <a href="#section-4" id="toc-section-4"><span
-        class="toc-section-number">1.5</span> <img
-        src="images/paste-BAF23147.png" width="275" /></a>
+            class="toc-section-number">1.2.3</span> 3 - Density Clustering</a>
     -   <a href="#summary" id="toc-summary"><span
-        class="toc-section-number">1.6</span> Summary</a>
+        class="toc-section-number">1.3</span> Summary</a>
     -   <a href="#r-example" id="toc-r-example"><span
-        class="toc-section-number">1.7</span> R Example</a>
+        class="toc-section-number">1.4</span> R Example</a>
 
 # Concepts
 
@@ -94,7 +79,7 @@ Steps
 
 Evaluation
 
-### <img src="images/paste-98381DA0.png" width="550" />
+<img src="images/paste-98381DA0.png" width="550" />
 
 <img src="images/paste-34D9CE8B.png" width="550" />
 
@@ -104,7 +89,7 @@ Strengths of K-Means
 
 Weaknesses of K-Means
 
-### <img src="images/paste-F881F599.png" width="550" />
+<img src="images/paste-F881F599.png" width="550" />
 
 Overcoming Weaknesses
 
@@ -124,11 +109,11 @@ Overcoming Weaknesses
 
 ### 3 - Density Clustering
 
-## <img src="images/paste-7A92038D.png" width="550" />
+<img src="images/paste-7A92038D.png" width="550" />
 
-## <img src="images/paste-6291A30E.png" width="550" />
+<img src="images/paste-6291A30E.png" width="550" />
 
-## <img src="images/paste-BAF23147.png" width="275" />
+<img src="images/paste-BAF23147.png" width="275" />  
 
 ## Summary
 

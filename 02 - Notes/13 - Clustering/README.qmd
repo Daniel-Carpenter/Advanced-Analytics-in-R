@@ -64,7 +64,7 @@ Steps
 
 Evaluation
 
-### ![](images/paste-98381DA0.png){width="550"}
+![](images/paste-98381DA0.png){width="550"}
 
 ![](images/paste-34D9CE8B.png){width="550"}
 
@@ -74,7 +74,7 @@ Strengths of K-Means
 
 Weaknesses of K-Means
 
-### ![](images/paste-F881F599.png){width="550"}
+![](images/paste-F881F599.png){width="550"}
 
 Overcoming Weaknesses
 
@@ -94,11 +94,11 @@ Overcoming Weaknesses
 
 ### 3 - Density  Clustering
 
-## ![](images/paste-7A92038D.png){width="550"}
+![](images/paste-7A92038D.png){width="550"}
 
-## ![](images/paste-6291A30E.png){width="550"}
+![](images/paste-6291A30E.png){width="550"}
 
-## ![](images/paste-BAF23147.png){width="275"} 
+![](images/paste-BAF23147.png){width="275"}\
 
 ## Summary
 
