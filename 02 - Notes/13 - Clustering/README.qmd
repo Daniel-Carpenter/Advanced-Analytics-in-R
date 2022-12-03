@@ -31,8 +31,7 @@ editor: visual
 >
 > Typically this is referred to as "data mining"
 
-![](images/paste-3682F7FB.png){width="550"}
-![](images/paste-95E30EC5.png){width="550"}
+![](images/paste-3682F7FB.png){width="550"} ![](images/paste-95E30EC5.png){width="550"}
 
 Examples and uses
 
@@ -92,7 +91,7 @@ Overcoming Weaknesses
 
 ![](images/paste-49C558B1.png){width="550"}
 
-### 3 - Density  Clustering
+### 3 - Density Clustering
 
 ![](images/paste-7A92038D.png){width="550"}
 
@@ -250,7 +249,7 @@ table(iris$Species, iris$cluster)
 
 
 
-dev.off()
+# dev.off()
 
 #let's try hiearchial clustering for the iris data
 #hiearchial clustering requires a distance matrix
@@ -292,7 +291,7 @@ d<-daisy(mtcars,stand=T)
 
 
 
-dev.off()
+# dev.off()
 
 
 #look at the different shapes of dendrograms based on the linkage techniques

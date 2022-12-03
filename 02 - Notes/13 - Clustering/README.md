@@ -2,43 +2,42 @@ Clustering
 ================
 Daniel Carpenter
 
--   <a href="#concepts" id="toc-concepts"><span
-    class="toc-section-number">1</span> Concepts</a>
-    -   <a href="#overview" id="toc-overview"><span
-        class="toc-section-number">1.1</span> Overview</a>
-        -   <a href="#what-is-clustering" id="toc-what-is-clustering"><span
-            class="toc-section-number">1.1.1</span> What is clustering?</a>
-    -   <a href="#different-types-of-clustering"
-        id="toc-different-types-of-clustering"><span
-        class="toc-section-number">1.2</span> Different Types of Clustering</a>
-        -   <a href="#partitional-clustering" id="toc-partitional-clustering"><span
-            class="toc-section-number">1.2.1</span> 1 - Partitional Clustering</a>
-        -   <a href="#hierarchical-clustering"
-            id="toc-hierarchical-clustering"><span
-            class="toc-section-number">1.2.2</span> 2 - Hierarchical Clustering</a>
-        -   <a href="#density-clustering" id="toc-density-clustering"><span
-            class="toc-section-number">1.2.3</span> 3 - Density Clustering</a>
-    -   <a href="#summary" id="toc-summary"><span
-        class="toc-section-number">1.3</span> Summary</a>
-    -   <a href="#r-example" id="toc-r-example"><span
-        class="toc-section-number">1.4</span> R Example</a>
+- <a href="#concepts" id="toc-concepts"><span
+  class="toc-section-number">1</span> Concepts</a>
+  - <a href="#overview" id="toc-overview"><span
+    class="toc-section-number">1.1</span> Overview</a>
+    - <a href="#what-is-clustering" id="toc-what-is-clustering"><span
+      class="toc-section-number">1.1.1</span> What is clustering?</a>
+  - <a href="#different-types-of-clustering"
+    id="toc-different-types-of-clustering"><span
+    class="toc-section-number">1.2</span> Different Types of Clustering</a>
+    - <a href="#partitional-clustering" id="toc-partitional-clustering"><span
+      class="toc-section-number">1.2.1</span> 1 - Partitional Clustering</a>
+    - <a href="#hierarchical-clustering"
+      id="toc-hierarchical-clustering"><span
+      class="toc-section-number">1.2.2</span> 2 - Hierarchical Clustering</a>
+    - <a href="#density-clustering" id="toc-density-clustering"><span
+      class="toc-section-number">1.2.3</span> 3 - Density Clustering</a>
+  - <a href="#summary" id="toc-summary"><span
+    class="toc-section-number">1.3</span> Summary</a>
+  - <a href="#r-example" id="toc-r-example"><span
+    class="toc-section-number">1.4</span> R Example</a>
 
 # Concepts
 
 ## Overview
 
--   Differentiate among three types of clustering: `partitional`,
-    `hierarchical`, and `density-based` clustering
+- Differentiate among three types of clustering: `partitional`,
+  `hierarchical`, and `density-based` clustering
 
--   Identify the strengths and weaknesses of k-means clustering
+- Identify the strengths and weaknesses of k-means clustering
 
--   Employ strategies to mitigate the weaknesses of k-means clustering
+- Employ strategies to mitigate the weaknesses of k-means clustering
 
--   Implement a variety of linkage techniques for hierarchical
-    clustering
+- Implement a variety of linkage techniques for hierarchical clustering
 
--   Contrast density-based clustering results with partitioned and
-    nested clustering paradigms
+- Contrast density-based clustering results with partitioned and nested
+  clustering paradigms
 
 ### What is clustering?
 
@@ -185,15 +184,15 @@ carsKM$centers  # the centroids of the final clusers (remember, these are scaled
 ```
 
            Price    Mileage
-    1  1.5874781 -0.2313049
+    1 -0.4455946  0.6093903
     2 -0.3321564 -1.1380479
-    3 -0.4455946  0.6093903
+    3  1.5874781 -0.2313049
 
 ``` r
 carsKM$size #and the size of each cluster
 ```
 
-    [1] 165 201 438
+    [1] 438 201 165
 
 ``` r
 # a ggplot of the original 2D data color-coded by the cluster number
@@ -202,7 +201,7 @@ g <- guide_legend("Cluster")                  #retitle the legend...
 p + guides(color = g, size = g, shape = g)    #retitle the legend...
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)
 
 ``` r
 #create our own plot function to look for "Within cluster Sum of square error 'elbow' plot"
@@ -236,50 +235,57 @@ wssplot <- function(data, nc=15){
 wssplot(carScaled,nc=30)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-2.png)
+![](README_files/figure-gfm/unnamed-chunk-1-2.png)
 
 ``` r
 # "Hartigan's rule is one statistical technique to "find" the elbow
 clusFit<-FitKMeans(carScaled,max.clusters=30,nstart=20)   #evaluates k using the "Hartigan" rule
+```
+
+    Warning: did not converge in 10 iterations
+
+    Warning: did not converge in 10 iterations
+
+``` r
 clusFit
 ```
 
-       Clusters  Hartigan AddCluster
-    1         2 451.92520       TRUE
-    2         3 466.29817       TRUE
-    3         4 205.39133       TRUE
-    4         5 217.80511       TRUE
-    5         6 122.46559       TRUE
-    6         7 128.08317       TRUE
-    7         8 108.52906       TRUE
-    8         9 104.22500       TRUE
-    9        10  91.82523       TRUE
-    10       11  79.43256       TRUE
-    11       12  76.63020       TRUE
-    12       13  77.73274       TRUE
-    13       14  66.02849       TRUE
-    14       15  54.62570       TRUE
-    15       16  78.14959       TRUE
-    16       17  42.29698       TRUE
-    17       18  25.37699       TRUE
-    18       19  33.96420       TRUE
-    19       20  70.00931       TRUE
-    20       21  38.40964       TRUE
-    21       22  47.81685       TRUE
-    22       23  55.01406       TRUE
-    23       24  26.26407       TRUE
-    24       25  14.95363       TRUE
-    25       26  56.06510       TRUE
-    26       27  19.80026       TRUE
-    27       28  29.10766       TRUE
-    28       29  57.20457       TRUE
-    29       30  24.65782       TRUE
+       Clusters   Hartigan AddCluster
+    1         2 451.925202       TRUE
+    2         3 466.298174       TRUE
+    3         4 205.424583       TRUE
+    4         5 217.682497       TRUE
+    5         6 118.524880       TRUE
+    6         7 132.264520       TRUE
+    7         8 110.440050       TRUE
+    8         9 102.648003       TRUE
+    9        10  93.984986       TRUE
+    10       11  79.169295       TRUE
+    11       12  73.961822       TRUE
+    12       13  78.989034       TRUE
+    13       14  66.549365       TRUE
+    14       15  52.931397       TRUE
+    15       16  44.901072       TRUE
+    16       17 104.134147       TRUE
+    17       18   6.734694      FALSE
+    18       19  26.954853       TRUE
+    19       20  87.594452       TRUE
+    20       21   1.605164      FALSE
+    21       22  76.522835       TRUE
+    22       23  37.724231       TRUE
+    23       24  32.498393       TRUE
+    24       25  27.329474       TRUE
+    25       26   2.694469      FALSE
+    26       27  41.609099       TRUE
+    27       28  40.645038       TRUE
+    28       29  54.135550       TRUE
+    29       30 -23.322557      FALSE
 
 ``` r
 PlotHartigan(clusFit)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-3.png)
+![](README_files/figure-gfm/unnamed-chunk-1-3.png)
 
 ``` r
 #FYI: Hartigan rule is: ADD CLUSTER if (sum(k$withinss)/sum(kplus1$withinss)-1)*(nrow(x)-k-1) > 10
@@ -301,7 +307,7 @@ carScaledsamp<-carScaled[sample(nrow(carScaled),200),]
 NbClust(carScaledsamp,method="kmeans")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-4.png)
+![](README_files/figure-gfm/unnamed-chunk-1-4.png)
 
     *** : The Hubert index is a graphical method of determining the number of clusters.
                     In the plot of Hubert index, we seek a significant knee that corresponds to a 
@@ -309,7 +315,7 @@ NbClust(carScaledsamp,method="kmeans")
                     index second differences plot. 
      
 
-![](README_files/figure-gfm/unnamed-chunk-2-5.png)
+![](README_files/figure-gfm/unnamed-chunk-1-5.png)
 
     *** : The D index is a graphical method of determining the number of clusters. 
                     In the plot of D index, we seek a significant knee (the significant peak in Dindex
@@ -318,109 +324,107 @@ NbClust(carScaledsamp,method="kmeans")
      
     ******************************************************************* 
     * Among all indices:                                                
-    * 8 proposed 2 as the best number of clusters 
-    * 4 proposed 3 as the best number of clusters 
-    * 2 proposed 4 as the best number of clusters 
-    * 1 proposed 5 as the best number of clusters 
-    * 1 proposed 6 as the best number of clusters 
-    * 1 proposed 7 as the best number of clusters 
-    * 3 proposed 8 as the best number of clusters 
-    * 1 proposed 10 as the best number of clusters 
-    * 2 proposed 14 as the best number of clusters 
-    * 1 proposed 15 as the best number of clusters 
+    * 6 proposed 2 as the best number of clusters 
+    * 8 proposed 3 as the best number of clusters 
+    * 1 proposed 4 as the best number of clusters 
+    * 2 proposed 9 as the best number of clusters 
+    * 1 proposed 11 as the best number of clusters 
+    * 1 proposed 12 as the best number of clusters 
+    * 3 proposed 13 as the best number of clusters 
+    * 1 proposed 14 as the best number of clusters 
 
                        ***** Conclusion *****                            
      
-    * According to the majority rule, the best number of clusters is  2 
+    * According to the majority rule, the best number of clusters is  3 
      
      
     ******************************************************************* 
 
     $All.index
-           KL       CH Hartigan     CCC    Scott  Marriot     TrCovW   TraceW
-    2  3.9987 107.1257 117.0820 -2.2815 228.0457 49622.50 26623.7363 255.6524
-    3  0.7380 143.0507  45.6493 -5.0079 360.3112 57630.22  6184.9810 160.6539
-    4  0.8869 132.0087  29.6139 -6.1345 443.2720 67667.60  4684.6206 130.4303
-    5  0.7143 120.7498  68.1528 -7.3871 499.7648 79712.83  3442.7300 113.3101
-    6  0.4933 143.2538 -13.2994 -5.1931 618.6600 63345.11  1637.3175  83.9644
-    7  1.0310 108.4160  81.1899 -8.9882 593.0188 98013.51  2340.5554  90.1441
-    8  5.4921 142.8747  14.8448 -5.3919 738.2798 61921.22   652.5199  63.4517
-    9  0.8587 135.8257  32.2408 -6.1683 769.5377 67029.93   561.7484  58.8979
-    10 1.8146 143.9385  13.1862 -5.4550 823.7555 63103.19   571.5270  50.3918
-    11 0.3977 139.1178   3.7043 -6.0080 852.9795 65974.74   424.8801  47.1215
-    12 1.0187 128.6021  29.6309 -7.1710 860.9126 75461.97   408.2122  46.2157
-    13 1.0340 138.1956  28.6867 -6.2679 925.2956 64186.91   495.3198  39.9233
-    14 0.7509 148.5423  -3.9343 -5.3513 983.9502 55519.96   454.9219  34.6135
-    15 0.9962 134.0091  31.0756 -6.8616 966.9063 69404.21   367.4548  35.3615
+            KL       CH Hartigan     CCC     Scott  Marriot    TrCovW   TraceW
+    2  17.0423 123.9365 102.2956 -3.1240  203.4889 52696.08 7423.4082 239.0869
+    3   0.1141 144.3986  42.3849 -5.2265  373.5034 50673.29 9591.6787 157.6420
+    4   1.0962 130.4403  70.5525 -6.5934  438.2601 65168.71 5597.0580 129.7303
+    5   1.6771 149.9147  27.3379 -4.7934  555.3899 56691.13 2141.4359  95.3926
+    6   4.0210 141.4838  29.5624 -5.6489  610.6609 61923.86 1616.8553  83.6635
+    7   0.1073 140.0709   4.9899 -5.8608  664.2039 64488.84 1353.7680  72.6004
+    8   0.6659 123.2359  63.2413 -7.6676  680.7594 77538.70  851.3314  70.7706
+    9   4.3984 150.4665  12.8042 -5.0349  790.4399 56709.46  631.2606  53.2357
+    10  3.2865 143.3823  21.5533 -5.7798  816.9124 61331.87  644.9929  49.8911
+    11  0.5646 145.0703  21.7415 -5.6995  861.5044 59380.15  552.4292  44.8082
+    12  0.5414 148.2411  24.3401 -5.4818  942.5127 47131.49  341.8701  40.1855
+    13  1.5030 154.6820   8.8356 -4.9725  973.2626 47431.04  245.2870  35.5791
+    14  0.8851 149.4062   7.2688 -5.5370  992.8354 49880.45  227.7546  33.9739
+    15  5.1071 143.8974  11.1736 -6.1410 1009.1256 52781.65  211.6621  32.6961
        Friedman   Rubin Cindex     DB Silhouette   Duda Pseudot2   Beale Ratkowsky
-    2    2.0423  1.5428 0.1938 1.2443     0.4308 1.0358  -3.5553 -0.0338    0.3316
-    3    2.9641  2.4551 0.1945 0.9607     0.3897 1.2713 -22.4070 -0.2073    0.4430
-    4    4.0625  3.0240 0.1648 1.0527     0.3451 0.6506  11.2786  0.5213    0.4090
-    5    5.0282  3.4809 0.2244 0.9777     0.3790 0.7863  17.3893  0.2508    0.3770
-    6    7.4151  4.6974 0.2389 0.9240     0.3679 5.8200 -20.7045 -0.5521    0.3620
-    7    6.8389  4.3754 0.1667 1.0147     0.3319 0.3240  47.9780  1.9991    0.3320
-    8   10.8679  6.2160 0.2015 0.8618     0.3571 3.2126 -42.0120 -0.6690    0.3237
-    9   11.9998  6.6966 0.1976 0.8637     0.3560 2.0072 -25.5918 -0.4845    0.3072
-    10  13.7805  7.8270 0.1830 0.8050     0.3701 1.3742 -11.7087 -0.2610    0.2952
-    11  15.0419  8.3702 0.1768 0.8119     0.3535 0.7598   5.6908  0.2108    0.2828
-    12  15.3225  8.5343 0.1918 0.9265     0.3172 1.0746  -1.5973 -0.0661    0.2712
-    13  18.5398  9.8794 0.1924 0.9784     0.3335 1.0942  -1.7224 -0.0754    0.2630
-    14  21.9651 11.3949 0.1769 0.8719     0.3578 1.4160  -6.4635 -0.2350    0.2552
-    15  20.5157 11.1539 0.1774 0.9000     0.3551 2.5056  -6.6098 -0.5547    0.2464
-           Ball Ptbiserial     Frey McClain   Dunn Hubert SDindex Dindex   SDbw
-    2  127.8262     0.5122   1.1610  0.2948 0.0357 0.0046  5.2063 0.9464 1.2828
-    3   53.5513     0.4971   0.6914  0.8090 0.0058 0.0043  3.5175 0.7563 1.1342
-    4   32.6076     0.4732  -2.7024  1.1971 0.0191 0.0051  3.4086 0.6596 0.7299
-    5   22.6620     0.5374   0.8480  0.9246 0.0348 0.0057  3.7762 0.6581 0.8538
-    6   13.9941     0.4988   2.4115  1.2298 0.0252 0.0066  4.1653 0.5618 0.5414
-    7   12.8777     0.4440   0.2899  1.6354 0.0176 0.0062  4.7398 0.5504 0.6110
-    8    7.9315     0.4363   0.3148  1.7789 0.0314 0.0072  4.4216 0.4819 0.5179
-    9    6.5442     0.4346   0.1800  1.8011 0.0314 0.0073  4.1735 0.4686 0.4578
-    10   5.0392     0.4342   0.9033  1.8202 0.0314 0.0075  3.8700 0.4371 0.3168
-    11   4.2838     0.4174  -5.7280  1.9865 0.0099 0.0076  4.3618 0.4241 0.3651
-    12   3.8513     0.3950   0.1534  2.2390 0.0236 0.0076  5.3889 0.4093 0.4994
-    13   3.0710     0.3929   0.3515  2.2458 0.0334 0.0078  4.9806 0.3841 0.2920
-    14   2.4724     0.3799 -17.7897  2.3759 0.0334 0.0079  4.9389 0.3542 0.2614
-    15   2.3574     0.3474   0.0422  2.8767 0.0335 0.0079  5.8736 0.3463 0.2464
+    2    1.3740  1.6332 0.1942 1.2627     0.3930 0.6949  41.7193  0.4334    0.4387
+    3    3.3546  2.4770 0.1936 1.0190     0.4183 1.2060 -15.7132 -0.1671    0.4439
+    4    4.1727  3.0100 0.1797 1.0756     0.3364 0.6982  21.1854  0.4218    0.4081
+    5    6.2113  4.0934 0.1923 0.9152     0.3671 4.2656 -31.3883 -0.6562    0.3885
+    6    7.4918  4.6673 0.1814 0.9651     0.3487 0.7612  12.5484  0.3045    0.3616
+    7    8.7698  5.3785 0.1831 1.0249     0.3360 2.3041 -21.5073 -0.5306    0.3409
+    8    9.3406  5.5176 0.1641 1.0516     0.3048 0.6077  36.8017  0.6248    0.3198
+    9   12.8385  7.3350 0.1993 0.8977     0.3378 1.8700 -13.9571 -0.4473    0.3097
+    10  13.8820  7.8267 0.1967 0.9747     0.3361 3.0058 -29.3614 -0.6443    0.2952
+    11  15.8238  8.7145 0.1831 0.9284     0.3406 1.5786 -12.0955 -0.3482    0.2836
+    12  21.8996  9.7170 0.1658 0.9316     0.3442 1.1414  -2.3537 -0.1170    0.2733
+    13  22.6869 10.9750 0.1528 0.8580     0.3673 1.9532 -17.0803 -0.4555    0.2643
+    14  24.0033 11.4936 0.1623 0.8990     0.3647 1.8461 -18.7912 -0.4297    0.2553
+    15  25.1508 11.9428 0.1593 0.9080     0.3529 1.7148 -10.4211 -0.3891    0.2471
+           Ball Ptbiserial    Frey McClain   Dunn Hubert SDindex Dindex   SDbw
+    2  119.5434     0.4852  0.3180  0.5083 0.0087 0.0037  5.2581 0.9210 1.1877
+    3   52.5473     0.5505  1.4914  0.7529 0.0256 0.0042  3.7604 0.7456 1.1776
+    4   32.4326     0.4839  0.0637  1.2043 0.0137 0.0050  3.9329 0.6728 0.9243
+    5   19.0785     0.5079  1.1259  1.2323 0.0209 0.0058  4.1517 0.5965 0.6815
+    6   13.9439     0.4574  0.1158  1.6574 0.0208 0.0062  4.5779 0.5415 0.7133
+    7   10.3715     0.4655 -6.2694  1.6745 0.0218 0.0065  4.2497 0.5107 0.5154
+    8    8.8463     0.4070 -0.2219  2.2404 0.0225 0.0067  5.1021 0.4828 0.5661
+    9    5.9151     0.4409  0.7169  1.9292 0.0272 0.0070  4.5782 0.4496 0.4637
+    10   4.9891     0.4072  0.2160  2.3003 0.0324 0.0072  5.5543 0.4239 0.4322
+    11   4.0735     0.4024  0.3599  2.3485 0.0328 0.0073  4.9992 0.3982 0.3613
+    12   3.3488     0.3970  0.3305  2.4073 0.0293 0.0073  5.0922 0.3774 0.3161
+    13   2.7369     0.3842  1.0685  2.5420 0.0293 0.0075  4.8929 0.3494 0.2659
+    14   2.4267     0.3714  1.6681  2.7200 0.0317 0.0076  5.1836 0.3426 0.2486
+    15   2.1797     0.3498  0.3197  3.0724 0.0317 0.0076  6.7990 0.3295 0.2617
 
     $All.CriticalValues
        CritValue_Duda CritValue_PseudoT2 Fvalue_Beale
-    2          0.3178           221.0651       1.0000
-    3          0.2704           283.3204       1.0000
-    4          0.2646            58.3768       0.5962
-    5          0.0222          2825.2496       0.7802
-    6         -0.5522           -70.2739       1.0000
-    7          0.1881            99.2518       0.1471
-    8          0.2704           164.5957       1.0000
-    9          0.2311           169.6463       1.0000
-    10         0.1881           185.5577       1.0000
-    11        -0.5522           -50.5972       0.8184
-    12         0.1556           124.8529       1.0000
-    13        -0.1409          -161.9451       1.0000
-    14        -0.3258           -89.5318       1.0000
-    15         0.0222           485.5898       1.0000
+    2          0.4023           141.1596       0.6491
+    3          0.3217           193.9550       1.0000
+    4          0.3009           113.8421       0.6573
+    5         -0.1908          -255.8869       1.0000
+    6          0.2646           111.1939       0.7385
+    7          0.0832           418.9054       1.0000
+    8          0.2454           175.2303       0.5388
+    9          0.2068           115.0903       1.0000
+    10         0.2311           146.3615       1.0000
+    11         0.1432           197.4811       1.0000
+    12         0.1155           145.4380       1.0000
+    13         0.0647           505.5586       1.0000
+    14         0.0832           451.9769       1.0000
+    15         0.0647           361.1133       1.0000
 
     $Best.nc
-                        KL       CH Hartigan     CCC   Scott  Marriot   TrCovW
-    Number_clusters 8.0000  14.0000   7.0000  2.0000   8.000     6.00     3.00
-    Value_Index     5.4921 148.5423  94.4893 -2.2815 145.261 51036.11 20438.76
-                     TraceW Friedman   Rubin Cindex     DB Silhouette   Duda
-    Number_clusters  3.0000    8.000 14.0000 4.0000 10.000     2.0000 2.0000
-    Value_Index     64.7748    4.029 -1.7566 0.1648  0.805     0.4308 1.0358
-                    PseudoT2   Beale Ratkowsky    Ball PtBiserial  Frey McClain
-    Number_clusters   2.0000  2.0000     3.000  3.0000     5.0000 2.000  2.0000
-    Value_Index      -3.5553 -0.0338     0.443 74.2749     0.5374 1.161  0.2948
-                      Dunn Hubert SDindex Dindex    SDbw
-    Number_clusters 2.0000      0  4.0000      0 15.0000
-    Value_Index     0.0357      0  3.4086      0  0.2464
+                         KL      CH Hartigan    CCC    Scott  Marriot   TrCovW
+    Number_clusters  2.0000  13.000   3.0000  2.000   3.0000     9.00    4.000
+    Value_Index     17.0423 154.682  59.9107 -3.124 170.0145 25451.66 3994.621
+                     TraceW Friedman   Rubin  Cindex     DB Silhouette   Duda
+    Number_clusters  3.0000  12.0000  9.0000 13.0000 13.000     3.0000 2.0000
+    Value_Index     53.5331   6.0758 -1.3257  0.1528  0.858     0.4183 0.6949
+                    PseudoT2  Beale Ratkowsky    Ball PtBiserial Frey McClain
+    Number_clusters   2.0000 2.0000    3.0000  3.0000     3.0000    1  2.0000
+    Value_Index      41.7193 0.4334    0.4439 66.9961     0.5505   NA  0.5083
+                       Dunn Hubert SDindex Dindex    SDbw
+    Number_clusters 11.0000      0  3.0000      0 14.0000
+    Value_Index      0.0328      0  3.7604      0  0.2486
 
     $Best.partition
-      [1] 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 2 2 2 2 1
-     [38] 2 1 2 2 2 1 2 2 2 1 1 1 2 2 1 2 2 2 2 2 1 2 2 2 2 2 2 1 2 1 1 2 2 2 2 2 2
-     [75] 2 2 1 1 1 1 1 1 2 2 2 2 2 1 2 1 2 2 1 2 2 1 2 2 1 2 2 1 2 1 2 2 1 2 2 2 2
-    [112] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2
-    [149] 2 2 2 1 1 2 2 2 2 2 2 2 1 2 2 2 2 2 2 1 2 2 1 1 2 1 2 2 1 2 2 1 2 2 2 2 2
-    [186] 2 1 2 2 2 2 2 1 2 2 1 2 2 2 2
+      [1] 3 1 2 2 2 2 2 2 1 1 2 2 3 3 3 1 2 3 1 2 1 1 3 3 2 3 2 2 2 3 1 1 2 2 3 2 2
+     [38] 3 1 3 2 1 2 3 2 2 2 3 3 1 1 1 1 3 1 2 2 2 1 1 2 2 1 2 2 1 2 2 2 3 2 2 2 1
+     [75] 3 2 2 2 3 1 2 2 2 2 2 3 3 1 1 3 2 1 1 2 2 1 3 2 3 3 2 2 1 3 2 3 2 1 2 2 2
+    [112] 2 1 2 2 2 3 1 2 3 1 2 2 2 2 3 2 2 3 1 2 1 2 1 3 2 2 2 1 2 2 1 3 3 2 3 2 1
+    [149] 2 1 3 3 2 2 2 2 2 2 2 3 2 2 1 2 1 2 2 1 3 3 3 1 2 3 2 3 2 2 2 2 2 3 2 1 3
+    [186] 2 2 2 3 3 2 1 2 1 2 3 2 3 3 1
 
 ``` r
 ############### irisdata ###################
@@ -451,14 +455,14 @@ head(iris)
 wssplot(iris[,1:4],nc=5)  #again, no obvious elbow...
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-6.png)
+![](README_files/figure-gfm/unnamed-chunk-1-6.png)
 
 ``` r
 #let's try NbClust...
 NbClust(iris[,1:4],method="kmeans")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-7.png)
+![](README_files/figure-gfm/unnamed-chunk-1-7.png)
 
     *** : The Hubert index is a graphical method of determining the number of clusters.
                     In the plot of Hubert index, we seek a significant knee that corresponds to a 
@@ -466,7 +470,7 @@ NbClust(iris[,1:4],method="kmeans")
                     index second differences plot. 
      
 
-![](README_files/figure-gfm/unnamed-chunk-2-8.png)
+![](README_files/figure-gfm/unnamed-chunk-1-8.png)
 
     *** : The D index is a graphical method of determining the number of clusters. 
                     In the plot of D index, we seek a significant knee (the significant peak in Dindex
@@ -616,13 +620,8 @@ table(iris$Species, iris$cluster)
       setosa     33 17  0
 
 ``` r
-dev.off()
-```
+# dev.off()
 
-    null device 
-              1 
-
-``` r
 #let's try hiearchial clustering for the iris data
 #hiearchial clustering requires a distance matrix
 
@@ -684,24 +683,28 @@ d<-daisy(mtcars,stand=T)
 
 
 
-dev.off()
-```
+# dev.off()
 
-    null device 
-              1 
 
-``` r
 #look at the different shapes of dendrograms based on the linkage techniques
 
 hclus<-hclust(d,method="single")   #notice the long chains (e.g., very unbalanced)
 plot(hclus)
+```
 
+![](README_files/figure-gfm/unnamed-chunk-1-9.png)
+
+``` r
 hclus<-hclust(d,method="complete")
 plot(hclus)
 
 hclus<-hclust(d,method="average")
 plot(hclus)
+```
 
+![](README_files/figure-gfm/unnamed-chunk-1-10.png)
+
+``` r
 hclus<-hclust(d,method="ward.D")  # notice how balanced the clusters are
 plot(hclus)
 
@@ -737,13 +740,21 @@ wssplot(dat,nc=30)   #-- again, no clear elbow!
 
     Warning: did not converge in 10 iterations
 
+![](README_files/figure-gfm/unnamed-chunk-1-11.png)
+
+![](README_files/figure-gfm/unnamed-chunk-1-12.png)
+
 ``` r
 set.seed(100)      #just so that we will all get the same results!
 
 kclus<-kmeans(dat, 6, nstart=5)    #how about trying k=6
 
 plot(kclus,data=dat) #this plot function comes from the "useful" libary uses PCA 
+```
 
+![](README_files/figure-gfm/unnamed-chunk-1-13.png)
+
+``` r
 clusInfo<-data.frame(kclus$centers,kclus$size)
 clusInfo
 ```
