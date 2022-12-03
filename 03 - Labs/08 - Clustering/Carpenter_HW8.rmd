@@ -28,8 +28,6 @@ knitr::opts_chunk$set(message=FALSE,
 \newpage
 
 ```{r}
-# options(tinytex.install_packages = FALSE)
-
 # Packages
 
 ## Data Wrangling

@@ -45,6 +45,30 @@ December 2022
       id="toc-visualization-of-clusters-2">Visualization of Clusters</a>
     - <a href="#interpretation-2" id="toc-interpretation-2">Interpretation</a>
 
+``` r
+# options(tinytex.install_packages = FALSE)
+
+# Packages
+
+## Data Wrangling
+library(tidyverse)
+library(skimr)
+library(lubridate) # dates
+
+## Aesthetics
+library(knitr)
+library(scales)
+library(kableExtra)
+
+## Data set 
+library(datasets) # chick weights
+
+## Clustering
+library(cluster)  # provides more cluster algorithms than base R (e.g. PAM)
+library(useful)   # provides a plot function for clusters and "FitKMeans" and "PlotHartigan" functions
+library(NbClust)  # provides tons of tools for identifying the "right" number of clusters
+```
+
 # Data
 
 > For general data preparation, please see conceptual steps below. See
@@ -68,11 +92,114 @@ December 2022
 - This model attempts to cluster the chicks based on their weight and
   the time performed, thus *predicting the diet fed to each*.
 
+``` r
+# Read data from datasets package
+data("ChickWeight")
+df.base <- ChickWeight; rm(ChickWeight) # copy
+
+# Make data set of `numeric` variables called `df.base.numeric`
+df.base.numeric <- df.base %>%
+
+  # selecting all the numeric data
+  dplyr::select_if(is.numeric) %>%
+
+  # converting the data frame to tibble
+  as_tibble()
+
+# Make data set of `factor` variables called `df.base.factor`
+df.base.factor <- df.base %>%
+
+  #selecting all the numeric data
+  dplyr::select_if(is.factor) %>%
+
+  #converting the data frame to tibble
+  as_tibble()
+```
+
 ## Data Understanding
 
 > Create a data quality report of `numeric` and `factor` data
 
+``` r
+# Function for data report
+dataQualityReport <- function(df) {
+  
+  # Function to remove any columns with NA
+  removeColsWithNA <- function(df) {
+    return( df[ , colSums(is.na(df)) == 0] )
+  }
+  
+  # Create Comprehensive data report using skimr package
+  # This is done a bit piece-wise because PDF latex does not like the skimr package
+  # Very much. So Instead of printing `skim(df)`, I have to pull the contents manually
+  # Unfortunately. This is not an issue with html typically.
+  dataReport <- skim(df) %>%
+    rename_all(~str_replace(.,"skim_","")) %>%
+    arrange(type, desc(complete_rate) ) # sort data 
+  
+  # Filter to the class types
+  dataReport.numeric <- dataReport %>% filter(type == 'numeric') # numeric data
+  dataReport.factor  <- dataReport %>% filter(type == 'factor' ) # factor  data
+  
+  # Remove columns that do not apply to this type of data -----------------------
+  
+  # numeric data
+  dataReport.numeric <- removeColsWithNA(dataReport.numeric)  %>%
+    
+    # Clean column names by removing numeric prefix, 
+    rename_all(~str_replace(.,"numeric.","")) 
+    
+  # factor  data
+  dataReport.factor  <- removeColsWithNA(dataReport.factor ) %>%
+  
+    # Clean column names by removing factor  prefix
+    rename_all(~str_replace(.,"factor.",""))  
+  
+  
+  # Set up options for Display the reports
+  options(skimr_strip_metadata = FALSE)
+  options(digits=2)
+  options(scipen=99)
+  
+  # Numeric report <- Get summary of data frame --------------------------------
+  
+    # data frame stats
+    dfStats.num <- data.frame(Num_Numeric_Variables = ncol(df %>% select_if(is.numeric)),
+                              Total_Observations    = nrow(df) )
+    
+    # Now see individual column statistics
+    dfColStats.num <- dataReport.numeric %>% 
+      dplyr::select(-type, -hist)
+    
+  
+  # Factor report <- Get summary of data frame --------------------------------
+  
+    # Get summary of data frame
+    dfStats.factor <- data.frame(Num_Factor_Variables = ncol(df %>% select_if(is.factor)),
+                                 Total_Observations   = nrow(df) )
+    
+    # Now see individual column statistics
+    dfColStats.factor <- dataReport.factor  %>% 
+      dplyr::select(-type, -ordered) 
+    
+    
+  # Return the data frames
+  return(list('dfStats.num'       = dfStats.num,    
+              'dfColStats.num'    = dfColStats.num,
+              'dfStats.factor'    = dfStats.factor, 
+              'dfColStats.factor' = dfColStats.factor))
+}
+```
+
 ### Numeric Data Quality Report
+
+``` r
+# Get the factor and numeric reports
+initialReport <- dataQualityReport(df.base)
+
+# Numeric data frame stats
+initialReport$dfStats.num %>% kable()
+```
 
 <table>
 <thead>
@@ -96,6 +223,13 @@ Total_Observations
 </tr>
 </tbody>
 </table>
+
+``` r
+# Numeric column stats
+initialReport$dfColStats.num %>%
+  kable() #%>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
+```
+
 <table>
 <thead>
 <tr>
@@ -208,6 +342,11 @@ Time
 - Later we will attempt to replicate these 4 groupings through
   clustering.
 
+``` r
+# factor data frame stats
+initialReport$dfStats.factor %>% kable()
+```
+
 <table>
 <thead>
 <tr>
@@ -230,6 +369,13 @@ Total_Observations
 </tr>
 </tbody>
 </table>
+
+``` r
+# factor column stats
+initialReport$dfColStats.factor %>%
+  kable() #%>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
+```
+
 <table>
 <thead>
 <tr>
@@ -304,6 +450,33 @@ Diet
   - Diet 3 and 4 stimulate similar weight gain until \~14 days since the
     chick hatched; however, diet 3 surpasses diet 4 after day 14.
 
+``` r
+df.base %>%
+  ggplot(aes(y     = weight,
+             x     = Time,
+             color = Diet
+             )) +
+
+  # The points  
+  geom_point() +
+  
+  # Direction of the trend.
+  # Generally the higher the diet, the larger the weight
+  # Diet 3 is exceptional to that statement
+  geom_smooth(fill = 'grey85') +
+  
+  # Labels
+  labs(title    = 'How Experimental Diets Affect Chick Weights (Nominal Data)',
+       subtitle = 'Note Adjusted for time since chick birthed',
+       x        = 'Number of Days since Chick Birthed',
+       y        = 'Weight of the Chick (gm)',
+       caption  = '\nGrouped by individual chick on a given day since birthed') + 
+  
+  # Colors and aesthetics
+  scale_color_brewer(palette = 'Set2') +
+  theme_minimal()
+```
+
 ![](Carpenter_HW8_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 # Perform Clustering Analysis
@@ -328,7 +501,69 @@ Diet
   the elbow point below, the k-mean and k-medoid models will attempt to
   discover four clusters.
 
+``` r
+# Elbow plot function provided in lecture
+# create our own plot function to look for "Within cluster Sum of square error 'elbow' plot"
+# defaults to 15 as clusters max
+
+wssplot <- function(data, nc=15){                    
+
+  par(mfrow=c(1,2))
+  
+  wss <- NULL  
+  pctExp <-NULL
+  
+  for (k in 1:nc)
+  {
+     kclus <- kmeans(data, centers=k)
+     wss[k] <- kclus$tot.withinss      #store the total within SSE for given k
+     pctExp[k] <- 1-wss[k]/kclus$totss
+  }
+  
+  plot(1:nc, wss, type="b", xlab="Number of Clusters",
+       ylab="Within groups sum of squares")
+
+  plot(1:nc, pctExp, type="b", xlab="Number of Clusters",
+       ylab="Pct Explained")
+  
+  par(mfrow=c(1,1))
+}
+```
+
+``` r
+# Data prep
+df <- df.base # copy to produce altered data (liking scaling)
+
+set.seed(5013) # for similar reproducing
+
+# center and scale dat
+df[, c('weight', 'Time')] <- scale( df[, c('weight', 'Time')] )
+```
+
+``` r
+# Clustering analysis - identify number of clusters
+
+# Check for "elbow" using lecture method
+wssplot(df[, 1:3], nc=7)
+```
+
 ![](Carpenter_HW8_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+# Now try nbClust to see how kmeans identifies it
+df.temp <- df
+df.temp$Chick <- as.numeric(df$Chick) # needs to be numeric, not factor. so temp change
+```
+
+``` r
+# Find the suggested number of clusters
+# NbClust(df.temp[, 1:3], method="kmeans") # commented for speed of repition.
+
+# Actual cluster - using the above number of suggested clusters 
+# Most suggested between (3-5), so try to 4
+
+NUM_CLUSTERS = 4
+```
 
 ## K-Means Clustering
 
@@ -337,7 +572,23 @@ Diet
 - Note that this confusion matrix shows the *percentage* of diet
   classified as the correct or incorrect class.
 
-<!-- -->
+``` r
+# function to show percent confusion matrix
+percentConfusionMat <- function(actual, predicted) {
+  propTable <- prop.table(table( actual, predicted ), margin = 1)
+  
+  return( round(propTable, 2) )
+}
+```
+
+``` r
+cl <- kmeans(df[,1:3], NUM_CLUSTERS, nstart=100)
+df$K_Means <- as.factor(cl$cluster)
+
+# Check the clustering if it lined up using cofusion matrix
+# A few line up, but not necessariliy ordered well
+percentConfusionMat( df$Diet, df$K_Means )
+```
 
     ##       predicted
     ## actual    1    2    3    4
@@ -347,6 +598,32 @@ Diet
     ##      4 1.00 0.00 0.00 0.00
 
 ### Visualization of Clusters
+
+``` r
+# Create a plot to compare against original diet
+df %>%
+  ggplot(aes(y     = weight,
+             x     = Time,
+             color = K_Means
+             )) +
+
+  # The points  
+  geom_point() +
+  
+  # Direction of the trend.
+  geom_smooth(fill = 'grey85') +
+  
+  # Labels
+  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Means Clustering)',
+       subtitle = 'Note Adjusted for time since chick birthed',
+       x        = 'Number of Days since Chick Birthed',
+       y        = 'Weight of the Chick (gm)',
+       caption  = '\nGrouped by individual chick on a given day since birthed') + 
+  
+  # Colors and aesthetics
+  scale_color_brewer(palette = 'Set2') +
+  theme_minimal()
+```
 
 ![](Carpenter_HW8_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
@@ -363,6 +640,21 @@ Diet
 
 ### *Percentage* Confusion Matrix
 
+``` r
+# hiearchial clustering 
+
+# hiearchial clustering requires a distance matrix
+di <- dist(df[, 1:3], method="euclidean")   # with hiearchical clustering, only need distance matrix
+
+hc.dward <- hclust(di, method="ward.D")
+
+df$Hierarchical <- as.factor(cutree(hc.dward, k=NUM_CLUSTERS)) 
+
+# quick check to see how our 'natural clusters' align with Diet data using ### *Percentage* Confusion Matrix
+# Does a GREAT job!
+percentConfusionMat( df$Diet, df$Hierarchical ) 
+```
+
     ##       predicted
     ## actual    1    2    3    4
     ##      1 0.88 0.12 0.00 0.00
@@ -371,6 +663,31 @@ Diet
     ##      4 0.00 0.00 0.00 1.00
 
 ### Visualization of Clusters
+
+``` r
+df %>%
+  ggplot(aes(y     = weight,
+             x     = Time,
+             color = Hierarchical
+             )) +
+
+  # The points  
+  geom_point() +
+  
+  # Direction of the trend.
+  geom_smooth(fill = 'grey85') +
+  
+  # Labels
+  labs(title    = 'How Experimental Diets Affect Chick Weights (Hierarchical Clustering)',
+       subtitle = 'Note Adjusted for time since chick birthed',
+       x        = 'Number of Days since Chick Birthed',
+       y        = 'Weight of the Chick (gm)',
+       caption  = '\nGrouped by individual chick on a given day since birthed') + 
+  
+  # Colors and aesthetics
+  scale_color_brewer(palette = 'Set2') +
+  theme_minimal()
+```
 
 ![](Carpenter_HW8_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
@@ -387,6 +704,16 @@ Diet
 
 ### *Percentage* Confusion Matrix
 
+``` r
+# k mediods (https://www.datanovia.com/en/lessons/k-medoids-in-r-algorithm-and-practical-examples/)
+kMed <- pam(df, NUM_CLUSTERS)
+
+df$K_Medoid <- as.factor(kMed$clustering)  
+
+# quick check to see how our 'natural clusters' align with Diet data using ### *Percentage* Confusion Matrix
+percentConfusionMat( df$Diet, df$K_Medoid ) 
+```
+
     ##       predicted
     ## actual    1    2    3    4
     ##      1 0.73 0.27 0.00 0.00
@@ -395,6 +722,31 @@ Diet
     ##      4 0.00 0.00 0.00 1.00
 
 ### Visualization of Clusters
+
+``` r
+df %>%
+  ggplot(aes(y     = weight,
+             x     = Time,
+             color = K_Medoid
+             )) +
+
+  # The points  
+  geom_point() +
+  
+  # Direction of the trend.
+  geom_smooth(fill = 'grey85') +
+  
+  # Labels
+  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Medoid Clustering)',
+       subtitle = 'Note Adjusted for time since chick birthed',
+       x        = 'Number of Days since Chick Birthed',
+       y        = 'Weight of the Chick (gm)',
+       caption  = '\nGrouped by individual chick on a given day since birthed') + 
+  
+  # Colors and aesthetics
+  scale_color_brewer(palette = 'Set2') +
+  theme_minimal()
+```
 
 ![](Carpenter_HW8_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
