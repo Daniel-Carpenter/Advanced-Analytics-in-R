@@ -6,29 +6,30 @@ date:     "December 2022"
 output: 
   pdf_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     number_sections: true
     highlight: arrow
-    latex_engine: xelatex
   # github_document:
   #   toc: yes
   #   toc_depth: 2
 urlcolor: blue
-cache: true
-fig.width: 7
-fig.height: 5
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE, 
                       warning=FALSE, 
-                      echo=FALSE
+                      echo=FALSE,
+                      fig.width = 7,
+                      fig.height = 5,
+                      cache = TRUE
                       )
 ```
 
 \newpage
 
 ```{r}
+# options(tinytex.install_packages = FALSE)
+
 # Packages
 
 ## Data Wrangling
@@ -48,7 +49,6 @@ library(datasets) # chick weights
 library(cluster)  # provides more cluster algorithms than base R (e.g. PAM)
 library(useful)   # provides a plot function for clusters and "FitKMeans" and "PlotHartigan" functions
 library(NbClust)  # provides tons of tools for identifying the "right" number of clusters
-library(rgl)      # for 3D rotating plots
 ```
 
 # General Data Prep
@@ -179,6 +179,10 @@ initialReport$dfColStats.num %>%
 
 ## Factor Data Quality Report
 
+* Note that there are four distinct values within the factor field "Diet".  
+
+* Later we will attempt to replicate these 4 groupings through clustering.
+
 ```{r}
 # factor data frame stats
 initialReport$dfStats.factor %>% kable()
@@ -189,7 +193,7 @@ initialReport$dfColStats.factor %>%
 ```
 
 
-## Review Target Cluster
+## Review Actual Groupings within Unadjusted, or Nominal Data
 
 ```{r}
 df.base %>%
@@ -221,6 +225,8 @@ df.base %>%
 \newpage
 
 ## Clustering Analysis
+
+### Discover Automically Suggested Number of Clusters
 
 ```{r}
 # Elbow plot function provided in lecture
@@ -261,7 +267,7 @@ set.seed(5013) # for similar reproducing
 df[, c('weight', 'Time')] <- scale( df[, c('weight', 'Time')] )
 ```
 
-```{r}
+```{r, fig.height=3.5}
 # Clustering analysis - identify number of clusters
 
 # Check for "elbow" using lecture method
@@ -270,25 +276,32 @@ wssplot(df[, 1:3], nc=10)
 # Now try nbClust to see how kmeans identifies it
 df.temp <- df
 df.temp$Chick <- as.numeric(df$Chick) # needs to be numeric, not factor. so temp change
-
-# Find the suggested number of clusters
-NbClust(df.temp[, 1:3], method="kmeans")
 ```
 
-```{r}
+```{r, results='hide', cache=TRUE, fig.height=3.5}
+# Find the suggested number of clusters
+NbClust(df.temp[, 1:3], method="kmeans") # commented for speed of repition.
+
 # Actual cluster - using the above number of suggested clusters 
 # Most suggested between (3-5), so try to 4
 
 NUM_CLUSTERS = 4
+```
 
+
+\newpage
+
+### K-Means Clustering
+
+```{r}
 cl <- kmeans(df[,1:3], NUM_CLUSTERS, nstart=100)
 df$kMeansCluster <- as.factor(cl$cluster)
-# head(df)
 
-# Check the clustering if it lined up
+# Check the clustering if it lined up using cofusion matrix
 # A few line up, but not necessariliy ordered well
 table( df$Diet, df$kMeansCluster )
 
+# Create a plot to compare against original diet
 df %>%
   ggplot(aes(y     = weight,
              x     = Time,
@@ -299,8 +312,6 @@ df %>%
   geom_point() +
   
   # Direction of the trend.
-  # Generally the higher the diet, the larger the weight
-  # Diet 3 is exceptional to that statement
   geom_smooth(fill = 'grey85') +
   
   # Labels
@@ -316,6 +327,10 @@ df %>%
 ```
 
 
+\newpage
+
+### Hierarchical Clustering
+
 
 ```{r}
 # hiearchial clustering 
@@ -325,9 +340,9 @@ di <- dist(df, 1:3, method="euclidean")   # with hiearchical clustering, only ne
 
 hc.dward <- hclust(di, method="ward.D")
 
-df$hierarchicalClusterWard <- as.factor(cutree(hc.dward, k=NUM_CLUSTERS))   #cutting at k=3, here are the assignments
+df$hierarchicalClusterWard <- as.factor(cutree(hc.dward, k=NUM_CLUSTERS)) 
 
-# quick check to see how our 'natural clusters' align with Diet data
+# quick check to see how our 'natural clusters' align with Diet data using Confusion Matrix
 # Does a GREAT job!
 table( df$Diet, df$hierarchicalClusterWard )
 
@@ -341,8 +356,6 @@ df %>%
   geom_point() +
   
   # Direction of the trend.
-  # Generally the higher the diet, the larger the weight
-  # Diet 3 is exceptional to that statement
   geom_smooth(fill = 'grey85') +
   
   # Labels
@@ -358,38 +371,33 @@ df %>%
 ```
 
 
+\newpage
+
+### K-Medoid Clustering
+
 ```{r}
-# Try daisy method
+# k mediods (https://www.datanovia.com/en/lessons/k-medoids-in-r-algorithm-and-practical-examples/)
+kMed <- pam(df, NUM_CLUSTERS)
 
-d <- daisy(df[, 1:3], stand=TRUE)
+df$kMedCluster <- as.factor(kMed$clustering)  
 
-hc.avg<-hclust(d, method="average")  # notice how balanced the clusters are
-hc.avg<-hclust(d, method="complete")  # notice how balanced the clusters are
-hc.avg<-hclust(d, method="ward.D")  # notice how balanced the clusters are
-plot(hclus)
-
-
-df$hierarchicalClusterAvg <- as.factor(cutree(hc.avg, k=NUM_CLUSTERS))   #cutting at k=4, here are the assignments
-
-table( df$Diet, df$hierarchicalClusterAvg )
-
+# quick check to see how our 'natural clusters' align with Diet data using Confusion Matrix
+table( df$Diet, df$kMedCluster )
 
 df %>%
   ggplot(aes(y     = weight,
              x     = Time,
-             color = hierarchicalClusterAvg
+             color = kMedCluster
              )) +
 
   # The points  
   geom_point() +
   
   # Direction of the trend.
-  # Generally the higher the diet, the larger the weight
-  # Diet 3 is exceptional to that statement
   geom_smooth(fill = 'grey85') +
   
   # Labels
-  labs(title    = 'How Experimental Diets Affect Chick Weights (Hierarchical Clustered Data - Average)',
+  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Medoid)',
        subtitle = 'Note Adjusted for time since chick birthed',
        x        = 'Number of Days since Chick Birthed',
        y        = 'Weight of the Chick (gm)',
