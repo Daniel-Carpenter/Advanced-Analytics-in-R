@@ -4,14 +4,14 @@ subtitle: "Homework 8 - Clustering"
 author:   "Daniel Carpenter"
 date:     "December 2022"
 output: 
-  pdf_document:
-    toc: true
+  # pdf_document:
+  #   toc: true
+  #   toc_depth: 3
+  #   number_sections: true
+  #   highlight: arrow
+  github_document:
+    toc: yes
     toc_depth: 3
-    number_sections: true
-    highlight: arrow
-  # github_document:
-  #   toc: yes
-  #   toc_depth: 2
 urlcolor: blue
 ---
 
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(message=FALSE,
                       echo=FALSE,
                       fig.width = 7,
                       fig.height = 5,
-                      cache = TRUE
+                      cache = FALSE
                       )
 ```
 
@@ -51,20 +51,28 @@ library(useful)   # provides a plot function for clusters and "FitKMeans" and "P
 library(NbClust)  # provides tons of tools for identifying the "right" number of clusters
 ```
 
-# General Data Prep
+# Data
 > For general data preparation, please see conceptual steps below. See `.rmd` file for detailed code.
 
-## Read Training Data
-Clean data to ensure each read variable has the correct data type (factor, numeric, Date, etc.)
+## General Description
+
+* Data used within model is from the `datasets` R package, called `ChickWeights`. [Source of data located here.](https://www.rdocumentation.org/packages/datasets/versions/3.6.2/topics/ChickWeight)
+
+* This data represents an experiment performed on 50 recently hatched chicks.
+
+* The experimenter fed the chicks 4 separate diets while tracking their respective weights over the period of the trials.
+
+* The four groupings of chicks had differing outcomes of weights, which can be seen later visuals.
+
+* This model attempts to cluster the chicks based on their weight and the time performed, thus *predicting the diet fed to each*.
+
+
 ```{r}
+# Read data from datasets package
 data("ChickWeight")
-df.base <- ChickWeight; rm(ChickWeight)
-```
+df.base <- ChickWeight; rm(ChickWeight) # copy
 
-## Create `numeric` and `factor` *base* `data frames`
-
-Make data set of `numeric` variables called `df.base.numeric`
-```{r}
+# Make data set of `numeric` variables called `df.base.numeric`
 df.base.numeric <- df.base %>%
 
   # selecting all the numeric data
@@ -72,10 +80,8 @@ df.base.numeric <- df.base %>%
 
   # converting the data frame to tibble
   as_tibble()
-```
 
-Make data set of `factor` variables called `df.base.factor`
-```{r}
+# Make data set of `factor` variables called `df.base.factor`
 df.base.factor <- df.base %>%
 
   #selecting all the numeric data
@@ -86,9 +92,8 @@ df.base.factor <- df.base %>%
 ```
 
 
-# Data Understanding
+## Data Understanding
 > Create a data quality report of `numeric` and `factor` data  
-> Created function called `dataQualityReport()` to create factor and numeric QA report
 
 ```{r}
 # Function for data report
@@ -161,7 +166,7 @@ dataQualityReport <- function(df) {
 }
 ```
 
-## Numeric Data Quality Report
+### Numeric Data Quality Report
 
 ```{r}
 # Get the factor and numeric reports
@@ -172,12 +177,12 @@ initialReport$dfStats.num %>% kable()
 
 # Numeric column stats
 initialReport$dfColStats.num %>%
-  kable() %>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
+  kable() #%>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
 ```
 
 <!-- \newpage -->
 
-## Factor Data Quality Report
+### Factor Data Quality Report
 
 * Note that there are four distinct values within the factor field "Diet".  
 
@@ -189,12 +194,24 @@ initialReport$dfStats.factor %>% kable()
 
 # factor column stats
 initialReport$dfColStats.factor %>%
-  kable() %>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
+  kable() #%>% kable_styling(font_size=7, latex_options = 'HOLD_position') # numeric data
 ```
 
 
+\newpage
+
 ## Review Actual Groupings within Unadjusted, or Nominal Data
 
+* Below shows data grouped by each chick over multiple periods of time within the study.
+
+* The color associates with the diet few to the four groupings of chicks.
+
+* The four lines indicate the general trend of weight gain from the diet provided to the chicks. For example,  
+  - Diet 1 provides the least amount of weight gain over all periods, relative to the other diet groups.
+  - Diet 2 offers the second least weight gain over all periods.
+  - Diet 3 and 4 stimulate similar weight gain until ~14 days since the chick hatched;
+  however, diet 3 surpasses diet 4 after day 14.
+  
 ```{r}
 df.base %>%
   ggplot(aes(y     = weight,
@@ -224,14 +241,28 @@ df.base %>%
 
 \newpage
 
-## Clustering Analysis
+# Perform Clustering Analysis
 
-### Discover Automically Suggested Number of Clusters
+* Simply, the model will attempt cluster the chicks by the diet fed to them, without knowing what diet was actually given to them. 
+
+* The three models will display how the cluster of chicks' weights trend over time, as the past graph has shown.
+
+
+## Discover Automically Suggested Number of Clusters
+
+* Using the "elbow" method, a plot can visually indicate the number of potential
+clusters that exist within the data set (assuming we do no know the actual number).
+
+* The below elbow plots, as well the hidden results of the `NbClust` function suggest that
+there are around 3-5 clusters present within the data (based on the time, weight, and chick identifier). 
+
+* Knowing that there are 4 distinct clusters, as well the suggestion of the elbow point below, the k-mean and k-medoid models will attempt to discover four clusters.
+
 
 ```{r}
 # Elbow plot function provided in lecture
-#create our own plot function to look for "Within cluster Sum of square error 'elbow' plot"
-#defaults to 15 as clusters max
+# create our own plot function to look for "Within cluster Sum of square error 'elbow' plot"
+# defaults to 15 as clusters max
 
 wssplot <- function(data, nc=15){                    
 
@@ -267,11 +298,11 @@ set.seed(5013) # for similar reproducing
 df[, c('weight', 'Time')] <- scale( df[, c('weight', 'Time')] )
 ```
 
-```{r, fig.height=3.5}
+```{r, fig.height=4}
 # Clustering analysis - identify number of clusters
 
 # Check for "elbow" using lecture method
-wssplot(df[, 1:3], nc=10)
+wssplot(df[, 1:3], nc=7)
 
 # Now try nbClust to see how kmeans identifies it
 df.temp <- df
@@ -280,7 +311,7 @@ df.temp$Chick <- as.numeric(df$Chick) # needs to be numeric, not factor. so temp
 
 ```{r, results='hide', cache=TRUE, fig.height=3.5}
 # Find the suggested number of clusters
-NbClust(df.temp[, 1:3], method="kmeans") # commented for speed of repition.
+# NbClust(df.temp[, 1:3], method="kmeans") # commented for speed of repition.
 
 # Actual cluster - using the above number of suggested clusters 
 # Most suggested between (3-5), so try to 4
@@ -291,21 +322,37 @@ NUM_CLUSTERS = 4
 
 \newpage
 
-### K-Means Clustering
+## K-Means Clustering
+
+### *Percentage* Confusion Matrix
+* Note that this confusion matrix shows the *percentage* of diet classified as the correct or incorrect class.
+
+```{r}
+# function to show percent confusion matrix
+percentConfusionMat <- function(actual, predicted) {
+  propTable <- prop.table(table( actual, predicted ), margin = 1)
+  
+  return( round(propTable, 2) )
+}
+```
 
 ```{r}
 cl <- kmeans(df[,1:3], NUM_CLUSTERS, nstart=100)
-df$kMeansCluster <- as.factor(cl$cluster)
+df$K_Means <- as.factor(cl$cluster)
 
 # Check the clustering if it lined up using cofusion matrix
 # A few line up, but not necessariliy ordered well
-table( df$Diet, df$kMeansCluster )
+percentConfusionMat( df$Diet, df$K_Means )
+```
 
+### Visualization of Clusters
+
+```{r}
 # Create a plot to compare against original diet
 df %>%
   ggplot(aes(y     = weight,
              x     = Time,
-             color = kMeansCluster
+             color = K_Means
              )) +
 
   # The points  
@@ -315,7 +362,7 @@ df %>%
   geom_smooth(fill = 'grey85') +
   
   # Labels
-  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Means Clustered Data)',
+  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Means Clustering)',
        subtitle = 'Note Adjusted for time since chick birthed',
        x        = 'Number of Days since Chick Birthed',
        y        = 'Weight of the Chick (gm)',
@@ -326,30 +373,40 @@ df %>%
   theme_minimal()
 ```
 
+### Interpretation
+
+* Note that this model performs the clustering 100 times with 100 different initial seeds.
+
+* As seen visually or within the confusion matrix, diet 1 and 4 incorrectly clustered 100% of the time. Diets 2 and 3 separated well, given by the percentage-based confusion matrix.
 
 \newpage
 
-### Hierarchical Clustering
+## Hierarchical Clustering
 
+### *Percentage* Confusion Matrix
 
 ```{r}
 # hiearchial clustering 
 
 # hiearchial clustering requires a distance matrix
-di <- dist(df, 1:3, method="euclidean")   # with hiearchical clustering, only need distance matrix
+di <- dist(df[, 1:3], method="euclidean")   # with hiearchical clustering, only need distance matrix
 
 hc.dward <- hclust(di, method="ward.D")
 
-df$hierarchicalClusterWard <- as.factor(cutree(hc.dward, k=NUM_CLUSTERS)) 
+df$Hierarchical <- as.factor(cutree(hc.dward, k=NUM_CLUSTERS)) 
 
-# quick check to see how our 'natural clusters' align with Diet data using Confusion Matrix
+# quick check to see how our 'natural clusters' align with Diet data using ### *Percentage* Confusion Matrix
 # Does a GREAT job!
-table( df$Diet, df$hierarchicalClusterWard )
+percentConfusionMat( df$Diet, df$Hierarchical ) 
+```
 
+### Visualization of Clusters
+
+```{r}
 df %>%
   ggplot(aes(y     = weight,
              x     = Time,
-             color = hierarchicalClusterWard
+             color = Hierarchical
              )) +
 
   # The points  
@@ -359,7 +416,7 @@ df %>%
   geom_smooth(fill = 'grey85') +
   
   # Labels
-  labs(title    = 'How Experimental Diets Affect Chick Weights (Hierarchical Clustered Data - Ward)',
+  labs(title    = 'How Experimental Diets Affect Chick Weights (Hierarchical Clustering)',
        subtitle = 'Note Adjusted for time since chick birthed',
        x        = 'Number of Days since Chick Birthed',
        y        = 'Weight of the Chick (gm)',
@@ -371,23 +428,35 @@ df %>%
 ```
 
 
+### Interpretation
+
+* As seen visually or within the confusion matrix, diet 1, 2, and 3 have poor levels of clustering prediction.
+
+* Diet 4 was correctly classified 100% of the time. E.g., the model was certain when predicting that the chicks within the diet 4 group were fed diet 4.
+
 \newpage
 
-### K-Medoid Clustering
+## K-Medoid Clustering
+
+### *Percentage* Confusion Matrix
 
 ```{r}
 # k mediods (https://www.datanovia.com/en/lessons/k-medoids-in-r-algorithm-and-practical-examples/)
 kMed <- pam(df, NUM_CLUSTERS)
 
-df$kMedCluster <- as.factor(kMed$clustering)  
+df$K_Medoid <- as.factor(kMed$clustering)  
 
-# quick check to see how our 'natural clusters' align with Diet data using Confusion Matrix
-table( df$Diet, df$kMedCluster )
+# quick check to see how our 'natural clusters' align with Diet data using ### *Percentage* Confusion Matrix
+percentConfusionMat( df$Diet, df$K_Medoid ) 
+```
 
+### Visualization of Clusters
+
+```{r}
 df %>%
   ggplot(aes(y     = weight,
              x     = Time,
-             color = kMedCluster
+             color = K_Medoid
              )) +
 
   # The points  
@@ -397,7 +466,7 @@ df %>%
   geom_smooth(fill = 'grey85') +
   
   # Labels
-  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Medoid)',
+  labs(title    = 'How Experimental Diets Affect Chick Weights (K-Medoid Clustering)',
        subtitle = 'Note Adjusted for time since chick birthed',
        x        = 'Number of Days since Chick Birthed',
        y        = 'Weight of the Chick (gm)',
@@ -407,3 +476,15 @@ df %>%
   scale_color_brewer(palette = 'Set2') +
   theme_minimal()
 ```
+
+### Interpretation
+
+* As seen visually or within the confusion matrix, the model predicted accuracy is the following:
+  - Diet : 84% correct. Misclassification between diets 1 and 2.
+  - Diet : 90% correct.  Misclassification between diets 2 and 3
+  - Diet : 100% correct
+  - Diet : 100% correct
+
+* Overall, the K-Medoid model offers the highest level of accuracy when clustering the chicks into 
+their fed diets, given their identification, weight, and time since birthed. 
+
