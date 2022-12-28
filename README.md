@@ -14,7 +14,7 @@
     - [Fixing Skewed Data](03%20-%20Labs/04%20-%20Data%20Wrangling/README.md/#2-a---fixing-skewed-data)
     - [Impute Missing Values](03%20-%20Labs/04%20-%20Data%20Wrangling/README.md/#2-b---impute-missing-values)
     - [Dummy Variable Manipulation](03%20-%20Labs/04%20-%20Data%20Wrangling/README.md/#2-c---dummy-variable-manipulation)
-    - [Factor Lumping](03%20-%20Labs/05%20-%20Modeling#iii-factor-level-collapsing)
+    - [Factor Lumping](https://github.com/Daniel-Carpenter/Advanced-Analytics-in-R/tree/main/03%20-%20Labs/05%20-%20Modeling#iii-factor-level-collapsing)
 
 ### Prediction Modeling
 * [Multivariate Modeling](03%20-%20Labs/05%20-%20Modeling/README.md) (`PLS`, `LASSO`, `PCR`, `SVM`, `MARS`)
