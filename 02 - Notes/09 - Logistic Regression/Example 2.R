@@ -3,7 +3,7 @@
 #October 2015
 
 
-honors <- read.csv("C:/Users/daniel.carpenter/OneDrive - the Chickasaw Nation/Documents/GitHub/OU-DSA/IDA/02 - Notes/09 - Logistic Regression/honors.csv")  #you will need to import your data
+honors <- read.csv("honors.csv")  #you will need to import your data
 
 
 #we will use a simple model for the example
